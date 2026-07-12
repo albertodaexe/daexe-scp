@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DAEXE · Planejamento Estratégico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#1F3A5F; --navy-d:#162a45; --accent:#2E8BC0; --gold:#E6A817;
+  --bg:#f4f6f9; --card:#fff; --line:#e4e8ee; --text:#22303f; --muted:#6b7a8d;
+  --green:#2e9e6b; --red:#d9534f; --amber:#e6a817;
+  --radius:12px; --shadow:0 1px 3px rgba(20,40,70,.08),0 4px 16px rgba(20,40,70,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.hidden{display:none!important}
+a{color:var(--accent)}
+code{background:#eef2f7;padding:1px 6px;border-radius:5px;font-size:.85em}
+.btn{border:none;border-radius:9px;padding:9px 16px;font-size:14px;cursor:pointer;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy-d)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-light{background:#eef2f7;color:var(--navy)}
+.btn-light:hover{background:#e2e9f1}
+.btn-ghost{background:transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--navy)}
+.btn-danger{background:#fbeaea;color:var(--red)}
+.btn-sm{padding:6px 11px;font-size:12.5px}
+.btn-block{width:100%;justify-content:center;margin-top:10px}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1F3A5F,#2E8BC0)}
+.login-card{background:#fff;border-radius:18px;padding:38px 34px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-brand{text-align:center;margin-bottom:22px}
+.login-brand h1{color:var(--navy);font-size:28px;letter-spacing:2px;margin-top:10px}
+.login-brand p{color:var(--muted);font-size:13px}
+.logo-badge{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto}
+.logo-badge.sm{width:38px;height:38px;font-size:15px;border-radius:10px}
+#login-form label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+#login-form input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px}
+#login-form input:focus{outline:none;border-color:var(--accent)}
+.login-error{color:var(--red);font-size:13px;margin-top:10px;text-align:center}
+.login-hint{margin-top:22px;padding:14px;background:#f4f6f9;border-radius:10px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7}
+.app{display:flex;min-height:100vh}
+.sidebar{width:248px;background:var(--navy);color:#cdd8e6;display:flex;flex-direction:column;position:fixed;height:100vh}
+.sidebar-brand{display:flex;align-items:center;gap:11px;padding:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-brand strong{color:#fff;display:block;font-size:16px;letter-spacing:1px}
+.sidebar-brand span{font-size:11px;color:#8fa3bd}
+#nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-section{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:#6f86a3;margin:16px 12px 6px;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;cursor:pointer;color:#cdd8e6;font-size:13.5px;font-weight:500}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:var(--accent);color:#fff}
+.nav-item .ico{width:18px;text-align:center}
+.sidebar-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+.user-chip{font-size:12.5px}.user-chip strong{color:#fff;display:block}
+.user-chip span{color:#8fa3bd;font-size:11px}
+.content{flex:1;margin-left:248px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.topbar h2{font-size:19px;color:var(--navy)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.role-badge{background:#eef2f7;color:var(--navy);padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:700}
+.view{padding:26px 28px;max-width:1180px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-bottom:22px}
+.stat{background:var(--card);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid var(--accent)}
+.stat .label{font-size:12px;color:var(--muted);font-weight:600}
+.stat .value{font-size:28px;font-weight:800;color:var(--navy);margin-top:4px}
+.stat .sub{font-size:11.5px;color:var(--muted)}
+.card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
+.card h3{color:var(--navy);font-size:16px;margin-bottom:4px}
+.card .desc{color:var(--muted);font-size:13px;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}.sidebar{width:64px}.content{margin-left:64px}.sidebar-brand span,.sidebar-brand strong,.nav-item span:not(.ico),.nav-section,.user-chip{display:none}}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#f7f9fc;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#fafbfd}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-head h3{color:var(--navy);font-size:17px}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.pill-green{background:#e3f3ec;color:var(--green)}
+.pill-amber{background:#fcf3da;color:#b9860f}
+.pill-red{background:#fbeaea;color:var(--red)}
+.pill-blue{background:#e6f1f8;color:var(--accent)}
+.pill-gray{background:#eef2f7;color:var(--muted)}
+.swot-Força{border-left:4px solid var(--green)}
+.swot-Fraqueza{border-left:4px solid var(--red)}
+.swot-Oportunidade{border-left:4px solid var(--accent)}
+.swot-Ameaça{border-left:4px solid var(--gold)}
+.progress{background:#eef2f7;border-radius:20px;height:8px;overflow:hidden;min-width:90px}
+.progress > i{display:block;height:100%;background:var(--accent);border-radius:20px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(20,30,45,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal{background:#fff;border-radius:14px;width:560px;max-width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.modal-head h3{color:var(--navy)}
+.modal-x{background:none;border:none;font-size:26px;cursor:pointer;color:var(--muted);line-height:1}
+.modal-body{padding:22px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field textarea{min-height:70px;resize:vertical}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.bsc-row{display:grid;grid-template-columns:200px 1fr;gap:14px;margin-bottom:14px;align-items:start}
+.bsc-persp{background:var(--navy);color:#fff;border-radius:10px;padding:14px;font-weight:700;font-size:14px}
+.bsc-objs{display:flex;flex-wrap:wrap;gap:10px}
+.bsc-obj{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;flex:1;min-width:200px;box-shadow:var(--shadow)}
+.bsc-obj b{color:var(--navy);font-size:13.5px}
+.bsc-obj ul{margin:8px 0 0 16px;font-size:12px;color:var(--muted)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:13px 20px;border-radius:10px;box-shadow:var(--shadow);z-index:90;font-size:13.5px}
+.empty{text-align:center;color:var(--muted);padding:40px;font-size:14px}
+.philo-box{background:linear-gradient(135deg,#1F3A5F,#2E8BC0);color:#fff;border-radius:14px;padding:26px;margin-bottom:20px}
+.philo-box h4{font-size:13px;text-transform:uppercase;letter-spacing:1px;opacity:.8}
+.philo-box p{font-size:17px;margin-top:6px;font-weight:500}
+.value-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.value-item{background:#fff;border-radius:10px;padding:14px;box-shadow:var(--shadow);border-left:4px solid var(--gold)}
+.value-item b{color:var(--navy)}
+.value-item p{color:var(--muted);font-size:12.5px;margin-top:4px}
+.inline-actions{display:flex;gap:6px}
+.gut-num{font-weight:800;color:var(--navy)}
+</style>
+</head>
+<body>
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="logo-badge">DX</div>
+        <h1>DAEXE</h1>
+        <p>Sistema de Planejamento Estratégico</p>
+      </div>
+      <form id="login-form">
+        <label>E-mail</label>
+        <input type="email" id="login-email" placeholder="seu@email.com.br" required />
+        <label>Senha</label>
+        <input type="password" id="login-password" placeholder="••••••••" required />
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        <p id="login-error" class="login-error"></p>
+      </form>
+      <div class="login-hint">
+        <strong>Acesso de demonstração</strong><br/>
+        admin@daexe.com.br · gestor@daexe.com.br<br/>
+        colaborador@daexe.com.br · visual@daexe.com.br<br/>
+        senha: <code>daexe123</code>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-badge sm">DX</div>
+        <div><strong>DAEXE</strong><span>Planejamento</span></div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-foot">
+        <div id="user-chip" class="user-chip"></div>
+        <button id="logout-btn" class="btn btn-ghost btn-sm">Sair</button>
+      </div>
+    </aside>
+    <main class="content">
+      <header class="topbar">
+        <h2 id="page-title">Painel</h2>
+        <div class="topbar-actions">
+          <button class="btn btn-light btn-sm" onclick="App.exportFile('pdf')">⤓ PDF</button>
+          <button class="btn btn-light btn-sm" onclick="App.exportFile('excel')">⤓ Excel</button>
+          <span id="role-badge" class="role-badge"></span>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+
+  <div id="modal-backdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head"><h3 id="modal-title"></h3><button onclick="App.closeModal()" class="modal-x">×</button></div>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+
+<script>
+/* ============================================================
+   CAMADA DE DADOS LOCAL (substitui o backend Node/SQLite)
+   Tudo roda no navegador. Os dados ficam salvos em localStorage.
+============================================================ */
+const STORE_KEY = 'daexe_scp_v1';
+let DBX = null;
+
+function nid(arr){ return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
+function saveDB(){ localStorage.setItem(STORE_KEY, JSON.stringify(DBX)); }
+function loadDB(){
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) { try { DBX = JSON.parse(raw); return; } catch(e){} }
+  DBX = seedData(); saveDB();
+}
+function resetDB(){ DBX = seedData(); saveDB(); }
+
+function seedData(){
+  const db = { company:{}, company_values:[], departments:[], swot_items:[], value_curve:[],
+    bsc_perspectives:[], objectives:[], goals:[], initiatives:[], goal_performance:[],
+    evaluations:[], notifications:[], users:[] };
+
+  db.company = { id:1, name:'Daexe', plan_start:'2026-01-15', plan_end:'2027-01-15', vigencia_meses:12,
+    mission:'Organizar o mundo e materializar os objetivos dos empresários.',
+    vision:'Estar entre as melhores empresas de consultoria do mundo, sendo referência em resultados corporativos.',
+    positioning:'Posicionamento Estratégico 2026' };
+
+  [['Tempestividade','Cumprir prazos acordados com eficiência e eficácia nos serviços prestados, de forma antecipada.'],
+   ['Qualidade','Exagero na qualidade em tudo que fazemos.'],
+   ['Autodesenvolvimento e Alta Performance','Aperfeiçoamento contínuo.'],
+   ['Simplicidade','Busca incessante pela excelência e simplicidade nas soluções.'],
+   ['Confiança','Sinceridade acima de tudo.'],
+   ['Resultados Consistentes','Pessoas + Competência (CHAVE: Conhecimento, Habilidade, Atitude, Valores, Entrega) + Processos.'],
+   ['Liberdade com Responsabilidade','Ter mente empreendedora, autorresponsabilidade e consolidar metas e resultados.']
+  ].forEach((v,i)=> db.company_values.push({ id:i+1, title:v[0], description:v[1], ord:i }));
+
+  [['1.0','Sucesso do Cliente e Projetos','Operação'],
+   ['2.0','Comercial','Vendas'],
+   ['3.0','Financeiro','Administrativo'],
+   ['4.0','Gente e Gestão','Pessoas'],
+   ['5.0','Inovação e Tecnologia','Estratégico']
+  ].forEach((d,i)=> db.departments.push({ id:i+1, num:d[0], name:d[1], atuacao:d[2] }));
+
+  ['Financeira','Clientes','Processos internos','Inovação e Pessoas']
+    .forEach((p,i)=> db.bsc_perspectives.push({ id:i+1, name:p, ord:i }));
+
+  // Objetivos
+  db.objectives = [
+    { id:1, code:'1', title:'Aumentar a Receita independente e recorrente', perspective_id:1, department_id:1 },
+    { id:2, code:'2', title:'Aumentar o Prestígio da Marca', perspective_id:2, department_id:2 },
+    { id:3, code:'3', title:'Alcançar Excelência Operacional', perspective_id:3, department_id:1 },
+    { id:4, code:'4', title:'Garantir a Perenidade da Daexe', perspective_id:4, department_id:4 }
+  ];
+  // Metas SMART
+  const G = (objective_id, smart_text, period) => db.goals.push({ id:db.goals.length+1, objective_id, smart_text, target_value:null, unit:'', period });
+  G(1,'Faturar R$ 2.100.000,00 até o final do Trimestre.','T1 2026');
+  G(1,'Gerar, até o final do semestre, no mínimo X de receita recorrente.','S1 2026');
+  G(2,'Alcançar 75% de NPS nos Projetos Sebrae.','T1 2026');
+  G(2,'Garantir que, até o final do trimestre, X% dos clientes recomendem a Daexe.','T1 2026');
+  G(3,'Entregar as demandas do Departamento com 100% de conformidade.','T1 2026');
+  G(3,'Alcançar 90% das tarefas concluídas no prazo.','T1 2026');
+  G(3,'Garantir a entrega de no mínimo 90% dos projetos no prazo.','T1 2026');
+  G(4,'Obter 85% na Avaliação de Desempenho no trimestre.','T1 2026');
+  G(4,'Ter 2 especialistas dentro do Departamento.','T1 2026');
+  G(4,'No trimestre, 100% dos assessores iniciarem o plano de desenvolvimento.','T1 2026');
+  G(4,'Implementar e/ou testar 01 projeto de Inovação.','T1 2026');
+  // Iniciativas 5W2H
+  const I = (code,objective_id,name,who,how,status,progress,why) => db.initiatives.push({
+    id:db.initiatives.length+1, code, objective_id, name, who, date_start:'2026-01-15', date_end:'2026-04-15',
+    how, how_much:'', where_:'', why, status, progress, notes:'' });
+  I('1',1,'Projeto Operação Caixa Forte','CEO','Estruturação de fluxo de caixa e cobrança.','Em andamento',25,'Garantir saúde financeira e previsibilidade.');
+  I('2',1,'Projeto Mais Sucesso do Cliente','GPC','Programa de retenção e expansão de contas.','Não iniciado',0,'Aumentar receita recorrente.');
+  I('3',2,'Programa Cliente Feliz','GPC','Pesquisa NPS e plano de melhoria contínua.','Em andamento',40,'Fortalecer marca e indicação.');
+  I('4',2,'Programa Just in Time','GPP','Antecipação de entregas e prazos.','Não iniciado',0,'Reduzir atrasos e elevar satisfação.');
+  I('5',3,'Programa Excelência Daexe','GPP','Padronização de POPs e checklists.','Em andamento',30,'Reduzir retrabalho e elevar qualidade.');
+  I('6',4,'Programa Desenvolve Daexe (Gestão de Pessoas)','Gente e Gestão','Plano de desenvolvimento individual e avaliação.','Não iniciado',0,'Reter e desenvolver talentos.');
+  I('7',4,'Desenvolver SCP','Inovação e Tecnologia','Sistema de Controle de Planejamento.','Em andamento',15,'Profissionalizar a gestão estratégica.');
+  I('8',4,'Projetar Inova Daexe - SCP','Inovação e Tecnologia','Testes de IA e automações.','Não iniciado',0,'Inovação contínua.');
+
+  [['Força','Consolidação da Metodologia de Mentoria',5,5,5],
+   ['Força','Metodologia de Gestão e Execução',1,1,1],
+   ['Força','Relacionamento com os Clientes',3,3,3],
+   ['Força','Recrutamento e Seleção do projeto',3,3,3],
+   ['Fraqueza','Conformidade de Processos com a metodologia',5,4,3],
+   ['Fraqueza','Mensuração e Feedback de Impacto',5,4,5],
+   ['Fraqueza','Antecipar o Cumprimento de Prazos',5,5,5],
+   ['Fraqueza','Delegar tarefas',5,4,5],
+   ['Fraqueza','Poucos Consultores habilitados',5,5,5],
+   ['Fraqueza','Capacidade de Elaborar Plano de Ação',5,5,5],
+   ['Oportunidade','Identificar empresas em processo de expansão',5,5,5],
+   ['Oportunidade','Capacitar Agentes de IA no Bitrix',5,5,5],
+   ['Ameaça','Imprevisibilidade de agenda dos clientes',5,5,5],
+   ['Ameaça','Crises Econômicas',5,5,5],
+   ['Ameaça','Mudanças de Mercado e Tecnologia',5,5,5],
+   ['Ameaça','Riscos jurídicos',5,5,5],
+   ['Ameaça','Saturação operacional',5,4,5]
+  ].forEach((s,i)=> db.swot_items.push({ id:i+1, classification:s[0], item:s[1], department_id:1,
+    gravidade:s[2], urgencia:s[3], tendencia:s[4], insights:'' }));
+
+  [['Qualidade da entrega',9,6],['Preço',5,7],['Atendimento/Relacionamento',9,5],
+   ['Tempestividade (prazo)',8,5],['Inovação/IA',8,4],['Metodologia própria',9,4]
+  ].forEach((c,i)=> db.value_curve.push({ id:i+1, attribute:c[0], daexe_score:c[1], competitor_score:c[2], ord:i }));
+
+  db.users = [
+    { id:1, name:'Administrador DAEXE', email:'admin@daexe.com.br', password:'daexe123', role:'admin', department_id:null, active:1 },
+    { id:2, name:'Gestor de Projetos', email:'gestor@daexe.com.br', password:'daexe123', role:'manager', department_id:1, active:1 },
+    { id:3, name:'Colaborador', email:'colaborador@daexe.com.br', password:'daexe123', role:'contributor', department_id:1, active:1 },
+    { id:4, name:'Visualizador', email:'visual@daexe.com.br', password:'daexe123', role:'viewer', department_id:null, active:1 }
+  ];
+
+  const competencies = ['Organização','Resultados Consistentes','Qualidade','Sagaz e Ágil','Inovador','Autodesenvolvimento','Comunicação'];
+  const months = ['Janeiro','Fevereiro','Março'];
+  let eid = 1;
+  competencies.forEach(c => months.forEach(m => db.evaluations.push({
+    id:eid++, user_id:2, competency:c, month:m,
+    self_score:Math.round(Math.random()*4+4), manager_score:Math.round(Math.random()*3+6) })));
+
+  [['Jan',700000,350000],['Fev',700000,480000],['Mar',700000,610000]].forEach((p,i)=>
+    db.goal_performance.push({ id:i+1, goal_id:1, period_type:'mensal', period_label:p[0],
+      target_value:p[1], actual_value:p[2], updated_by:1, updated_at:'' }));
+
+  return db;
+}
+
+/* ---------- "API" local: imita as rotas do servidor ---------- */
+const RANKX = { viewer:0, contributor:1, manager:2, admin:3 };
+let CURRENT = null; // usuário logado
+
+function deptName(id){ const d = DBX.departments.find(x=>x.id===id); return d?d.name:null; }
+function objTitle(id){ const o = DBX.objectives.find(x=>x.id===id); return o?o.title:null; }
+function objCode(id){ const o = DBX.objectives.find(x=>x.id===id); return o?o.code:null; }
+function smartText(id){ const g = DBX.goals.find(x=>x.id===id); return g?g.smart_text:''; }
+
+function api(path, opts = {}) {
+  return new Promise((resolve, reject) => {
+    try { resolve(route(path, opts)); }
+    catch (e) { reject(e); }
+  });
+}
+
+function route(path, opts) {
+  const method = (opts.method || 'GET').toUpperCase();
+  const body = opts.body ? JSON.parse(opts.body) : {};
+  const seg = path.split('/').filter(Boolean); // ex: ['swot','3']
+  const head = seg[0];
+  const idp = seg[1] ? parseInt(seg[1], 10) : null;
+  const find = (arr) => arr.find(x => x.id === idp);
+  const okSave = (v) => { saveDB(); return v; };
+
+  // LOGIN
+  if (head === 'login' && method === 'POST') {
+    const u = DBX.users.find(x => x.email === (body.email||'').trim().toLowerCase() && x.active === 1);
+    if (!u || u.password !== (body.password||'')) { const e = new Error('E-mail ou senha inválidos'); throw e; }
+    CURRENT = { id:u.id, name:u.name, email:u.email, role:u.role, department_id:u.department_id };
+    return { token:'local-'+u.id, user:CURRENT };
+  }
+
+  // DASHBOARD
+  if (head === 'dashboard') {
+    const byStatusMap = {};
+    DBX.initiatives.forEach(i => { (byStatusMap[i.status] = byStatusMap[i.status] || []).push(i); });
+    const byStatus = Object.keys(byStatusMap).map(s => ({ status:s, c:byStatusMap[s].length,
+      p: byStatusMap[s].reduce((a,b)=>a+(b.progress||0),0)/byStatusMap[s].length }));
+    const avg = DBX.initiatives.length ? DBX.initiatives.reduce((a,b)=>a+(b.progress||0),0)/DBX.initiatives.length : 0;
+    const swMap = {};
+    DBX.swot_items.forEach(s => swMap[s.classification] = (swMap[s.classification]||0)+1);
+    const swotByClass = Object.keys(swMap).map(k => ({ classification:k, c:swMap[k] }));
+    const topGut = DBX.swot_items.map(s => ({ item:s.item, gut:s.gravidade*s.urgencia*s.tendencia, classification:s.classification }))
+      .sort((a,b)=>b.gut-a.gut).slice(0,5);
+    const perfMap = {};
+    DBX.goal_performance.forEach(gp => { (perfMap[gp.goal_id] = perfMap[gp.goal_id] || { t:0, a:0 });
+      perfMap[gp.goal_id].t += gp.target_value||0; perfMap[gp.goal_id].a += gp.actual_value||0; });
+    const perf = Object.keys(perfMap).map(gid => ({ smart_text:smartText(parseInt(gid,10)), t:perfMap[gid].t, a:perfMap[gid].a }));
+    return { objectives:DBX.objectives.length, goals:DBX.goals.length,
+      initiatives:{ total:DBX.initiatives.length, avgProgress:Math.round(avg), byStatus }, swotByClass, topGut, perf };
+  }
+
+  // COMPANY / VALUES
+  if (head === 'company') {
+    if (method === 'GET') return { company:DBX.company, values:[...DBX.company_values].sort((a,b)=>a.ord-b.ord) };
+    if (method === 'PUT') { Object.assign(DBX.company, {
+      name:body.name, plan_start:body.plan_start, plan_end:body.plan_end, vigencia_meses:body.vigencia_meses,
+      mission:body.mission, vision:body.vision, positioning:body.positioning }); return okSave({ ok:true }); }
+  }
+  if (head === 'values') {
+    if (method === 'POST') { const ord = DBX.company_values.reduce((m,v)=>Math.max(m,v.ord),0)+1;
+      const r = { id:nid(DBX.company_values), title:body.title, description:body.description, ord }; DBX.company_values.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const v = find(DBX.company_values); if(v){ v.title=body.title; v.description=body.description; } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.company_values = DBX.company_values.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // DEPARTMENTS
+  if (head === 'departments') {
+    if (method === 'GET') return [...DBX.departments].sort((a,b)=>a.id-b.id);
+    if (method === 'POST') { const r = { id:nid(DBX.departments), num:body.num, name:body.name, atuacao:body.atuacao }; DBX.departments.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const d = find(DBX.departments); if(d){ d.num=body.num; d.name=body.name; d.atuacao=body.atuacao; } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.departments = DBX.departments.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // SWOT
+  if (head === 'swot') {
+    if (method === 'GET') return DBX.swot_items.map(s => ({ ...s, gut:s.gravidade*s.urgencia*s.tendencia, dept:deptName(s.department_id) }))
+      .sort((a,b)=>b.gut-a.gut);
+    if (method === 'POST') { const r = { id:nid(DBX.swot_items), classification:body.classification, item:body.item,
+      department_id:body.department_id||null, gravidade:body.gravidade||1, urgencia:body.urgencia||1, tendencia:body.tendencia||1, insights:body.insights||'' };
+      DBX.swot_items.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const s = find(DBX.swot_items); if(s){ Object.assign(s, { classification:body.classification, item:body.item,
+      department_id:body.department_id||null, gravidade:body.gravidade, urgencia:body.urgencia, tendencia:body.tendencia, insights:body.insights||'' }); } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.swot_items = DBX.swot_items.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // VALUE CURVE
+  if (head === 'value-curve') {
+    if (method === 'GET') return [...DBX.value_curve].sort((a,b)=>(a.ord-b.ord)||(a.id-b.id));
+    if (method === 'POST') { const ord = DBX.value_curve.reduce((m,v)=>Math.max(m,v.ord),0)+1;
+      const r = { id:nid(DBX.value_curve), attribute:body.attribute, daexe_score:body.daexe_score||0, competitor_score:body.competitor_score||0, ord }; DBX.value_curve.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const v = find(DBX.value_curve); if(v){ v.attribute=body.attribute; v.daexe_score=body.daexe_score; v.competitor_score=body.competitor_score; } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.value_curve = DBX.value_curve.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // BSC
+  if (head === 'bsc') {
+    return { perspectives:[...DBX.bsc_perspectives].sort((a,b)=>a.ord-b.ord),
+      objectives:[...DBX.objectives].sort((a,b)=>String(a.code).localeCompare(String(b.code))),
+      goals:[...DBX.goals].sort((a,b)=>a.id-b.id) };
+  }
+  if (head === 'objectives') {
+    if (method === 'POST') { const r = { id:nid(DBX.objectives), code:body.code, title:body.title, perspective_id:body.perspective_id||null, department_id:body.department_id||null }; DBX.objectives.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const o = find(DBX.objectives); if(o){ o.code=body.code; o.title=body.title; o.perspective_id=body.perspective_id||null; o.department_id=body.department_id||null; } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.objectives = DBX.objectives.filter(x=>x.id!==idp); DBX.goals = DBX.goals.filter(g=>g.objective_id!==idp); return okSave({ ok:true }); }
+  }
+  if (head === 'goals') {
+    if (method === 'POST') { const r = { id:nid(DBX.goals), objective_id:body.objective_id, smart_text:body.smart_text, target_value:body.target_value||null, unit:body.unit||'', period:body.period||'' }; DBX.goals.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const g = find(DBX.goals); if(g){ g.smart_text=body.smart_text; g.target_value=body.target_value||null; g.unit=body.unit||''; g.period=body.period||''; if(body.objective_id) g.objective_id=body.objective_id; } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.goals = DBX.goals.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // INITIATIVES
+  if (head === 'initiatives') {
+    if (method === 'GET') return DBX.initiatives.map(i => ({ ...i, objective_title:objTitle(i.objective_id), objective_code:objCode(i.objective_id) }))
+      .sort((a,b)=>String(a.code).localeCompare(String(b.code))||a.id-b.id);
+    if (method === 'POST') { const r = { id:nid(DBX.initiatives), code:body.code||'', objective_id:body.objective_id||null, name:body.name,
+      who:body.who||'', date_start:body.date_start||'', date_end:body.date_end||'', how:body.how||'', how_much:body.how_much||'',
+      where_:body.where_||'', why:body.why||'', status:body.status||'Não iniciado', progress:body.progress||0, notes:body.notes||'' };
+      DBX.initiatives.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const i = find(DBX.initiatives); if(i){ Object.assign(i, { code:body.code||'', objective_id:body.objective_id||null, name:body.name,
+      who:body.who||'', date_start:body.date_start||'', date_end:body.date_end||'', how:body.how||'', how_much:body.how_much||'',
+      where_:body.where_||'', why:body.why||'', status:body.status, progress:body.progress, notes:body.notes||'' }); } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.initiatives = DBX.initiatives.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // PERFORMANCE
+  if (head === 'performance') {
+    if (method === 'GET') return DBX.goal_performance.map(gp => ({ ...gp, smart_text:smartText(gp.goal_id),
+      objective_title:(()=>{ const g=DBX.goals.find(x=>x.id===gp.goal_id); return g?objTitle(g.objective_id):null; })() }))
+      .sort((a,b)=>(a.goal_id-b.goal_id)||(a.id-b.id));
+    if (method === 'POST') { const r = { id:nid(DBX.goal_performance), goal_id:body.goal_id, period_type:body.period_type||'mensal',
+      period_label:body.period_label, target_value:body.target_value||0, actual_value:body.actual_value||0, updated_by:CURRENT.id, updated_at:'' };
+      DBX.goal_performance.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const r = find(DBX.goal_performance); if(r){ Object.assign(r, { period_type:body.period_type, period_label:body.period_label,
+      target_value:body.target_value, actual_value:body.actual_value, updated_by:CURRENT.id }); } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.goal_performance = DBX.goal_performance.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // EVALUATIONS
+  if (head === 'evaluations') {
+    if (method === 'GET') {
+      let rows = DBX.evaluations.map(e => ({ ...e, user_name:(DBX.users.find(u=>u.id===e.user_id)||{}).name||'' }));
+      if (RANKX[CURRENT.role] < RANKX.manager) rows = rows.filter(e => e.user_id === CURRENT.id);
+      return rows.sort((a,b)=>String(a.user_name).localeCompare(String(b.user_name))||String(a.month).localeCompare(String(b.month)));
+    }
+    if (method === 'POST') { const uid = (RANKX[CURRENT.role] >= RANKX.manager && body.user_id) ? body.user_id : CURRENT.id;
+      const r = { id:nid(DBX.evaluations), user_id:uid, competency:body.competency, month:body.month, self_score:body.self_score||0, manager_score:body.manager_score||0 };
+      DBX.evaluations.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const e = find(DBX.evaluations); if(e){ const isM = RANKX[CURRENT.role] >= RANKX.manager;
+      if (body.self_score != null) e.self_score = body.self_score; if (isM && body.manager_score != null) e.manager_score = body.manager_score; } return okSave({ ok:true }); }
+  }
+
+  // USERS
+  if (head === 'users') {
+    if (method === 'GET') return DBX.users.map(u => ({ id:u.id, name:u.name, email:u.email, role:u.role,
+      department_id:u.department_id, active:u.active, dept:deptName(u.department_id) })).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    if (method === 'POST') { if (DBX.users.some(u=>u.email===(body.email||'').toLowerCase())) { throw new Error('E-mail já cadastrado'); }
+      const r = { id:nid(DBX.users), name:body.name, email:(body.email||'').toLowerCase(), password:body.password||'daexe123',
+        role:body.role||'viewer', department_id:body.department_id||null, active:1 }; DBX.users.push(r); return okSave({ id:r.id }); }
+    if (method === 'PUT') { const u = find(DBX.users); if(u){ u.name=body.name??u.name; u.role=body.role??u.role;
+      u.department_id=body.department_id??u.department_id; if(body.active!=null) u.active=body.active; if(body.password) u.password=body.password; } return okSave({ ok:true }); }
+    if (method === 'DELETE') { DBX.users = DBX.users.filter(x=>x.id!==idp); return okSave({ ok:true }); }
+  }
+
+  // NOTIFICATIONS
+  if (head === 'notifications') {
+    if (seg[1] === 'remind' && method === 'POST') {
+      const r = { id:nid(DBX.notifications), user_id:body.user_id||null, title:body.title||'Lembrete', body:body.body||'', read:0,
+        created_at:new Date().toLocaleString('pt-BR') }; DBX.notifications.push(r); return okSave({ ok:true });
+    }
+    if (method === 'GET') return DBX.notifications.filter(n => n.user_id == null || n.user_id === CURRENT.id)
+      .sort((a,b)=>b.id-a.id).slice(0,50);
+  }
+
+  throw new Error('Rota não encontrada: ' + method + ' ' + path);
+}
+
+/* ============================================================
+   SPA DAEXE — interface (idêntica à versão com servidor)
+============================================================ */
+const App = (() => {
+  let me = null, charts = {};
+  const RANK = { viewer: 0, contributor: 1, manager: 2, admin: 3 };
+  const ROLE_LABEL = { admin: 'Administrador', manager: 'Gestor', contributor: 'Colaborador', viewer: 'Visualizador' };
+  const can = (r) => me && RANK[me.role] >= RANK[r];
+
+  async function login(email, password) {
+    const data = await api('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    me = data.user; CURRENT = me;
+    sessionStorage.setItem('daexe_u', JSON.stringify(me));
+    boot();
+  }
+  function logout() {
+    me = null; CURRENT = null; sessionStorage.removeItem('daexe_u');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+  }
+  function boot() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('user-chip').innerHTML = `<strong>${me.name}</strong><span>${me.email}</span>`;
+    document.getElementById('role-badge').textContent = ROLE_LABEL[me.role];
+    renderNav();
+    go('dashboard');
+  }
+
+  const NAV = [
+    { sec: 'Estratégia' },
+    { id: 'dashboard', label: 'Painel', ico: '📊' },
+    { id: 'filosofia', label: 'Filosofia', ico: '🎯' },
+    { id: 'departamentos', label: 'Departamentos', ico: '🏢' },
+    { id: 'swot', label: 'SWOT / GUT', ico: '⚖️' },
+    { id: 'curva', label: 'Curva de Valor', ico: '📈' },
+    { sec: 'Execução' },
+    { id: 'bsc', label: 'Mapa BSC', ico: '🗺️' },
+    { id: 'okr', label: 'Objetivos & Metas', ico: '✅' },
+    { id: 'iniciativas', label: 'Iniciativas (5W2H)', ico: '🚀' },
+    { id: 'desempenho', label: 'Desempenho de Metas', ico: '📉' },
+    { id: 'avaliacao', label: 'Avaliação', ico: '⭐' },
+    { sec: 'Gestão', role: 'manager' },
+    { id: 'usuarios', label: 'Usuários & Acessos', ico: '👥', role: 'manager' },
+    { id: 'notificacoes', label: 'Notificações', ico: '🔔' }
+  ];
+  function renderNav() {
+    const nav = document.getElementById('nav'); nav.innerHTML = '';
+    NAV.forEach(n => {
+      if (n.role && !can(n.role)) return;
+      if (n.sec) { const s = document.createElement('div'); s.className = 'nav-section'; s.textContent = n.sec; nav.appendChild(s); return; }
+      const d = document.createElement('div'); d.className = 'nav-item'; d.dataset.id = n.id;
+      d.innerHTML = `<span class="ico">${n.ico}</span><span>${n.label}</span>`;
+      d.onclick = () => go(n.id);
+      nav.appendChild(d);
+    });
+  }
+  let current = null;
+  function go(id) {
+    current = id;
+    document.querySelectorAll('.nav-item').forEach(e => e.classList.toggle('active', e.dataset.id === id));
+    const v = document.getElementById('view'); v.innerHTML = '<div class="empty">Carregando…</div>';
+    const def = NAV.find(n => n.id === id);
+    document.getElementById('page-title').textContent = def ? def.label : 'Painel';
+    (VIEWS[id] || VIEWS.dashboard)(v);
+  }
+
+  const esc = (s) => (s == null ? '' : String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])));
+  function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 2600); }
+  function modal(title, bodyHtml) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = bodyHtml;
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+  }
+  function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); }
+  function form(fields) { return fields.map(f => f).join(''); }
+  const f = {
+    text: (id, label, val = '', extra = '') => `<div class="field"><label>${label}</label><input id="${id}" value="${esc(val)}" ${extra}></div>`,
+    num: (id, label, val = '', extra = '') => `<div class="field"><label>${label}</label><input type="number" id="${id}" value="${val ?? ''}" ${extra}></div>`,
+    date: (id, label, val = '') => `<div class="field"><label>${label}</label><input type="date" id="${id}" value="${val ? String(val).slice(0, 10) : ''}"></div>`,
+    area: (id, label, val = '') => `<div class="field"><label>${label}</label><textarea id="${id}">${esc(val)}</textarea></div>`,
+    sel: (id, label, opts, val) => `<div class="field"><label>${label}</label><select id="${id}">${opts.map(o => `<option value="${o.v}" ${o.v == val ? 'selected' : ''}>${esc(o.t)}</option>`).join('')}</select></div>`
+  };
+  const val = (id) => { const e = document.getElementById(id); return e ? e.value : ''; };
+  const pct = (a, t) => t ? Math.round(a / t * 100) : 0;
+  function statusPill(s) {
+    const m = { 'Concluído': 'pill-green', 'Em andamento': 'pill-blue', 'Não iniciado': 'pill-gray', 'Atrasado': 'pill-red' };
+    return `<span class="pill ${m[s] || 'pill-gray'}">${esc(s)}</span>`;
+  }
+  function bar(p) { const c = p >= 80 ? 'var(--green)' : p >= 40 ? 'var(--accent)' : 'var(--amber)'; return `<div class="progress"><i style="width:${Math.min(p, 100)}%;background:${c}"></i></div>`; }
+  function actionsCol(editFn, delFn, role = 'contributor') {
+    if (!can(role)) return '';
+    return `<div class="inline-actions">
+      <button class="btn btn-light btn-sm" onclick="${editFn}">Editar</button>
+      ${delFn ? `<button class="btn btn-danger btn-sm" onclick="${delFn}">Excluir</button>` : ''}</div>`;
+  }
+  async function del(path, msg) { if (!confirm(msg || 'Confirmar exclusão?')) return false; await api(path, { method: 'DELETE' }); toast('Excluído'); return true; }
+
+  const VIEWS = {};
+
+  VIEWS.dashboard = async (v) => {
+    const d = await api('/dashboard');
+    const conc = (d.initiatives.byStatus.find(s => s.status === 'Concluído') || {}).c || 0;
+    v.innerHTML = `
+      <div class="cards">
+        <div class="stat"><div class="label">Objetivos Estratégicos</div><div class="value">${d.objectives}</div><div class="sub">${d.goals} metas SMART</div></div>
+        <div class="stat"><div class="label">Iniciativas</div><div class="value">${d.initiatives.total}</div><div class="sub">${conc} concluídas</div></div>
+        <div class="stat" style="border-color:var(--green)"><div class="label">Progresso médio</div><div class="value">${d.initiatives.avgProgress}%</div><div class="sub">do plano de ação</div></div>
+        <div class="stat" style="border-color:var(--gold)"><div class="label">Itens SWOT</div><div class="value">${d.swotByClass.reduce((a, b) => a + b.c, 0)}</div><div class="sub">mapeados</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><h3>Desempenho das metas</h3><p class="desc">Realizado vs. alvo acumulado</p><canvas id="ch-perf" height="200"></canvas></div>
+        <div class="card"><h3>SWOT por classificação</h3><p class="desc">Distribuição do diagnóstico</p><canvas id="ch-swot" height="200"></canvas></div>
+      </div>
+      <div class="card"><h3>Top 5 prioridades (Matriz GUT)</h3>
+        <table><thead><tr><th>Item</th><th>Classificação</th><th>GUT</th></tr></thead><tbody>
+        ${d.topGut.map(t => `<tr><td>${esc(t.item)}</td><td>${esc(t.classification)}</td><td class="gut-num">${t.gut}</td></tr>`).join('')}
+        </tbody></table></div>`;
+    const labels = d.perf.map(p => p.smart_text.slice(0, 22) + '…');
+    mkChart('ch-perf', 'bar', { labels, datasets: [
+      { label: 'Alvo', data: d.perf.map(p => p.t), backgroundColor: '#cdd8e6' },
+      { label: 'Realizado', data: d.perf.map(p => p.a), backgroundColor: '#2E8BC0' }] });
+    const colorMap = { 'Força': '#2e9e6b', 'Fraqueza': '#d9534f', 'Oportunidade': '#2E8BC0', 'Ameaça': '#E6A817' };
+    mkChart('ch-swot', 'doughnut', { labels: d.swotByClass.map(s => s.classification),
+      datasets: [{ data: d.swotByClass.map(s => s.c), backgroundColor: d.swotByClass.map(s => colorMap[s.classification] || '#999') }] });
+  };
+  function mkChart(id, type, data, opts = {}) {
+    const el = document.getElementById(id); if (!el) return;
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(el, { type, data, options: { responsive: true, plugins: { legend: { position: 'bottom' } }, ...opts } });
+  }
+
+  VIEWS.filosofia = async (v) => {
+    const { company, values } = await api('/company');
+    v.innerHTML = `
+      <div class="philo-box">
+        <h4>Missão</h4><p>${esc(company.mission)}</p>
+        <h4 style="margin-top:18px">Visão</h4><p>${esc(company.vision)}</p>
+      </div>
+      <div class="card">
+        <div class="section-head"><h3>Valores</h3>
+          ${can('manager') ? `<button class="btn btn-accent btn-sm" onclick="App.editValue()">+ Novo valor</button>` : ''}</div>
+        <div class="value-list">${values.map(vl => `<div class="value-item"><b>${esc(vl.title)}</b><p>${esc(vl.description)}</p>
+          ${can('manager') ? `<div class="inline-actions" style="margin-top:8px"><button class="btn btn-light btn-sm" onclick='App.editValue(${JSON.stringify(vl)})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delValue(${vl.id})">Excluir</button></div>` : ''}</div>`).join('')}</div>
+      </div>
+      ${can('manager') ? `<div class="card"><div class="section-head"><h3>Dados da empresa</h3>
+        <button class="btn btn-accent btn-sm" onclick='App.editCompany(${JSON.stringify(company)})'>Editar</button></div>
+        <table><tr><th>Empresa</th><td>${esc(company.name)}</td></tr>
+        <tr><th>Vigência</th><td>${esc(company.plan_start)} a ${esc(company.plan_end)} (${company.vigencia_meses} meses)</td></tr>
+        <tr><th>Posicionamento</th><td>${esc(company.positioning)}</td></tr></table></div>` : ''}`;
+  };
+  App_editValue = async (v = {}) => {
+    modal(v.id ? 'Editar valor' : 'Novo valor', form([
+      f.text('val-title', 'Título', v.title), f.area('val-desc', 'Descrição', v.description),
+      `<button class="btn btn-primary btn-block" onclick="App.saveValue(${v.id || 0})">Salvar</button>`]));
+  };
+  App_saveValue = async (id) => {
+    const body = JSON.stringify({ title: val('val-title'), description: val('val-desc') });
+    await api('/values' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body });
+    closeModal(); toast('Salvo'); go('filosofia');
+  };
+  App_delValue = async (id) => { if (await del('/values/' + id)) go('filosofia'); };
+  App_editCompany = (c) => {
+    modal('Editar empresa', form([
+      f.text('co-name', 'Nome', c.name), f.area('co-mission', 'Missão', c.mission), f.area('co-vision', 'Visão', c.vision),
+      `<div class="field-row">${f.date('co-start', 'Início', c.plan_start)}${f.date('co-end', 'Fim', c.plan_end)}</div>`,
+      f.num('co-vig', 'Vigência (meses)', c.vigencia_meses), f.text('co-pos', 'Posicionamento', c.positioning),
+      `<button class="btn btn-primary btn-block" onclick="App.saveCompany()">Salvar</button>`]));
+  };
+  App_saveCompany = async () => {
+    await api('/company', { method: 'PUT', body: JSON.stringify({
+      name: val('co-name'), mission: val('co-mission'), vision: val('co-vision'),
+      plan_start: val('co-start'), plan_end: val('co-end'), vigencia_meses: +val('co-vig'), positioning: val('co-pos') }) });
+    closeModal(); toast('Salvo'); go('filosofia');
+  };
+
+  VIEWS.departamentos = async (v) => {
+    const rows = await api('/departments');
+    v.innerHTML = card('Departamentos', 'Áreas e níveis de atuação da empresa', can('manager') ? `App.editDept()` : null,
+      `<table><thead><tr><th>Nº</th><th>Departamento</th><th>Atuação</th>${can('manager') ? '<th></th>' : ''}</tr></thead><tbody>
+      ${rows.map(d => `<tr><td>${esc(d.num)}</td><td><b>${esc(d.name)}</b></td><td>${esc(d.atuacao)}</td>
+        ${can('manager') ? `<td>${actionsCol(`App.editDept(${JSON.stringify(d).replace(/"/g, '&quot;')})`, `App.delDept(${d.id})`, 'manager')}</td>` : ''}</tr>`).join('')}
+      </tbody></table>`);
+  };
+  App_editDept = (d = {}) => modal(d.id ? 'Editar departamento' : 'Novo departamento', form([
+    f.text('dp-num', 'Número', d.num), f.text('dp-name', 'Nome', d.name), f.text('dp-at', 'Atuação', d.atuacao),
+    `<button class="btn btn-primary btn-block" onclick="App.saveDept(${d.id || 0})">Salvar</button>`]));
+  App_saveDept = async (id) => {
+    await api('/departments' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST',
+      body: JSON.stringify({ num: val('dp-num'), name: val('dp-name'), atuacao: val('dp-at') }) });
+    closeModal(); toast('Salvo'); go('departamentos');
+  };
+  App_delDept = async (id) => { if (await del('/departments/' + id)) go('departamentos'); };
+
+  VIEWS.swot = async (v) => {
+    const [rows, depts] = await Promise.all([api('/swot'), api('/departments')]);
+    window.__depts = depts;
+    const group = (cls) => rows.filter(r => r.classification === cls);
+    const tbl = (cls) => `<div class="card swot-${cls}"><div class="section-head"><h3>${cls}s</h3></div>
+      <table><thead><tr><th>Item</th><th>G</th><th>U</th><th>T</th><th>GUT</th>${can('contributor') ? '<th></th>' : ''}</tr></thead><tbody>
+      ${group(cls).length ? group(cls).map(r => `<tr><td>${esc(r.item)}</td><td>${r.gravidade}</td><td>${r.urgencia}</td><td>${r.tendencia}</td>
+        <td class="gut-num">${r.gut}</td>${can('contributor') ? `<td>${actionsCol(`App.editSwot(${JSON.stringify(r).replace(/"/g, '&quot;')})`, `App.delSwot(${r.id})`)}</td>` : ''}</tr>`).join('') : `<tr><td colspan="6" class="empty">Nenhum item</td></tr>`}
+      </tbody></table></div>`;
+    v.innerHTML = `<div class="section-head"><h3>Análise SWOT com priorização GUT (Gravidade × Urgência × Tendência)</h3>
+      ${can('contributor') ? `<button class="btn btn-accent" onclick="App.editSwot()">+ Novo item</button>` : ''}</div>
+      <div class="grid-2">${tbl('Força')}${tbl('Fraqueza')}${tbl('Oportunidade')}${tbl('Ameaça')}</div>`;
+  };
+  App_editSwot = (s = {}) => {
+    const scale = [1, 2, 3, 4, 5].map(n => ({ v: n, t: n }));
+    const deptOpts = [{ v: '', t: '—' }].concat((window.__depts || []).map(d => ({ v: d.id, t: d.name })));
+    modal(s.id ? 'Editar item SWOT' : 'Novo item SWOT', form([
+      f.sel('sw-c', 'Classificação', ['Força', 'Fraqueza', 'Oportunidade', 'Ameaça'].map(x => ({ v: x, t: x })), s.classification),
+      f.text('sw-item', 'Item', s.item),
+      f.sel('sw-dep', 'Departamento', deptOpts, s.department_id),
+      `<div class="field-row-3">${f.sel('sw-g', 'Gravidade', scale, s.gravidade || 1)}${f.sel('sw-u', 'Urgência', scale, s.urgencia || 1)}${f.sel('sw-t', 'Tendência', scale, s.tendencia || 1)}</div>`,
+      f.area('sw-ins', 'Insights', s.insights),
+      `<button class="btn btn-primary btn-block" onclick="App.saveSwot(${s.id || 0})">Salvar</button>`]));
+  };
+  App_saveSwot = async (id) => {
+    await api('/swot' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify({
+      classification: val('sw-c'), item: val('sw-item'), department_id: +val('sw-dep') || null,
+      gravidade: +val('sw-g'), urgencia: +val('sw-u'), tendencia: +val('sw-t'), insights: val('sw-ins') }) });
+    closeModal(); toast('Salvo'); go('swot');
+  };
+  App_delSwot = async (id) => { if (await del('/swot/' + id)) go('swot'); };
+
+  VIEWS.curva = async (v) => {
+    const rows = await api('/value-curve');
+    v.innerHTML = `<div class="card"><div class="section-head"><h3>Curva de Valor</h3>
+      ${can('manager') ? `<button class="btn btn-accent btn-sm" onclick="App.editCurve()">+ Atributo</button>` : ''}</div>
+      <p class="desc">Comparação DAEXE × concorrência (0 a 10)</p><canvas id="ch-curve" height="120"></canvas></div>
+      <div class="card"><table><thead><tr><th>Atributo</th><th>DAEXE</th><th>Concorrência</th>${can('manager') ? '<th></th>' : ''}</tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${esc(r.attribute)}</td><td><b>${r.daexe_score}</b></td><td>${r.competitor_score}</td>
+        ${can('manager') ? `<td>${actionsCol(`App.editCurve(${JSON.stringify(r).replace(/"/g, '&quot;')})`, `App.delCurve(${r.id})`, 'manager')}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+    mkChart('ch-curve', 'line', { labels: rows.map(r => r.attribute), datasets: [
+      { label: 'DAEXE', data: rows.map(r => r.daexe_score), borderColor: '#2E8BC0', backgroundColor: 'rgba(46,139,192,.1)', tension: .3, fill: true },
+      { label: 'Concorrência', data: rows.map(r => r.competitor_score), borderColor: '#E6A817', tension: .3 }] },
+      { scales: { y: { min: 0, max: 10 } } });
+  };
+  App_editCurve = (r = {}) => modal(r.id ? 'Editar atributo' : 'Novo atributo', form([
+    f.text('cv-at', 'Atributo', r.attribute),
+    `<div class="field-row">${f.num('cv-d', 'DAEXE (0-10)', r.daexe_score)}${f.num('cv-c', 'Concorrência (0-10)', r.competitor_score)}</div>`,
+    `<button class="btn btn-primary btn-block" onclick="App.saveCurve(${r.id || 0})">Salvar</button>`]));
+  App_saveCurve = async (id) => {
+    await api('/value-curve' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST',
+      body: JSON.stringify({ attribute: val('cv-at'), daexe_score: +val('cv-d'), competitor_score: +val('cv-c') }) });
+    closeModal(); toast('Salvo'); go('curva');
+  };
+  App_delCurve = async (id) => { if (await del('/value-curve/' + id)) go('curva'); };
+
+  VIEWS.bsc = async (v) => {
+    const { perspectives, objectives, goals } = await api('/bsc');
+    window.__bsc = { perspectives, objectives };
+    v.innerHTML = `<div class="section-head"><h3>Mapa Estratégico (Balanced Scorecard)</h3>
+      ${can('manager') ? `<button class="btn btn-accent" onclick="App.editObj()">+ Objetivo</button>` : ''}</div>
+      ${perspectives.map(p => {
+        const objs = objectives.filter(o => o.perspective_id === p.id);
+        return `<div class="bsc-row"><div class="bsc-persp">${esc(p.name)}</div><div class="bsc-objs">
+          ${objs.length ? objs.map(o => `<div class="bsc-obj"><b>${esc(o.code ? o.code + '. ' : '')}${esc(o.title)}</b>
+            <ul>${goals.filter(g => g.objective_id === o.id).map(g => `<li>${esc(g.smart_text)}</li>`).join('')}</ul></div>`).join('') : '<span class="empty">—</span>'}
+        </div></div>`;
+      }).join('')}`;
+  };
+  App_editObj = (o = {}) => {
+    const ps = (window.__bsc.perspectives || []).map(p => ({ v: p.id, t: p.name }));
+    modal(o.id ? 'Editar objetivo' : 'Novo objetivo', form([
+      f.text('ob-code', 'Código', o.code), f.text('ob-title', 'Objetivo estratégico', o.title),
+      f.sel('ob-persp', 'Perspectiva BSC', ps, o.perspective_id),
+      `<button class="btn btn-primary btn-block" onclick="App.saveObj(${o.id || 0})">Salvar</button>`]));
+  };
+  App_saveObj = async (id) => {
+    await api('/objectives' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST',
+      body: JSON.stringify({ code: val('ob-code'), title: val('ob-title'), perspective_id: +val('ob-persp') }) });
+    closeModal(); toast('Salvo'); go(current === 'okr' ? 'okr' : 'bsc');
+  };
+
+  VIEWS.okr = async (v) => {
+    const { objectives, goals, perspectives } = await api('/bsc');
+    window.__bsc = { perspectives, objectives };
+    v.innerHTML = `<div class="section-head"><h3>Detalhamento OKR / BSC</h3>
+      ${can('manager') ? `<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>` : ''}</div>
+      ${objectives.map(o => `<div class="card"><div class="section-head"><h3>${esc(o.code ? o.code + '. ' : '')}${esc(o.title)}</h3>
+        ${can('manager') ? `<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar objetivo</button>` : ''}</div>
+        <table><thead><tr><th>Meta SMART</th><th>Período</th>${can('manager') ? '<th></th>' : ''}</tr></thead><tbody>
+        ${goals.filter(g => g.objective_id === o.id).map(g => `<tr><td>${esc(g.smart_text)}</td><td>${esc(g.period)}</td>
+          ${can('manager') ? `<td>${actionsCol(`App.editGoal(${JSON.stringify(g).replace(/"/g, '&quot;')})`, `App.delGoal(${g.id})`, 'manager')}</td>` : ''}</tr>`).join('') || '<tr><td colspan="3" class="empty">Sem metas</td></tr>'}
+        </tbody></table></div>`).join('')}`;
+  };
+  App_editGoal = (g = {}) => {
+    const objs = (window.__bsc.objectives || []).map(o => ({ v: o.id, t: (o.code ? o.code + '. ' : '') + o.title }));
+    modal(g.id ? 'Editar meta' : 'Nova meta SMART', form([
+      f.sel('gl-obj', 'Objetivo', objs, g.objective_id),
+      f.area('gl-smart', 'Meta SMART', g.smart_text), f.text('gl-per', 'Período', g.period),
+      `<button class="btn btn-primary btn-block" onclick="App.saveGoal(${g.id || 0})">Salvar</button>`]));
+  };
+  App_saveGoal = async (id) => {
+    await api('/goals' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST',
+      body: JSON.stringify({ objective_id: +val('gl-obj'), smart_text: val('gl-smart'), period: val('gl-per') }) });
+    closeModal(); toast('Salvo'); go('okr');
+  };
+  App_delGoal = async (id) => { if (await del('/goals/' + id)) go('okr'); };
+
+  VIEWS.iniciativas = async (v) => {
+    const [rows, bsc] = await Promise.all([api('/initiatives'), api('/bsc')]);
+    window.__bsc = bsc;
+    v.innerHTML = `<div class="section-head"><h3>Plano de Ação — Iniciativas (5W2H)</h3>
+      ${can('contributor') ? `<button class="btn btn-accent" onclick="App.editIni()">+ Nova iniciativa</button>` : ''}</div>
+      <div class="card"><table><thead><tr><th>Cód</th><th>Quê / Iniciativa</th><th>Quem</th><th>Quando</th><th>Status</th><th>Progresso</th>${can('contributor') ? '<th></th>' : ''}</tr></thead><tbody>
+      ${rows.map(i => `<tr><td>${esc(i.code)}</td>
+        <td><b>${esc(i.name)}</b>${i.objective_title ? `<br><span style="color:var(--muted);font-size:11.5px">↳ ${esc(i.objective_title)}</span>` : ''}</td>
+        <td>${esc(i.who)}</td><td style="font-size:12px">${esc((i.date_start || '').slice(0, 10))}<br>${esc((i.date_end || '').slice(0, 10))}</td>
+        <td>${statusPill(i.status)}</td><td>${bar(i.progress)} <small>${i.progress}%</small></td>
+        ${can('contributor') ? `<td>${actionsCol(`App.editIni(${JSON.stringify(i).replace(/"/g, '&quot;')})`, `App.delIni(${i.id})`)}</td>` : ''}</tr>`).join('')}
+      </tbody></table></div>`;
+  };
+  App_editIni = (i = {}) => {
+    const objs = [{ v: '', t: '—' }].concat((window.__bsc.objectives || []).map(o => ({ v: o.id, t: (o.code ? o.code + '. ' : '') + o.title })));
+    const st = ['Não iniciado', 'Em andamento', 'Concluído', 'Atrasado'].map(x => ({ v: x, t: x }));
+    modal(i.id ? 'Editar iniciativa' : 'Nova iniciativa', form([
+      `<div class="field-row">${f.text('in-code', 'Código', i.code)}${f.sel('in-obj', 'Objetivo vinculado', objs, i.objective_id)}</div>`,
+      f.text('in-name', 'QUÊ — Iniciativa/Projeto', i.name),
+      `<div class="field-row">${f.text('in-who', 'QUEM — Responsável', i.who)}${f.text('in-where', 'ONDE', i.where_)}</div>`,
+      `<div class="field-row">${f.date('in-ds', 'QUANDO — Início', i.date_start)}${f.date('in-de', 'QUANDO — Fim', i.date_end)}</div>`,
+      f.area('in-how', 'COMO', i.how), f.text('in-much', 'QUANTO (custo/recurso)', i.how_much), f.area('in-why', 'PORQUÊ', i.why),
+      `<div class="field-row">${f.sel('in-st', 'Status', st, i.status)}${f.num('in-prog', 'Progresso %', i.progress, 'min=0 max=100')}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveIni(${i.id || 0})">Salvar</button>`]));
+  };
+  App_saveIni = async (id) => {
+    await api('/initiatives' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify({
+      code: val('in-code'), objective_id: +val('in-obj') || null, name: val('in-name'), who: val('in-who'),
+      where_: val('in-where'), date_start: val('in-ds'), date_end: val('in-de'), how: val('in-how'),
+      how_much: val('in-much'), why: val('in-why'), status: val('in-st'), progress: +val('in-prog') }) });
+    closeModal(); toast('Salvo'); go('iniciativas');
+  };
+  App_delIni = async (id) => { if (await del('/initiatives/' + id)) go('iniciativas'); };
+
+  VIEWS.desempenho = async (v) => {
+    const [rows, bsc] = await Promise.all([api('/performance'), api('/bsc')]);
+    window.__goals = bsc.goals;
+    v.innerHTML = `<div class="section-head"><h3>Desempenho de Metas</h3>
+      ${can('contributor') ? `<button class="btn btn-accent" onclick="App.editPerf()">+ Registrar resultado</button>` : ''}</div>
+      <div class="card"><table><thead><tr><th>Meta</th><th>Período</th><th>Tipo</th><th>Alvo</th><th>Realizado</th><th>% Atingido</th>${can('contributor') ? '<th></th>' : ''}</tr></thead><tbody>
+      ${rows.map(r => { const p = pct(r.actual_value, r.target_value); return `<tr><td>${esc(r.smart_text)}</td><td>${esc(r.period_label)}</td>
+        <td><span class="pill pill-gray">${esc(r.period_type)}</span></td><td>${r.target_value.toLocaleString('pt-BR')}</td>
+        <td><b>${r.actual_value.toLocaleString('pt-BR')}</b></td><td>${bar(p)} <small>${p}%</small></td>
+        ${can('contributor') ? `<td>${actionsCol(`App.editPerf(${JSON.stringify(r).replace(/"/g, '&quot;')})`, `App.delPerf(${r.id})`)}</td>` : ''}</tr>`; }).join('') || '<tr><td colspan="7" class="empty">Sem registros</td></tr>'}
+      </tbody></table></div>`;
+  };
+  App_editPerf = (r = {}) => {
+    const goals = (window.__goals || []).map(g => ({ v: g.id, t: g.smart_text.slice(0, 50) }));
+    const types = ['semanal', 'mensal', 'trimestral'].map(x => ({ v: x, t: x }));
+    modal(r.id ? 'Editar resultado' : 'Registrar resultado', form([
+      f.sel('pf-goal', 'Meta', goals, r.goal_id),
+      `<div class="field-row">${f.sel('pf-type', 'Tipo', types, r.period_type || 'mensal')}${f.text('pf-label', 'Período (ex: Jan, S1, T1)', r.period_label)}</div>`,
+      `<div class="field-row">${f.num('pf-target', 'Alvo', r.target_value)}${f.num('pf-actual', 'Realizado', r.actual_value)}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.savePerf(${r.id || 0})">Salvar</button>`]));
+  };
+  App_savePerf = async (id) => {
+    await api('/performance' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify({
+      goal_id: +val('pf-goal'), period_type: val('pf-type'), period_label: val('pf-label'),
+      target_value: +val('pf-target'), actual_value: +val('pf-actual') }) });
+    closeModal(); toast('Salvo'); go('desempenho');
+  };
+  App_delPerf = async (id) => { if (await del('/performance/' + id)) go('desempenho'); };
+
+  VIEWS.avaliacao = async (v) => {
+    const rows = await api('/evaluations');
+    const users = {};
+    rows.forEach(r => { (users[r.user_name] = users[r.user_name] || []).push(r); });
+    v.innerHTML = `<div class="section-head"><h3>Avaliação de Desempenho</h3>
+      ${can('contributor') ? `<button class="btn btn-accent" onclick="App.editEval()">+ Registrar</button>` : ''}</div>
+      ${Object.keys(users).length ? Object.entries(users).map(([name, evs]) => `<div class="card"><h3>${esc(name)}</h3>
+        <table><thead><tr><th>Competência</th><th>Mês</th><th>Auto avaliação</th><th>Avaliação do gestor</th>${can('contributor') ? '<th></th>' : ''}</tr></thead><tbody>
+        ${evs.map(e => `<tr><td>${esc(e.competency)}</td><td>${esc(e.month)}</td><td>${e.self_score}</td><td>${e.manager_score}</td>
+          ${can('contributor') ? `<td>${actionsCol(`App.editEval(${JSON.stringify(e).replace(/"/g, '&quot;')})`, null)}</td>` : ''}</tr>`).join('')}
+        </tbody></table></div>`).join('') : '<div class="empty">Nenhuma avaliação registrada</div>'}`;
+  };
+  App_editEval = (e = {}) => {
+    const comps = ['Organização', 'Resultados Consistentes', 'Qualidade', 'Sagaz e Ágil', 'Inovador', 'Autodesenvolvimento', 'Comunicação'].map(x => ({ v: x, t: x }));
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map(x => ({ v: x, t: x }));
+    modal(e.id ? 'Editar avaliação' : 'Nova avaliação', form([
+      `<div class="field-row">${f.sel('ev-comp', 'Competência', comps, e.competency)}${f.sel('ev-month', 'Mês', months, e.month)}</div>`,
+      `<div class="field-row">${f.num('ev-self', 'Auto avaliação (0-10)', e.self_score)}${can('manager') ? f.num('ev-mgr', 'Nota do gestor (0-10)', e.manager_score) : ''}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveEval(${e.id || 0})">Salvar</button>`]));
+  };
+  App_saveEval = async (id) => {
+    const body = { competency: val('ev-comp'), month: val('ev-month'), self_score: +val('ev-self') };
+    if (can('manager')) body.manager_score = +val('ev-mgr');
+    await api('/evaluations' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
+    closeModal(); toast('Salvo'); go('avaliacao');
+  };
+
+  VIEWS.usuarios = async (v) => {
+    const [users, depts] = await Promise.all([api('/users'), api('/departments')]);
+    window.__depts = depts;
+    v.innerHTML = `<div class="section-head"><h3>Usuários & Controle de Acesso</h3>
+      ${can('admin') ? `<button class="btn btn-accent" onclick="App.editUser()">+ Novo usuário</button>` : ''}</div>
+      <div class="card"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Departamento</th><th>Status</th>${can('admin') ? '<th></th>' : ''}</tr></thead><tbody>
+      ${users.map(u => `<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.email)}</td>
+        <td><span class="pill pill-blue">${ROLE_LABEL[u.role]}</span></td><td>${esc(u.dept || '—')}</td>
+        <td>${u.active ? '<span class="pill pill-green">Ativo</span>' : '<span class="pill pill-gray">Inativo</span>'}</td>
+        ${can('admin') ? `<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editUser(${JSON.stringify(u)})'>Editar</button>
+          <button class="btn btn-light btn-sm" onclick="App.remind(${u.id},'${esc(u.name)}')">🔔</button>
+          <button class="btn btn-danger btn-sm" onclick="App.delUser(${u.id})">Excluir</button></div></td>` : ''}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="card"><h3>Papéis e permissões</h3><table><thead><tr><th>Papel</th><th>Permissões</th></tr></thead><tbody>
+        <tr><td><b>Administrador</b></td><td>Gerencia usuários, acessos, toda a estrutura e configurações</td></tr>
+        <tr><td><b>Gestor</b></td><td>Cria/edita objetivos, metas, departamentos, valores; acompanha indicadores; envia lembretes</td></tr>
+        <tr><td><b>Colaborador</b></td><td>Insere e atualiza SWOT, iniciativas, desempenho e auto avaliação</td></tr>
+        <tr><td><b>Visualizador</b></td><td>Apenas consulta painéis e relatórios</td></tr>
+      </tbody></table></div>
+      ${can('admin') ? `<div class="card"><div class="section-head"><h3>Dados do sistema</h3></div>
+        <p class="desc">Restaurar todos os dados para o exemplo inicial (apaga as alterações feitas neste navegador).</p>
+        <button class="btn btn-danger btn-sm" onclick="App.resetData()">Restaurar dados de exemplo</button></div>` : ''}`;
+  };
+  App_editUser = (u = {}) => {
+    const roles = [['admin', 'Administrador'], ['manager', 'Gestor'], ['contributor', 'Colaborador'], ['viewer', 'Visualizador']].map(r => ({ v: r[0], t: r[1] }));
+    const depts = [{ v: '', t: '—' }].concat((window.__depts || []).map(d => ({ v: d.id, t: d.name })));
+    modal(u.id ? 'Editar usuário' : 'Novo usuário', form([
+      f.text('us-name', 'Nome', u.name), f.text('us-email', 'E-mail', u.email, u.id ? 'disabled' : ''),
+      f.text('us-pass', u.id ? 'Nova senha (deixe vazio p/ manter)' : 'Senha', '', 'type=password'),
+      `<div class="field-row">${f.sel('us-role', 'Papel', roles, u.role || 'viewer')}${f.sel('us-dep', 'Departamento', depts, u.department_id)}</div>`,
+      u.id ? f.sel('us-active', 'Status', [{ v: 1, t: 'Ativo' }, { v: 0, t: 'Inativo' }], u.active) : '',
+      `<button class="btn btn-primary btn-block" onclick="App.saveUser(${u.id || 0})">Salvar</button>`]));
+  };
+  App_saveUser = async (id) => {
+    const body = { name: val('us-name'), role: val('us-role'), department_id: +val('us-dep') || null };
+    if (val('us-pass')) body.password = val('us-pass');
+    if (id) body.active = +val('us-active');
+    else { body.email = val('us-email'); }
+    try { await api('/users' + (id ? '/' + id : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) }); }
+    catch (e) { toast(e.message); return; }
+    closeModal(); toast('Salvo'); go('usuarios');
+  };
+  App_delUser = async (id) => { if (await del('/users/' + id, 'Excluir este usuário?')) go('usuarios'); };
+  App_remind = (id, name) => modal('Enviar lembrete', form([
+    `<p class="desc">Notificar <b>${esc(name)}</b> sobre atualização de metas/iniciativas.</p>`,
+    f.text('rm-title', 'Título', 'Atualize seus indicadores'),
+    f.area('rm-body', 'Mensagem', 'Por favor, atualize o progresso das suas iniciativas e metas no sistema.'),
+    `<button class="btn btn-primary btn-block" onclick="App.sendRemind(${id})">Enviar</button>`]));
+  App_sendRemind = async (id) => {
+    await api('/notifications/remind', { method: 'POST', body: JSON.stringify({ user_id: id, title: val('rm-title'), body: val('rm-body') }) });
+    closeModal(); toast('Lembrete registrado');
+  };
+
+  VIEWS.notificacoes = async (v) => {
+    const rows = await api('/notifications');
+    v.innerHTML = card('Notificações', 'Lembretes e alertas registrados', null,
+      rows.length ? `<table><thead><tr><th>Título</th><th>Mensagem</th><th>Data</th></tr></thead><tbody>
+      ${rows.map(n => `<tr><td><b>${esc(n.title)}</b></td><td>${esc(n.body)}</td><td style="font-size:12px;color:var(--muted)">${esc(n.created_at)}</td></tr>`).join('')}</tbody></table>`
+      : '<div class="empty">Nenhuma notificação</div>');
+  };
+
+  function card(title, desc, addFn, body) {
+    return `<div class="card"><div class="section-head"><div><h3>${title}</h3><p class="desc">${desc || ''}</p></div>
+      ${addFn ? `<button class="btn btn-accent btn-sm" onclick="${addFn}">+ Adicionar</button>` : ''}</div>${body}</div>`;
+  }
+
+  /* ---------- Exportações no cliente ---------- */
+  async function exportFile(type) {
+    if (type === 'excel') return exportExcel();
+    return exportPdf();
+  }
+  function exportExcel() {
+    toast('Gerando Excel…');
+    const wb = XLSX.utils.book_new();
+    const add = (name, aoa) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), name);
+    const c = DBX.company;
+    add('Empresa', [['Campo','Valor'],['Empresa',c.name],['Missão',c.mission],['Visão',c.vision],
+      ['Vigência',`${c.plan_start} a ${c.plan_end} (${c.vigencia_meses} meses)`],['Posicionamento',c.positioning]]);
+    add('Valores', [['Valor','Descrição'], ...DBX.company_values.map(v=>[v.title,v.description])]);
+    add('Departamentos', [['Nº','Departamento','Atuação'], ...DBX.departments.map(d=>[d.num,d.name,d.atuacao])]);
+    add('SWOT (GUT)', [['Classificação','Item','G','U','T','GUT'],
+      ...DBX.swot_items.map(s=>[s.classification,s.item,s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia])]);
+    add('Curva de Valor', [['Atributo','DAEXE','Concorrência'], ...DBX.value_curve.map(r=>[r.attribute,r.daexe_score,r.competitor_score])]);
+    add('Objetivos e Metas', [['Objetivo','Meta SMART','Período'],
+      ...DBX.goals.map(g=>[ (objCode(g.objective_id)?objCode(g.objective_id)+'. ':'')+objTitle(g.objective_id), g.smart_text, g.period])]);
+    add('Iniciativas 5W2H', [['Cód','Quê','Quem','Início','Fim','Como','Quanto','Onde','Porquê','Status','Progresso %'],
+      ...DBX.initiatives.map(i=>[i.code,i.name,i.who,i.date_start,i.date_end,i.how,i.how_much,i.where_,i.why,i.status,i.progress])]);
+    add('Desempenho', [['Meta','Tipo','Período','Alvo','Realizado','% Atingido'],
+      ...DBX.goal_performance.map(g=>[smartText(g.goal_id),g.period_type,g.period_label,g.target_value,g.actual_value,pct(g.actual_value,g.target_value)])]);
+    add('Avaliações', [['Pessoa','Competência','Mês','Auto','Gestor'],
+      ...DBX.evaluations.map(e=>[(DBX.users.find(u=>u.id===e.user_id)||{}).name||'',e.competency,e.month,e.self_score,e.manager_score])]);
+    XLSX.writeFile(wb, 'Planejamento_DAEXE.xlsx');
+  }
+  function exportPdf() {
+    const c = DBX.company;
+    const row = (cells, h) => '<tr>' + cells.map(x=>`<${h||'td'}>${x==null?'':x}</${h||'td'}>`).join('') + '</tr>';
+    const tbl = (head, rows) => `<table><thead>${row(head,'th')}</thead><tbody>${rows.map(r=>row(r)).join('')}</tbody></table>`;
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Planejamento DAEXE</title>
+      <style>
+        body{font-family:'Segoe UI',Arial,sans-serif;color:#22303f;padding:24px;font-size:12px}
+        h1{color:#1F3A5F;border-bottom:3px solid #2E8BC0;padding-bottom:6px}
+        h2{color:#1F3A5F;margin-top:22px;font-size:15px}
+        table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
+        th{background:#1F3A5F;color:#fff;text-align:left;padding:6px 8px}
+        td{border-bottom:1px solid #e4e8ee;padding:5px 8px;vertical-align:top}
+        .meta{color:#6b7a8d;font-size:11px} @media print{h2{page-break-after:avoid}}
+      </style></head><body>
+      <h1>DAEXE · Planejamento Estratégico</h1>
+      <p class="meta">${esc(c.positioning)} — vigência ${esc(c.plan_start)} a ${esc(c.plan_end)}</p>
+      <h2>Filosofia</h2>${tbl(['Campo','Valor'],[['Missão',esc(c.mission)],['Visão',esc(c.vision)]])}
+      <h2>Valores</h2>${tbl(['Valor','Descrição'],DBX.company_values.map(v=>[esc(v.title),esc(v.description)]))}
+      <h2>Departamentos</h2>${tbl(['Nº','Departamento','Atuação'],DBX.departments.map(d=>[esc(d.num),esc(d.name),esc(d.atuacao)]))}
+      <h2>SWOT (priorização GUT)</h2>${tbl(['Classificação','Item','G','U','T','GUT'],DBX.swot_items.slice().sort((a,b)=>(b.gravidade*b.urgencia*b.tendencia)-(a.gravidade*a.urgencia*a.tendencia)).map(s=>[esc(s.classification),esc(s.item),s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia]))}
+      <h2>Curva de Valor</h2>${tbl(['Atributo','DAEXE','Concorrência'],DBX.value_curve.map(r=>[esc(r.attribute),r.daexe_score,r.competitor_score]))}
+      <h2>Objetivos e Metas</h2>${tbl(['Objetivo','Meta SMART','Período'],DBX.goals.map(g=>[esc((objCode(g.objective_id)?objCode(g.objective_id)+'. ':'')+objTitle(g.objective_id)),esc(g.smart_text),esc(g.period)]))}
+      <h2>Iniciativas (5W2H)</h2>${tbl(['Cód','Quê','Quem','Status','%'],DBX.initiatives.map(i=>[esc(i.code),esc(i.name),esc(i.who),esc(i.status),i.progress]))}
+      <h2>Desempenho de Metas</h2>${tbl(['Meta','Período','Alvo','Realizado','%'],DBX.goal_performance.map(g=>[esc(smartText(g.goal_id)),esc(g.period_label),g.target_value,g.actual_value,pct(g.actual_value,g.target_value)]))}
+      <script>window.onload=function(){window.print();}<\/script>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) { toast('Permita pop-ups para gerar o PDF'); return; }
+    w.document.write(html); w.document.close();
+  }
+
+  App_resetData = () => {
+    if (!confirm('Tem certeza? Isso apaga as alterações feitas neste navegador e restaura os dados de exemplo.')) return;
+    resetDB(); toast('Dados restaurados'); go('dashboard');
+  };
+
+  function init() {
+    loadDB();
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try { await login(val('login-email'), val('login-password')); }
+      catch (err) { document.getElementById('login-error').textContent = err.message; }
+    });
+    document.getElementById('logout-btn').onclick = logout;
+    document.getElementById('modal-backdrop').addEventListener('click', (e) => { if (e.target.id === 'modal-backdrop') closeModal(); });
+    const u = sessionStorage.getItem('daexe_u');
+    if (u) { me = JSON.parse(u); CURRENT = me; boot(); }
+  }
+
+  const pub = { go, closeModal, exportFile, logout, resetData: (...a)=>App_resetData(...a) };
+  ['editValue', 'saveValue', 'delValue', 'editCompany', 'saveCompany', 'editDept', 'saveDept', 'delDept',
+    'editSwot', 'saveSwot', 'delSwot', 'editCurve', 'saveCurve', 'delCurve', 'editObj', 'saveObj',
+    'editGoal', 'saveGoal', 'delGoal', 'editIni', 'saveIni', 'delIni', 'editPerf', 'savePerf', 'delPerf',
+    'editEval', 'saveEval', 'editUser', 'saveUser', 'delUser', 'remind', 'sendRemind']
+    .forEach(name => { pub[name] = (...a) => eval('App_' + name)(...a); });
+
+  return Object.assign(pub, { init });
+})();
+window.addEventListener('DOMContentLoaded', App.init);
+</script>
+</body>
+</html>

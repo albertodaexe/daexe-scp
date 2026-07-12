@@ -1,0 +1,21 @@
+{
+  "name": "daexe-scp",
+  "version": "1.0.0",
+  "description": "Sistema de Planejamento Estrategico DAEXE - aplicacao web multiusuario",
+  "main": "server/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/server.js",
+    "seed": "node --disable-warning=ExperimentalWarning server/db.js --seed"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pdfkit": "^0.15.0"
+  }
+}

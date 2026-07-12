@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DAEXE · Planejamento Estratégico (online)</title>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy:#1F3A5F; --navy-d:#162a45; --accent:#2E8BC0; --gold:#E6A817;
+  --bg:#f4f6f9; --card:#fff; --line:#e4e8ee; --text:#22303f; --muted:#6b7a8d;
+  --green:#2e9e6b; --red:#d9534f; --amber:#e6a817;
+  --radius:12px; --shadow:0 1px 3px rgba(20,40,70,.08),0 4px 16px rgba(20,40,70,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.hidden{display:none!important}
+a{color:var(--accent)}
+code{background:#eef2f7;padding:1px 6px;border-radius:5px;font-size:.85em}
+.btn{border:none;border-radius:9px;padding:9px 16px;font-size:14px;cursor:pointer;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-d)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-light{background:#eef2f7;color:var(--navy)}.btn-light:hover{background:#e2e9f1}
+.btn-ghost{background:transparent;color:var(--muted)}.btn-ghost:hover{color:var(--navy)}
+.btn-danger{background:#fbeaea;color:var(--red)}
+.btn-sm{padding:6px 11px;font-size:12.5px}
+.btn-block{width:100%;justify-content:center;margin-top:10px}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy),var(--accent))}
+.login-card{background:#fff;border-radius:18px;padding:38px 34px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-brand{text-align:center;margin-bottom:22px}
+.login-brand h1{color:var(--navy);font-size:28px;letter-spacing:2px;margin-top:10px}
+.login-brand p{color:var(--muted);font-size:13px}
+.logo-badge{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto}
+.logo-badge.sm{width:38px;height:38px;font-size:15px;border-radius:10px}
+#login-form label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+#login-form input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px}
+#login-form input:focus{outline:none;border-color:var(--accent)}
+.login-error{color:var(--red);font-size:13px;margin-top:10px;text-align:center}
+.login-hint{margin-top:22px;padding:14px;background:#f4f6f9;border-radius:10px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7}
+.link-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12.5px;text-decoration:underline;margin-top:10px;width:100%}
+.app{display:flex;min-height:100vh}
+.sidebar{width:248px;background:var(--navy);color:#cdd8e6;display:flex;flex-direction:column;position:fixed;height:100vh}
+.sidebar-brand{display:flex;align-items:center;gap:11px;padding:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-brand strong{color:#fff;display:block;font-size:16px;letter-spacing:1px}
+.sidebar-brand span{font-size:11px;color:#8fa3bd}
+#nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-section{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:#6f86a3;margin:16px 12px 6px;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;cursor:pointer;color:#cdd8e6;font-size:13.5px;font-weight:500}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:var(--accent);color:#fff}
+.nav-item .ico{width:18px;text-align:center}
+.sidebar-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+.user-chip{font-size:12.5px}.user-chip strong{color:#fff;display:block}
+.user-chip span{color:#8fa3bd;font-size:11px}
+.content{flex:1;margin-left:248px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.topbar h2{font-size:19px;color:var(--navy)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.role-badge{background:#eef2f7;color:var(--navy);padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:700}
+.view{padding:26px 28px;max-width:1180px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-bottom:22px}
+.stat{background:var(--card);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid var(--accent)}
+.stat .label{font-size:12px;color:var(--muted);font-weight:600}
+.stat .value{font-size:28px;font-weight:800;color:var(--navy);margin-top:4px}
+.stat .sub{font-size:11.5px;color:var(--muted)}
+.card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
+.card h3{color:var(--navy);font-size:16px;margin-bottom:4px}
+.card .desc{color:var(--muted);font-size:13px;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}.sidebar{width:64px}.content{margin-left:64px}.sidebar-brand span,.sidebar-brand strong,.nav-item span:not(.ico),.nav-section,.user-chip{display:none}}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#f7f9fc;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#fafbfd}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-head h3{color:var(--navy);font-size:17px}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.pill-green{background:#e3f3ec;color:var(--green)}.pill-amber{background:#fcf3da;color:#b9860f}
+.pill-red{background:#fbeaea;color:var(--red)}.pill-blue{background:#e6f1f8;color:var(--accent)}.pill-gray{background:#eef2f7;color:var(--muted)}
+.swot-Força{border-left:4px solid var(--green)}
+.swot-Fraqueza{border-left:4px solid var(--red)}
+.swot-Oportunidade{border-left:4px solid var(--accent)}
+.swot-Ameaça{border-left:4px solid var(--gold)}
+.progress{background:#eef2f7;border-radius:20px;height:8px;overflow:hidden;min-width:90px}
+.progress > i{display:block;height:100%;background:var(--accent);border-radius:20px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(20,30,45,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal{background:#fff;border-radius:14px;width:560px;max-width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.modal-head h3{color:var(--navy)}
+.modal-x{background:none;border:none;font-size:26px;cursor:pointer;color:var(--muted);line-height:1}
+.modal-body{padding:22px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field textarea{min-height:70px;resize:vertical}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.bsc-row{display:grid;grid-template-columns:210px 1fr;gap:14px;margin-bottom:14px;align-items:stretch}
+.bsc-persp{color:#fff;border-radius:10px;padding:14px;font-weight:700;font-size:14px;display:flex;align-items:center}
+.bsc-objs{display:flex;flex-wrap:wrap;gap:10px}
+.bsc-obj{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;flex:1;min-width:200px;box-shadow:var(--shadow);border-top:4px solid var(--accent)}
+.bsc-obj b{color:var(--navy);font-size:13.5px}
+.bsc-obj ul{margin:8px 0 0 16px;font-size:12px;color:var(--muted)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:13px 20px;border-radius:10px;box-shadow:var(--shadow);z-index:90;font-size:13.5px}
+.empty{text-align:center;color:var(--muted);padding:40px;font-size:14px}
+.philo-box{background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;border-radius:14px;padding:26px;margin-bottom:20px}
+.philo-box h4{font-size:13px;text-transform:uppercase;letter-spacing:1px;opacity:.8}
+.philo-box p{font-size:17px;margin-top:6px;font-weight:500}
+.value-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.value-item{background:#fff;border-radius:10px;padding:14px;box-shadow:var(--shadow);border-left:4px solid var(--gold)}
+.value-item b{color:var(--navy)}.value-item p{color:var(--muted);font-size:12.5px;margin-top:4px}
+.inline-actions{display:flex;gap:6px;flex-wrap:wrap}
+.gut-num{font-weight:800;color:var(--navy)}
+.dept-card{border-left:4px solid var(--accent)}
+.dept-sub{margin-top:14px}
+.dept-sub h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;flex-direction:column;background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin:0 6px 6px 0;font-size:12.5px}
+.chip b{color:var(--navy)}.chip span{color:var(--muted);font-size:11px}
+.chip-row{display:flex;flex-wrap:wrap}
+.wk-input{width:96px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:13px}
+.wk-input:focus{outline:none;border-color:var(--accent)}
+.color-dot{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.loading{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:42px!important}
+.pass-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;color:var(--muted);padding:4px}
+.avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#cdd8e6;display:inline-block;vertical-align:middle}
+.avatar.lg{width:96px;height:96px}
+.avatar-fallback{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;font-weight:800}
+.q-group{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.q-head{background:var(--navy);color:#fff;padding:10px 14px;font-weight:700;font-size:13.5px}
+.m-head{background:#eef2f7;color:var(--navy);padding:7px 14px;font-weight:700;font-size:12.5px}
+.toggle-group{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.toggle-group button{border:none;background:#fff;padding:7px 14px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted)}
+.toggle-group button.active{background:var(--accent);color:#fff}
+.wk-card{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:9px;padding:10px 14px;margin-bottom:8px;cursor:pointer}
+.wk-card:hover{border-color:var(--accent);background:#fafbfd}
+.wk-card .wk-meta{font-size:12px;color:var(--muted)}
+.tag-ok{color:var(--green);font-weight:700}.tag-no{color:var(--red);font-weight:700}
+.owner-chip{display:inline-block;background:#e6f1f8;color:var(--accent);border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:700;margin:0 4px 4px 0}
+.check-list{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px}
+.check-list label{display:flex;align-items:center;gap:8px;padding:6px;font-weight:500;cursor:pointer}
+.check-list input{width:auto}
+.goal-select{width:100%;font-size:14px}
+.goal-full{font-weight:600;color:var(--navy);margin-top:10px;font-size:14.5px;line-height:1.4}
+.ms-row{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--line)}
+.ms-row input[type=checkbox]{width:auto}
+.ms-row.done label{text-decoration:line-through;color:var(--muted)}
+.ms-row label{flex:1;cursor:pointer}
+.ms-add{display:flex;gap:8px;margin-top:10px}
+.ms-add input{flex:1}
+.sidebar{transition:transform .2s ease}
+.content{transition:margin-left .2s ease}
+body.nav-collapsed .sidebar{transform:translateX(-100%)}
+body.nav-collapsed .content{margin-left:0}
+.topbar-left{display:flex;align-items:center;gap:12px}
+#nav-toggle{font-size:16px;line-height:1;padding:7px 11px}
+/* Organograma */
+.org-chart{padding:10px 0;text-align:center;overflow-x:auto}
+.org-node{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:12px 16px;display:inline-block}
+.org-company{background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;border:none;min-width:240px}
+.org-company b{font-size:16px}.org-company span{display:block;font-size:11.5px;opacity:.85}
+.org-trunk{width:2px;height:22px;background:var(--line);margin:0 auto}
+.org-cols{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;border-top:2px solid var(--line);padding-top:22px}
+.org-branch{position:relative}
+.org-branch::before{content:'';position:absolute;top:-22px;left:50%;width:2px;height:22px;background:var(--line)}
+.org-dept{border-top:4px solid var(--accent);min-width:210px;max-width:250px;text-align:left;vertical-align:top}
+.org-dept b{color:var(--navy);font-size:14px}.org-dept>span{display:block;color:var(--muted);font-size:11.5px;margin-bottom:8px}
+.org-people{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.org-person{background:#f7f9fc;border-radius:7px;padding:6px 9px}
+.org-person b{color:var(--navy);font-size:12.5px}.org-person span{color:var(--muted);font-size:11px;display:block}
+.org-procs{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.org-proc{background:#eef2f7;color:var(--navy);border-radius:6px;padding:2px 7px;font-size:10.5px}
+.wk-grid{min-width:520px}
+.wk-grid th,.wk-grid td{text-align:center;white-space:nowrap}
+.wk-grid th:first-child,.wk-grid td:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1}
+.wk-grid thead th{cursor:default}
+.wk-grid thead th.wk-col{cursor:pointer;color:var(--accent)}
+.wk-grid thead th.wk-col:hover{text-decoration:underline}
+.wk-grid .wk-total{background:#f7f9fc;font-weight:700}
+.ind-key{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:middle}
+.ind-group{background:#eef2f7;padding:10px 16px;font-size:13px;color:var(--muted)}
+.ind-group b{color:var(--navy)} .ind-group span{color:var(--muted);margin:0 2px}
+.ind-table{width:100%;border-collapse:collapse;font-size:12px}
+.ind-table th{background:#fff;text-align:center;padding:7px 6px;font-size:11px;color:var(--muted)}
+.ind-table td{text-align:center;padding:5px 6px;border-bottom:1px solid var(--line)}
+.ind-table .ind-name{text-align:left;min-width:220px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--navy);font-weight:500}
+.ind-cell{display:inline-block;width:24px;height:16px;border-radius:3px}
+</style>
+</head>
+<body>
+  <div id="boot" class="loading">Conectando…</div>
+
+  <div id="login-screen" class="login-screen hidden">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="logo-badge">DX</div>
+        <h1>DAEXE</h1>
+        <p>Sistema de Planejamento Estratégico</p>
+      </div>
+      <form id="login-form">
+        <label>E-mail</label>
+        <input type="email" id="login-email" placeholder="seu@email.com.br" required />
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="login-password" placeholder="••••••••" required />
+          <button type="button" class="pass-eye" id="toggle-pass" title="Mostrar/ocultar senha" aria-label="Mostrar ou ocultar senha">👁</button>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        <button type="button" class="link-btn" onclick="App.forgotPassword()">Esqueci minha senha</button>
+        <p id="login-error" class="login-error"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand" id="sidebar-brand">
+        <div class="logo-badge sm">DX</div>
+        <div><strong id="brand-name">DAEXE</strong><span>Planejamento</span></div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-foot">
+        <div id="user-chip" class="user-chip"></div>
+        <button id="logout-btn" class="btn btn-ghost btn-sm">Sair</button>
+      </div>
+    </aside>
+    <main class="content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="nav-toggle" class="btn btn-light btn-sm" title="Esconder/mostrar menu" aria-label="Esconder ou mostrar o menu">☰</button>
+          <h2 id="page-title">Painel</h2>
+        </div>
+        <div class="topbar-actions">
+          <span id="role-badge" class="role-badge"></span>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+
+  <div id="modal-backdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head"><h3 id="modal-title"></h3><button onclick="App.closeModal()" class="modal-x">×</button></div>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+
+<script>
+/* ====== CONFIGURAÇÃO SUPABASE (banco/login na nuvem) ====== */
+const SUPABASE_URL = 'https://qgkelrlftxqpoyspxmsf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFna2VscmxmdHhxcG95c3B4bXNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjczNTUsImV4cCI6MjA5NTkwMzM1NX0.dvEPOWwBLbrJJdYtXnhfjTsWvH4MxCDj3mxq9Yit7B0';
+let sb = null; // criado no bootstrap, quando a biblioteca Supabase terminar de carregar
+
+/* ---------- helpers de banco ---------- */
+async function tList(table, order, asc=true){
+  let q = sb.from(table).select('*');
+  if (order) q = q.order(order, { ascending: asc });
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+}
+async function tInsert(table, row){ const { data, error } = await sb.from(table).insert(row).select(); if(error) throw error; return data; }
+async function tUpdate(table, id, row){ const { error } = await sb.from(table).update(row).eq('id', id); if(error) throw error; }
+async function tDelete(table, id){ const { error } = await sb.from(table).delete().eq('id', id); if(error) throw error; }
+
+const App = (() => {
+  let me = null, charts = {};
+  const RANK = { viewer: 0, contributor: 1, manager: 2, admin: 3 };
+  const ROLE_LABEL = { admin: 'Administrador', manager: 'Gestor', contributor: 'Colaborador', viewer: 'Visualizador' };
+  const can = (r) => me && RANK[me.role] >= RANK[r];
+
+  const esc = (s) => (s == null ? '' : String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])));
+  const val = (id) => { const e = document.getElementById(id); return e ? e.value : ''; };
+  const pct = (a, t) => t ? Math.round(a / t * 100) : 0;
+  function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),2800); }
+  function modal(title, bodyHtml){ document.getElementById('modal-title').textContent=title; document.getElementById('modal-body').innerHTML=bodyHtml; document.getElementById('modal-backdrop').classList.remove('hidden'); }
+  function closeModal(){ document.getElementById('modal-backdrop').classList.add('hidden'); }
+  function form(fields){ return fields.join(''); }
+  const f = {
+    text:(id,label,v='',extra='')=>`<div class="field"><label>${label}</label><input id="${id}" value="${esc(v)}" ${extra}></div>`,
+    num:(id,label,v='',extra='')=>`<div class="field"><label>${label}</label><input type="number" id="${id}" value="${v??''}" ${extra}></div>`,
+    date:(id,label,v='')=>`<div class="field"><label>${label}</label><input type="date" id="${id}" value="${v?String(v).slice(0,10):''}"></div>`,
+    area:(id,label,v='')=>`<div class="field"><label>${label}</label><textarea id="${id}">${esc(v)}</textarea></div>`,
+    color:(id,label,v='#2E8BC0')=>`<div class="field"><label>${label}</label><input type="color" id="${id}" value="${v||'#2E8BC0'}" style="height:40px;padding:3px"></div>`,
+    sel:(id,label,opts,v)=>`<div class="field"><label>${label}</label><select id="${id}">${opts.map(o=>`<option value="${o.v}" ${o.v==v?'selected':''}>${esc(o.t)}</option>`).join('')}</select></div>`
+  };
+  function bar(p){ const c=p>=80?'var(--green)':p>=40?'var(--accent)':'var(--amber)'; return `<div class="progress"><i style="width:${Math.min(p,100)}%;background:${c}"></i></div>`; }
+  function statusPill(s){ const m={'Concluído':'pill-green','Em andamento':'pill-blue','Não iniciado':'pill-gray','Atrasado':'pill-red'}; return `<span class="pill ${m[s]||'pill-gray'}">${esc(s)}</span>`; }
+  function actionsCol(editFn, delFn, role='contributor'){ if(!can(role)) return ''; return `<div class="inline-actions"><button class="btn btn-light btn-sm" onclick="${editFn}">Editar</button>${delFn?`<button class="btn btn-danger btn-sm" onclick="${delFn}">Excluir</button>`:''}</div>`; }
+  async function delRow(table, id, msg){ if(!confirm(msg||'Confirmar exclusão?')) return false; try{ await tDelete(table,id); toast('Excluído'); return true; }catch(e){ toast(e.message); return false; } }
+  function mkChart(id,type,data,opts={}){ const el=document.getElementById(id); if(!el) return; if(charts[id]) charts[id].destroy(); charts[id]=new Chart(el,{type,data,options:{responsive:true,plugins:{legend:{position:'bottom'}},...opts}}); }
+  const money = (n)=>(Number(n)||0).toLocaleString('pt-BR');
+
+  /* ---------- Auth ---------- */
+  async function doLogin(email, password){
+    const { error } = await sb.auth.signInWithPassword({ email:email.trim().toLowerCase(), password });
+    if (error) throw new Error('E-mail ou senha inválidos');
+    await loadMeAndBoot();
+  }
+  async function loadMeAndBoot(){
+    try{
+      const { data:{ user } } = await sb.auth.getUser();
+      if (!user) { showLogin(); return; }
+      const { data:prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
+      me = prof || { id:user.id, name:user.email, email:user.email, role:'viewer' };
+      if(me.org_id){ const { data:org } = await sb.from('organizations').select('name, logo_url, primary_color, accent_color').eq('id', me.org_id).single(); if(org){ me.org_name=org.name; me.org_logo=org.logo_url; me.org_primary=org.primary_color; me.org_accent=org.accent_color; } }
+      boot();
+    }catch(e){ showLogin(); }
+  }
+  function showLogin(){ document.getElementById('boot').classList.add('hidden'); document.getElementById('app').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); }
+  async function logout(){ await sb.auth.signOut(); me=null; location.reload(); }
+  function boot(){
+    document.getElementById('boot').classList.add('hidden');
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('user-chip').innerHTML = `<strong>${esc(me.name)}</strong><span>${esc(me.email)}</span>`;
+    document.getElementById('role-badge').textContent = ROLE_LABEL[me.role] || me.role;
+    applyBranding();
+    renderNav(); go('dashboard');
+  }
+  function applyBranding(){
+    const root=document.documentElement.style;
+    if(me.org_primary) root.setProperty('--navy', me.org_primary);
+    if(me.org_accent) root.setProperty('--accent', me.org_accent);
+    const brand=document.getElementById('sidebar-brand');
+    if(brand){
+      if(me.org_logo){ brand.innerHTML=`<img src="${me.org_logo}" alt="logo" style="max-height:42px;max-width:185px;object-fit:contain">`; }
+      else { const ini=(me.org_name||'DX').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,2).toUpperCase()||'DX';
+        brand.innerHTML=`<div class="logo-badge sm">${esc(ini)}</div><div><strong>${esc(me.org_name||'DAEXE')}</strong><span>Planejamento</span></div>`; }
+    }
+  }
+  function resizeLogo(file, cb){
+    const reader=new FileReader();
+    reader.onload=()=>{ const img=new Image(); img.onload=()=>{ const maxW=360,maxH=120; let w=img.width,h=img.height; const r=Math.min(maxW/w,maxH/h,1); w=Math.round(w*r); h=Math.round(h*r); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/png')); }; img.src=reader.result; };
+    reader.readAsDataURL(file);
+  }
+  App_forgotPassword = async () => {
+    const email = val('login-email');
+    if(!email){ toast('Digite seu e-mail primeiro'); return; }
+    const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    toast(error ? error.message : 'Se o e-mail existir, enviaremos instruções.');
+  };
+
+  /* ---------- Navegação ---------- */
+  const NAV = [
+    { sec:'Estratégia' },
+    { id:'dashboard', label:'Painel', ico:'📊' },
+    { id:'filosofia', label:'Filosofia', ico:'🎯' },
+    { id:'swot', label:'SWOT / GUT', ico:'⚖️' },
+    { id:'departamentos', label:'Departamentos', ico:'🏢' },
+    { id:'organograma', label:'Organograma', ico:'🌳' },
+    { id:'curva', label:'Curva de Valor', ico:'📈' },
+    { sec:'Execução' },
+    { id:'bsc', label:'Mapa BSC', ico:'🗺️' },
+    { id:'okr', label:'Objetivos & Metas', ico:'✅' },
+    { id:'iniciativas', label:'Iniciativas (5W2H)', ico:'🚀' },
+    { id:'desempenho', label:'Desempenho', ico:'📉' },
+    { id:'indicadores', label:'Painel de Indicadores', ico:'📋' },
+    { id:'avaliacao', label:'Avaliação', ico:'⭐' },
+    { sec:'Gestão', role:'manager' },
+    { id:'usuarios', label:'Usuários & Acessos', ico:'👥', role:'manager' },
+    { id:'gestao', label:'Relatórios e Gestão', ico:'📤', role:'admin' },
+    { id:'notificacoes', label:'Notificações', ico:'🔔' },
+    { sec:'Conta' },
+    { id:'perfil', label:'Meu Perfil', ico:'👤' },
+    { id:'feedback', label:'Feedback', ico:'💬' }
+  ];
+  function renderNav(){
+    const nav=document.getElementById('nav'); nav.innerHTML='';
+    NAV.forEach(n=>{
+      if(n.role && !can(n.role)) return;
+      if(n.sec){ const s=document.createElement('div'); s.className='nav-section'; s.textContent=n.sec; nav.appendChild(s); return; }
+      const d=document.createElement('div'); d.className='nav-item'; d.dataset.id=n.id;
+      d.innerHTML=`<span class="ico">${n.ico}</span><span>${n.label}</span>`; d.onclick=()=>go(n.id); nav.appendChild(d);
+    });
+  }
+  let current=null;
+  function go(id){
+    current=id;
+    document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active', e.dataset.id===id));
+    const v=document.getElementById('view'); v.innerHTML='<div class="empty">Carregando…</div>';
+    const def=NAV.find(n=>n.id===id);
+    document.getElementById('page-title').textContent=def?def.label:'Painel';
+    Promise.resolve((VIEWS[id]||VIEWS.dashboard)(v)).catch(e=>{ v.innerHTML=`<div class="empty">Erro ao carregar: ${esc(e.message)}</div>`; });
+  }
+  function card(title,desc,addFn,body){ return `<div class="card"><div class="section-head"><div><h3>${title}</h3><p class="desc">${desc||''}</p></div>${addFn?`<button class="btn btn-accent btn-sm" onclick="${addFn}">+ Adicionar</button>`:''}</div>${body}</div>`; }
+
+  const VIEWS = {};
+
+  /* ---------- Painel ---------- */
+  VIEWS.dashboard = async (v) => {
+    const [objs, goals, inis, swot, weekly] = await Promise.all([
+      tList('objectives'), tList('goals'), tList('initiatives'), tList('swot_items'), tList('goal_weekly')]);
+    const avg = inis.length ? Math.round(inis.reduce((a,b)=>a+(b.progress||0),0)/inis.length) : 0;
+    const conc = inis.filter(i=>i.status==='Concluído').length;
+    const topGut=swot.map(s=>({item:s.item,gut:s.gravidade*s.urgencia*s.tendencia,classification:s.classification})).sort((a,b)=>b.gut-a.gut).slice(0,5);
+    const dashGoal = window.__dashGoal || (goals[0]&&goals[0].id) || null; window.__dashGoal=dashGoal;
+    const dyear = new Date().getFullYear();
+    const dweeks=weeksOfYear(dyear); const dwkMonth={}; dweeks.forEach(wk=>dwkMonth[wk.week]=wk.start.getMonth());
+    const DMESH=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const mAgg={}; weekly.filter(w=>w.goal_id===dashGoal && w.year===dyear).forEach(w=>{ const mo=dwkMonth[w.week]; if(mo==null)return; const x=(mAgg[mo]=mAgg[mo]||{m:0,r:0}); x.m+=Number(w.meta)||0; x.r+=Number(w.realizado)||0; });
+    v.innerHTML = `
+      <div class="cards">
+        <div class="stat"><div class="label">Objetivos Estratégicos</div><div class="value">${objs.length}</div><div class="sub">${goals.length} metas SMART</div></div>
+        <div class="stat"><div class="label">Iniciativas</div><div class="value">${inis.length}</div><div class="sub">${conc} concluídas</div></div>
+        <div class="stat" style="border-color:var(--green)"><div class="label">Progresso médio</div><div class="value">${avg}%</div><div class="sub">do plano de ação</div></div>
+        <div class="stat" style="border-color:var(--gold)"><div class="label">Itens SWOT</div><div class="value">${swot.length}</div><div class="sub">mapeados</div></div>
+      </div>
+      <div class="card"><div class="section-head"><div><h3>Desempenho</h3><p class="desc">Meta × realizado por mês (${dyear})</p></div></div>
+        ${goals.length?`<div class="field" style="margin:0 0 12px;max-width:520px"><label>Meta SMART</label><select onchange="App.dashSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==dashGoal?'selected':''}>${esc(g.smart_text)}</option>`).join('')}</select></div><canvas id="ch-perf" height="110"></canvas>`:'<div class="empty">Cadastre metas para ver o desempenho.</div>'}</div>
+      <div class="card"><h3>Top 5 prioridades (Matriz GUT)</h3>
+        <table><thead><tr><th>Item</th><th>Classificação</th><th>GUT</th></tr></thead><tbody>
+        ${topGut.map(t=>`<tr><td>${esc(t.item)}</td><td>${esc(t.classification)}</td><td class="gut-num">${t.gut}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Sem dados</td></tr>'}
+        </tbody></table></div>`;
+    if(goals.length) mkChart('ch-perf','bar',{ labels:DMESH, datasets:[
+      {label:'Meta',data:DMESH.map((_,m)=>(mAgg[m]||{}).m||0),backgroundColor:'#cdd8e6'},
+      {label:'Realizado',data:DMESH.map((_,m)=>(mAgg[m]||{}).r||0),backgroundColor:'#2E8BC0'}]});
+  };
+  App_dashSetGoal=(g)=>{ window.__dashGoal=+g; go('dashboard'); };
+
+  /* ---------- Painel de Indicadores ---------- */
+  VIEWS.indicadores = async (v) => {
+    const year = window.__indYear || new Date().getFullYear(); window.__indYear=year;
+    const [persp, objs, goals, depts, weekly] = await Promise.all([
+      tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'), tList('departments','ord'),
+      sb.from('goal_weekly').select('*').eq('year',year).then(r=>r.data||[])]);
+    const mode = window.__indMode || 'mensal'; window.__indMode=mode;
+    const weeks = weeksOfYear(year); const wkMonth={}; weeks.forEach(wk=>wkMonth[wk.week]=wk.start.getMonth());
+    const aggM={}, aggW={};
+    weekly.forEach(row=>{ const a=(aggM[row.goal_id]=aggM[row.goal_id]||{}); const mo=wkMonth[row.week]; if(mo!=null){ const x=(a[mo]=a[mo]||{m:0,r:0}); x.m+=Number(row.meta)||0; x.r+=Number(row.realizado)||0; } const b=(aggW[row.goal_id]=aggW[row.goal_id]||{}); const yy=(b[row.week]=b[row.week]||{m:0,r:0}); yy.m+=Number(row.meta)||0; yy.r+=Number(row.realizado)||0; });
+    const perspName=(id)=>{const p=persp.find(x=>x.id===id);return p?p.name:'';};
+    const deptName2=(id)=>{const d=depts.find(x=>x.id===id);return d?d.name:'';};
+    const yearGoals = goals.filter(g=> g.year==year || g.year==null);
+    const objWithGoals = objs.filter(o=> yearGoals.some(g=>g.objective_id===o.id));
+    const yopts=[]; for(let y=year-2;y<=year+3;y++) yopts.push(y);
+    const MESH=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const col=(m,r)=>{ if(!m && !r) return '#eef2f7'; if(!m) return '#cdd8e6'; const p=r/m*100; if(p>=100) return 'var(--green)'; if(p>=70) return 'var(--accent)'; if(p>=40) return 'var(--amber)'; return 'var(--red)'; };
+    let cols; if(mode==='mensal') cols=MESH.map((lb,i)=>({key:i,label:lb})); else if(mode==='semanal') cols=weeks.map(wk=>({key:wk.week,label:'S'+wk.week})); else cols=[{key:'ano',label:String(year)}];
+    const cellOf=(gid,key)=>{ if(mode==='mensal') return (aggM[gid]||{})[key]||{m:0,r:0}; if(mode==='semanal') return (aggW[gid]||{})[key]||{m:0,r:0}; const a=aggM[gid]||{}; let m=0,r=0; Object.keys(a).forEach(k=>{m+=a[k].m;r+=a[k].r;}); return {m,r}; };
+    let html = `<div class="card"><div class="section-head"><div><h3>Painel de Indicadores</h3><p class="desc">Acompanhamento das metas, agrupadas por perspectiva › objetivo › departamento.</p></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <div class="toggle-group"><button class="${mode==='semanal'?'active':''}" onclick="App.indSetMode('semanal')">Semanal</button><button class="${mode==='mensal'?'active':''}" onclick="App.indSetMode('mensal')">Mensal</button><button class="${mode==='anual'?'active':''}" onclick="App.indSetMode('anual')">Anual</button></div>
+          <div class="field" style="margin:0;min-width:100px"><label>Ano</label><select onchange="App.indSetYear(this.value)">${yopts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
+          ${can('manager')?`<button class="btn btn-accent btn-sm" onclick="App.go('okr')">+ Nova meta</button>`:''}</div></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+          <span><span class="ind-key" style="background:var(--green)"></span>≥100%</span><span><span class="ind-key" style="background:var(--accent)"></span>70–99%</span><span><span class="ind-key" style="background:var(--amber)"></span>40–69%</span><span><span class="ind-key" style="background:var(--red)"></span>&lt;40%</span><span><span class="ind-key" style="background:#eef2f7"></span>sem dados</span></div></div>`;
+    if(!objWithGoals.length){ html += '<div class="empty">Nenhuma meta para '+year+'. Cadastre metas em Objetivos &amp; Metas.</div>'; }
+    objWithGoals.forEach(o=>{
+      const gs = yearGoals.filter(g=>g.objective_id===o.id);
+      html += `<div class="card" style="padding:0;overflow:hidden">
+        <div class="ind-group">${esc(perspName(o.perspective_id)||'—')} <span>›</span> <b>${esc(o.title)}</b>${o.department_id?` <span>›</span> Divisão: ${esc(deptName2(o.department_id))}`:''}</div>
+        <div style="overflow-x:auto"><table class="ind-table"><thead><tr><th class="ind-name">Indicador</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}${mode==='anual'?'':`<th>${year}</th>`}</tr></thead><tbody>
+        ${gs.map(g=>{ const cells=cols.map(c=>{ const x=cellOf(g.id,c.key); const tip=`${c.label}: meta ${money(x.m)} · resultado ${money(x.r)} · ${pct(x.r,x.m)}%`; return `<td title="${tip}"><span class="ind-cell" style="background:${col(x.m,x.r)}"></span></td>`; }).join('');
+          const at=aggM[g.id]||{}; let ym=0,yr=0; Object.keys(at).forEach(k=>{ym+=at[k].m;yr+=at[k].r;});
+          return `<tr><td class="ind-name" title="${esc(g.smart_text)}" onclick="App.indGoto(${g.id})" style="cursor:pointer">${esc(g.smart_text)}</td>${cells}${mode==='anual'?'':`<td><b>${pct(yr,ym)}%</b></td>`}</tr>`;
+        }).join('')}
+        </tbody></table></div></div>`;
+    });
+    v.innerHTML = html;
+  };
+  App_indSetYear=(y)=>{ window.__indYear=+y; go('indicadores'); };
+  App_indSetMode=(m)=>{ window.__indMode=m; go('indicadores'); };
+  App_indGoto=(gid)=>{ window.__pfGoal=gid; window.__pfYear=window.__indYear; go('desempenho'); };
+
+  /* ---------- Filosofia ---------- */
+  VIEWS.filosofia = async (v) => {
+    const [comp] = await Promise.all([sb.from('company').select('*').limit(1).single().then(r=>r.data)]);
+    const values = await tList('company_values','ord');
+    v.innerHTML = `
+      <div class="grid-2"><div class="philo-box"><h4>Missão</h4><p>${esc(comp.mission)}</p></div><div class="philo-box"><h4>Visão</h4><p>${esc(comp.vision)}</p></div></div>
+      <div class="card"><div class="section-head"><h3>Valores</h3>${can('manager')?`<button class="btn btn-accent btn-sm" onclick="App.editValue()">+ Novo valor</button>`:''}</div>
+        <div class="value-list">${values.map(vl=>`<div class="value-item"><b>${esc(vl.title)}</b><p>${esc(vl.description)}</p>
+          ${can('manager')?`<div class="inline-actions" style="margin-top:8px"><button class="btn btn-light btn-sm" onclick='App.editValue(${JSON.stringify(vl)})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delValue(${vl.id})">Excluir</button></div>`:''}</div>`).join('')}</div></div>
+      ${can('manager')?`<div class="card"><div class="section-head"><h3>Dados da empresa</h3><button class="btn btn-accent btn-sm" onclick='App.editCompany(${JSON.stringify(comp)})'>Editar</button></div>
+        <table><tr><th>Empresa</th><td>${esc(comp.name)}</td></tr><tr><th>Vigência</th><td>${esc(comp.plan_start)} a ${esc(comp.plan_end)} (${comp.vigencia_meses} meses)</td></tr>
+        <tr><th>Posicionamento</th><td>${esc(comp.positioning)}</td></tr></table></div>`:''}`;
+  };
+  App_editValue = (vl={}) => modal(vl.id?'Editar valor':'Novo valor', form([f.text('val-title','Título',vl.title),f.area('val-desc','Descrição',vl.description),`<button class="btn btn-primary btn-block" onclick="App.saveValue(${vl.id||0})">Salvar</button>`]));
+  App_saveValue = async (id) => { const row={title:val('val-title'),description:val('val-desc')}; try{ id?await tUpdate('company_values',id,row):await tInsert('company_values',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('filosofia'); };
+  App_delValue = async (id) => { if(await delRow('company_values',id)) go('filosofia'); };
+  App_editCompany = (c) => modal('Editar empresa', form([f.text('co-name','Nome',c.name),f.area('co-mission','Missão',c.mission),f.area('co-vision','Visão',c.vision),
+    `<div class="field-row">${f.date('co-start','Início',c.plan_start)}${f.date('co-end','Fim',c.plan_end)}</div>`,f.num('co-vig','Vigência (meses)',c.vigencia_meses),f.text('co-pos','Posicionamento',c.positioning),
+    `<button class="btn btn-primary btn-block" onclick="App.saveCompany()">Salvar</button>`]));
+  App_saveCompany = async () => { try{ const { error } = await sb.from('company').update({name:val('co-name'),mission:val('co-mission'),vision:val('co-vision'),plan_start:val('co-start')||null,plan_end:val('co-end')||null,vigencia_meses:+val('co-vig')||null,positioning:val('co-pos')}).eq('org_id', me.org_id); if(error) throw error; }catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('filosofia'); };
+
+  /* ---------- Departamentos (sem número, com macroprocessos e responsáveis) ---------- */
+  VIEWS.departamentos = async (v) => {
+    const [depts, procs, mems] = await Promise.all([tList('departments','ord'), tList('department_processes','ord'), tList('department_members','ord')]);
+    v.innerHTML = `<div class="section-head"><h3>Departamentos</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editDept()">+ Novo departamento</button>`:''}</div>
+      ${depts.map(d=>{
+        const ps=procs.filter(p=>p.department_id===d.id), ms=mems.filter(m=>m.department_id===d.id);
+        return `<div class="card dept-card"><div class="section-head"><div><h3>${esc(d.name)}</h3><p class="desc">${esc(d.atuacao||'')}</p></div>
+          ${can('manager')?`<div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editDept(${JSON.stringify(d)})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delDept(${d.id})">Excluir</button></div>`:''}</div>
+          <div class="dept-sub"><h4>Macroprocessos ${can('contributor')?`<button class="btn btn-light btn-sm" onclick="App.editProc(0,${d.id})">+ Adicionar</button>`:''}</h4>
+            <div class="chip-row">${ps.length?ps.map(p=>`<div class="chip"><b>${esc(p.name)}</b>${p.description?`<span>${esc(p.description)}</span>`:''}
+              ${can('contributor')?`<span style="margin-top:4px"><a href="#" onclick='App.editProc(${JSON.stringify(p)},${d.id});return false;'>editar</a> · <a href="#" onclick="App.delProc(${p.id});return false;">excluir</a></span>`:''}</div>`).join(''):'<span class="empty" style="padding:8px">Nenhum macroprocesso</span>'}</div></div>
+          <div class="dept-sub"><h4>Responsáveis ${can('manager')?`<button class="btn btn-light btn-sm" onclick="App.editMember(0,${d.id})">+ Adicionar</button>`:''}</h4>
+            <div class="chip-row">${ms.length?ms.map(m=>`<div class="chip"><b>${esc(m.name)}</b><span>${esc(m.cargo||'')}</span>
+              ${can('manager')?`<span style="margin-top:4px"><a href="#" onclick='App.editMember(${JSON.stringify(m)},${d.id});return false;'>editar</a> · <a href="#" onclick="App.delMember(${m.id});return false;">excluir</a></span>`:''}</div>`).join(''):'<span class="empty" style="padding:8px">Nenhum responsável</span>'}</div></div>
+        </div>`;
+      }).join('')}`;
+  };
+  App_editDept = (d={}) => modal(d.id?'Editar departamento':'Novo departamento', form([f.text('dp-name','Nome',d.name),f.text('dp-at','Atuação',d.atuacao),`<button class="btn btn-primary btn-block" onclick="App.saveDept(${d.id||0})">Salvar</button>`]));
+  App_saveDept = async (id) => { const row={name:val('dp-name'),atuacao:val('dp-at')}; try{ id?await tUpdate('departments',id,row):await tInsert('departments',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
+  App_delDept = async (id) => { if(await delRow('departments',id,'Excluir o departamento e seus macroprocessos/responsáveis?')) go('departamentos'); };
+  App_editProc = (p, deptId) => { p=p||{}; modal(p.id?'Editar macroprocesso':'Novo macroprocesso', form([f.text('pr-name','Nome',p.name),f.area('pr-desc','Descrição',p.description),`<button class="btn btn-primary btn-block" onclick="App.saveProc(${p.id||0},${deptId})">Salvar</button>`])); };
+  App_saveProc = async (id, deptId) => { const row={name:val('pr-name'),description:val('pr-desc'),department_id:deptId}; try{ id?await tUpdate('department_processes',id,row):await tInsert('department_processes',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
+  App_delProc = async (id) => { if(await delRow('department_processes',id)) go('departamentos'); };
+  App_editMember = (m, deptId) => { m=m||{}; modal(m.id?'Editar responsável':'Novo responsável', form([f.text('mb-name','Nome',m.name),f.text('mb-cargo','Cargo',m.cargo),`<button class="btn btn-primary btn-block" onclick="App.saveMember(${m.id||0},${deptId})">Salvar</button>`])); };
+  App_saveMember = async (id, deptId) => { const row={name:val('mb-name'),cargo:val('mb-cargo'),department_id:deptId}; try{ id?await tUpdate('department_members',id,row):await tInsert('department_members',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
+  App_delMember = async (id) => { if(await delRow('department_members',id)) go('departamentos'); };
+
+  /* ---------- Organograma ---------- */
+  VIEWS.organograma = async (v) => {
+    const [comp, depts, mems, procs] = await Promise.all([
+      sb.from('company').select('*').limit(1).single().then(r=>r.data),
+      tList('departments','ord'), tList('department_members','ord'), tList('department_processes','ord')]);
+    const memOf=(id)=>mems.filter(m=>m.department_id===id);
+    const procOf=(id)=>procs.filter(p=>p.department_id===id);
+    v.innerHTML = `
+      <div class="card"><div class="section-head"><div><h3>Organograma</h3><p class="desc">Estrutura organizacional: empresa, departamentos, responsáveis e macroprocessos.</p></div></div>
+        <div class="org-chart">
+          <div class="org-node org-company"><b>${esc(comp?comp.name:'Empresa')}</b><span>${esc((comp&&comp.positioning)||'')}</span></div>
+          <div class="org-trunk"></div>
+          <div class="org-cols">
+            ${depts.length?depts.map(d=>`<div class="org-branch"><div class="org-node org-dept">
+              <b>${esc(d.name)}</b><span>${esc(d.atuacao||'')}</span>
+              ${memOf(d.id).length?`<div class="org-people">${memOf(d.id).map(m=>`<div class="org-person"><b>${esc(m.name)}</b><span>${esc(m.cargo||'')}</span></div>`).join('')}</div>`:'<div class="org-person" style="color:var(--muted)">Sem responsáveis</div>'}
+              ${procOf(d.id).length?`<div class="org-procs">${procOf(d.id).map(p=>`<span class="org-proc">${esc(p.name)}</span>`).join('')}</div>`:''}
+            </div></div>`).join(''):'<span class="empty">Cadastre departamentos para montar o organograma.</span>'}
+          </div>
+        </div>
+      </div>
+      ${can('manager')?'<p class="desc">Para editar a estrutura, use a página <b>Departamentos</b>.</p>':''}`;
+  };
+
+  /* ---------- SWOT ---------- */
+  VIEWS.swot = async (v) => {
+    const [rows, depts] = await Promise.all([tList('swot_items'), tList('departments','ord')]);
+    window.__depts=depts;
+    const view = window.__swotView==null ? 'geral' : window.__swotView; window.__swotView=view;
+    const now=new Date();
+    const yr = window.__swotYear || now.getFullYear(); window.__swotYear=yr;
+    const qt = window.__swotQuarter || (Math.floor(now.getMonth()/3)+1); window.__swotQuarter=qt;
+    rows.forEach(r=>r.gut=r.gravidade*r.urgencia*r.tendencia);
+    const inView=(r)=> (view==='geral' ? (r.department_id==null) : (r.department_id==Number(view))) && (r.year==yr && r.quarter==qt);
+    const items=rows.filter(inView);
+    const group=(cls)=>items.filter(r=>r.classification===cls).sort((a,b)=>b.gut-a.gut);
+    const tbl=(cls)=>`<div class="card swot-${cls}"><div class="section-head"><h3>${cls}s</h3></div>
+      <table><thead><tr><th>Item</th><th title="${(cls==='Força'||cls==='Oportunidade')?'Impacto':'Gravidade'}">${(cls==='Força'||cls==='Oportunidade')?'I':'G'}</th><th title="Urgência">U</th><th title="Tendência">T</th><th>${(cls==='Força'||cls==='Oportunidade')?'IUT':'GUT'}</th>${can('contributor')?'<th></th>':''}</tr></thead><tbody>
+      ${group(cls).length?group(cls).map(r=>`<tr><td>${esc(r.item)}</td><td>${r.gravidade}</td><td>${r.urgencia}</td><td>${r.tendencia}</td><td class="gut-num">${r.gut}</td>
+        ${can('contributor')?`<td>${actionsCol(`App.editSwot(${JSON.stringify(r).replace(/"/g,'&quot;')})`,`App.delSwot(${r.id})`)}</td>`:''}</tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhum item</td></tr>`}
+      </tbody></table></div>`;
+    const viewLabel = view==='geral'?'Geral da organização':((depts.find(d=>d.id==view)||{}).name||'');
+    const yopts=[]; for(let y=yr-3;y<=yr+2;y++) yopts.push(y);
+    v.innerHTML=`<div class="card"><div class="section-head"><div><h3>Análise SWOT — priorização GUT (Gravidade/Impacto × Urgência × Tendência)</h3>
+        <p class="desc">SWOT por período (mantém histórico) — geral da organização e/ou por departamento.</p></div>
+        ${can('contributor')?`<button class="btn btn-accent" onclick="App.editSwot()">+ Novo item</button>`:''}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div class="field" style="margin:0;min-width:240px"><label>Visão da SWOT</label>
+          <select onchange="App.swotSetView(this.value)"><option value="geral" ${view==='geral'?'selected':''}>Geral da organização</option>${depts.map(d=>`<option value="${d.id}" ${view==d.id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+        <div class="field" style="margin:0;min-width:110px"><label>Ano</label><select onchange="App.swotSetPeriod('y',this.value)">${yopts.map(y=>`<option value="${y}" ${y==yr?'selected':''}>${y}</option>`).join('')}</select></div>
+        <div class="field" style="margin:0;min-width:120px"><label>Trimestre</label><select onchange="App.swotSetPeriod('q',this.value)">${[1,2,3,4].map(q=>`<option value="${q}" ${q==qt?'selected':''}>T${q}</option>`).join('')}</select></div>
+        ${can('contributor')&&!items.length?`<button class="btn btn-light btn-sm" onclick="App.swotCopyPrev()">Copiar do trimestre anterior</button>`:''}</div>
+      <p class="desc" style="margin:10px 0 0">Mostrando: <b>${esc(viewLabel)}</b> · T${qt} ${yr} · ${items.length} itens</p></div>
+      <div class="grid-2">${tbl('Força')}${tbl('Fraqueza')}${tbl('Oportunidade')}${tbl('Ameaça')}</div>`;
+  };
+  App_swotSetView = (val) => { window.__swotView = (val==='geral'?'geral':Number(val)); go('swot'); };
+  App_swotSetPeriod = (k,val) => { if(k==='y') window.__swotYear=+val; else window.__swotQuarter=+val; go('swot'); };
+  App_swotCopyPrev = async () => {
+    const view=window.__swotView, yr=window.__swotYear, qt=window.__swotQuarter;
+    let py=yr, pq=qt-1; if(pq<1){ pq=4; py=yr-1; }
+    const { data:prev } = await sb.from('swot_items').select('*').eq('year',py).eq('quarter',pq);
+    const src=(prev||[]).filter(r=> view==='geral' ? r.department_id==null : r.department_id==Number(view));
+    if(!src.length){ toast('Nada para copiar de T'+pq+' '+py+'.'); return; }
+    try{ for(const r of src){ await tInsert('swot_items',{classification:r.classification,item:r.item,department_id:r.department_id,gravidade:r.gravidade,urgencia:r.urgencia,tendencia:r.tendencia,insights:r.insights,year:yr,quarter:qt}); } }
+    catch(e){ return toast(e.message); }
+    toast('Copiados '+src.length+' itens'); go('swot');
+  };
+  App_editSwot = (s={}) => {
+    const scale=[1,2,3,4,5].map(n=>({v:n,t:n}));
+    const deptOpts=[{v:'',t:'— Geral da organização'}].concat((window.__depts||[]).map(d=>({v:d.id,t:d.name})));
+    const defDept = s.id ? s.department_id : ((window.__swotView && window.__swotView!=='geral') ? window.__swotView : '');
+    modal(s.id?'Editar item SWOT':'Novo item SWOT', form([
+      f.sel('sw-c','Classificação',['Força','Fraqueza','Oportunidade','Ameaça'].map(x=>({v:x,t:x})),s.classification),
+      f.text('sw-item','Item',s.item), f.sel('sw-dep','Departamento (ou Geral)',deptOpts,defDept),
+      `<p class="desc" style="margin-bottom:6px">Em Força e Oportunidade o 1º critério é <b>Impacto</b>; em Fraqueza e Ameaça é <b>Gravidade</b>.</p>`,
+      `<div class="field-row-3">${f.sel('sw-g','Gravidade / Impacto',scale,s.gravidade||1)}${f.sel('sw-u','Urgência',scale,s.urgencia||1)}${f.sel('sw-t','Tendência',scale,s.tendencia||1)}</div>`,
+      f.area('sw-ins','Insights',s.insights),`<button class="btn btn-primary btn-block" onclick="App.saveSwot(${s.id||0})">Salvar</button>`]));
+  };
+  App_saveSwot = async (id) => { const row={classification:val('sw-c'),item:val('sw-item'),department_id:+val('sw-dep')||null,gravidade:+val('sw-g'),urgencia:+val('sw-u'),tendencia:+val('sw-t'),insights:val('sw-ins')}; if(!id){ row.year=window.__swotYear; row.quarter=window.__swotQuarter; } try{ id?await tUpdate('swot_items',id,row):await tInsert('swot_items',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('swot'); };
+  App_delSwot = async (id) => { if(await delRow('swot_items',id)) go('swot'); };
+
+  /* ---------- Curva de Valor ---------- */
+  VIEWS.curva = async (v) => {
+    const rows = await tList('value_curve','ord');
+    const nm = me.org_name || 'Empresa';
+    v.innerHTML=`<div class="card"><div class="section-head"><h3>Curva de Valor</h3>${can('manager')?`<button class="btn btn-accent btn-sm" onclick="App.editCurve()">+ Atributo</button>`:''}</div>
+      <p class="desc">Comparação ${esc(nm)} × concorrência (0 a 10)</p><canvas id="ch-curve" height="120"></canvas></div>
+      <div class="card"><table><thead><tr><th>Atributo</th><th>${esc(nm)}</th><th>Concorrência</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${esc(r.attribute)}</td><td><b>${r.daexe_score}</b></td><td>${r.competitor_score}</td>${can('manager')?`<td>${actionsCol(`App.editCurve(${JSON.stringify(r).replace(/"/g,'&quot;')})`,`App.delCurve(${r.id})`,'manager')}</td>`:''}</tr>`).join('')}</tbody></table></div>`;
+    mkChart('ch-curve','line',{labels:rows.map(r=>r.attribute),datasets:[
+      {label:nm,data:rows.map(r=>r.daexe_score),borderColor:'#2E8BC0',backgroundColor:'rgba(46,139,192,.1)',tension:.3,fill:true},
+      {label:'Concorrência',data:rows.map(r=>r.competitor_score),borderColor:'#E6A817',tension:.3}]},{scales:{y:{min:0,max:10}}});
+  };
+  App_editCurve = (r={}) => modal(r.id?'Editar atributo':'Novo atributo', form([f.text('cv-at','Atributo',r.attribute),`<div class="field-row">${f.num('cv-d','DAEXE (0-10)',r.daexe_score)}${f.num('cv-c','Concorrência (0-10)',r.competitor_score)}</div>`,`<button class="btn btn-primary btn-block" onclick="App.saveCurve(${r.id||0})">Salvar</button>`]));
+  App_saveCurve = async (id) => { const row={attribute:val('cv-at'),daexe_score:+val('cv-d'),competitor_score:+val('cv-c')}; try{ id?await tUpdate('value_curve',id,row):await tInsert('value_curve',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('curva'); };
+  App_delCurve = async (id) => { if(await delRow('value_curve',id)) go('curva'); };
+
+  /* ---------- Mapa BSC (cores por perspectiva, objetivos sem código) ---------- */
+  VIEWS.bsc = async (v) => {
+    const [persp, objs, goals] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals')]);
+    window.__bsc={persp,objs};
+    v.innerHTML=`<div class="section-head"><h3>Mapa Estratégico (Balanced Scorecard)</h3>${can('manager')?`<div class="inline-actions"><button class="btn btn-light" onclick="App.editPersp()">+ Perspectiva</button><button class="btn btn-accent" onclick="App.editObj()">+ Objetivo</button></div>`:''}</div>
+      ${persp.map(p=>{ const os=objs.filter(o=>o.perspective_id===p.id);
+        return `<div class="bsc-row"><div class="bsc-persp" style="background:${esc(p.color||'#1F3A5F')}">${esc(p.name)} ${can('manager')?`<a href="#" style="color:#fff;margin-left:12px;font-size:14px;text-decoration:none" title="Editar" onclick='App.editPersp(${JSON.stringify(p)});return false;'>✎</a><a href="#" style="color:#fff;margin-left:16px;font-size:14px;text-decoration:none" title="Excluir perspectiva" onclick="App.delPersp(${p.id});return false;">🗑</a>`:''}</div><div class="bsc-objs">
+          ${os.length?os.map(o=>`<div class="bsc-obj" style="border-top-color:${esc(p.color||'#2E8BC0')}"><b>${esc(o.title)}</b>
+            <ul>${goals.filter(g=>g.objective_id===o.id).map(g=>`<li>${esc(g.smart_text)}</li>`).join('')}</ul>
+            ${can('manager')?`<div class="inline-actions" style="margin-top:8px"><button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delObj(${o.id})">Excluir</button></div>`:''}</div>`).join(''):'<span class="empty">—</span>'}
+        </div></div>`; }).join('')}`;
+  };
+  App_editPersp = (p={}) => modal(p.id?'Editar perspectiva':'Nova perspectiva', form([f.text('ps-name','Nome',p.name),f.color('ps-color','Cor',p.color||'#2E8BC0'),`<button class="btn btn-primary btn-block" onclick="App.savePersp(${p.id||0})">Salvar</button>`]));
+  App_savePersp = async (id) => { const row={name:val('ps-name'),color:val('ps-color')}; try{ if(id){ await tUpdate('bsc_perspectives',id,row); } else { const ps=(window.__bsc&&window.__bsc.persp)||[]; row.ord=ps.reduce((m,p)=>Math.max(m,p.ord||0),0)+1; await tInsert('bsc_perspectives',row); } }catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('bsc'); };
+  App_delPersp = async (id) => { if(await delRow('bsc_perspectives',id,'Excluir esta perspectiva? Os objetivos ligados ficam sem perspectiva.')) go('bsc'); };
+  App_editObj = (o={}) => { const ps=(window.__bsc.persp||[]).map(p=>({v:p.id,t:p.name})); modal(o.id?'Editar objetivo':'Novo objetivo', form([f.text('ob-title','Objetivo estratégico',o.title),f.sel('ob-persp','Perspectiva BSC',ps,o.perspective_id),`<button class="btn btn-primary btn-block" onclick="App.saveObj(${o.id||0})">Salvar</button>`])); };
+  App_saveObj = async (id) => { const row={title:val('ob-title'),perspective_id:+val('ob-persp')||null}; try{ id?await tUpdate('objectives',id,row):await tInsert('objectives',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go(current==='okr'?'okr':'bsc'); };
+  App_delObj = async (id) => { if(await delRow('objectives',id,'Excluir este objetivo e suas metas?')) go(current==='okr'?'okr':'bsc'); };
+
+  /* ---------- OKR ---------- */
+  VIEWS.okr = async (v) => {
+    const [persp, objs, goals, profs, asg] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'),
+      tList('profiles','name'), sb.from('goal_assignees').select('goal_id, profile_id, profiles(name)').then(r=>r.data||[])]);
+    window.__bsc={persp,objs}; window.__profs=profs;
+    const owners=(gid)=>asg.filter(a=>a.goal_id===gid);
+    const perLabel=(g)=> g.year? ('T'+(g.quarter||1)+' '+g.year) : (g.period||'');
+    v.innerHTML=`<div class="section-head"><h3>Detalhamento OKR / BSC</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>`:''}</div>
+      ${objs.map(o=>`<div class="card"><div class="section-head"><h3>${esc(o.title)}</h3>${can('manager')?`<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar objetivo</button>`:''}</div>
+        <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
+        ${goals.filter(g=>g.objective_id===o.id).map(g=>`<tr><td>${esc(g.smart_text)}</td><td>${esc(perLabel(g))}</td>
+          <td>${owners(g.id).map(a=>`<span class="owner-chip">${esc((a.profiles&&a.profiles.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
+          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="4" class="empty">Sem metas</td></tr>'}
+        </tbody></table></div>`).join('')}`;
+  };
+  function yearOptions(){ const y0=new Date().getFullYear(); let o=[]; for(let y=y0-1;y<=y0+5;y++) o.push({v:y,t:y}); return o; }
+  App_editGoal = (g={}) => {
+    const objs=(window.__bsc.objs||[]).map(o=>({v:o.id,t:o.title}));
+    const qopts=[1,2,3,4].map(q=>({v:q,t:'Trimestre '+q}));
+    modal(g.id?'Editar meta':'Nova meta SMART', form([
+      f.sel('gl-obj','Objetivo',objs,g.objective_id), f.area('gl-smart','Meta SMART',g.smart_text),
+      `<div class="field-row">${f.sel('gl-year','Ano',yearOptions(),g.year||new Date().getFullYear())}${f.sel('gl-q','Trimestre',qopts,g.quarter||1)}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveGoal(${g.id||0})">Salvar</button>`]));
+  };
+  App_saveGoal = async (id) => { const y=+val('gl-year'),q=+val('gl-q'); const row={objective_id:+val('gl-obj'),smart_text:val('gl-smart'),year:y,quarter:q,period:'T'+q+' '+y}; try{ id?await tUpdate('goals',id,row):await tInsert('goals',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('okr'); };
+  App_delGoal = async (id) => { if(await delRow('goals',id)) go('okr'); };
+  App_manageOwners = async (gid) => {
+    const profs = window.__profs || await tList('profiles','name');
+    const { data:cur } = await sb.from('goal_assignees').select('profile_id').eq('goal_id',gid);
+    const set=new Set((cur||[]).map(x=>x.profile_id));
+    modal('Responsáveis pela meta', form([
+      `<p class="desc">Selecione quem é responsável por preencher os resultados desta meta.</p>`,
+      `<div class="check-list">${profs.map(p=>`<label><input type="checkbox" value="${p.id}" ${set.has(p.id)?'checked':''}> ${esc(p.name)} <span style="color:var(--muted);font-size:11px">(${esc(p.email||'')})</span></label>`).join('')}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveOwners(${gid})">Salvar</button>`]));
+  };
+  App_saveOwners = async (gid) => {
+    const ids=[...document.querySelectorAll('.check-list input:checked')].map(i=>i.value);
+    try{ await sb.from('goal_assignees').delete().eq('goal_id',gid);
+      if(ids.length) await sb.from('goal_assignees').insert(ids.map(pid=>({goal_id:gid,profile_id:pid}))); }
+    catch(e){ return toast(e.message); }
+    closeModal(); toast('Responsáveis salvos'); go('okr');
+  };
+
+  /* ---------- Iniciativas 5W2H ---------- */
+  VIEWS.iniciativas = async (v) => {
+    const [rows, objs, depts, profs, acts] = await Promise.all([
+      tList('initiatives','ord'), tList('objectives','ord'), tList('departments','ord'),
+      tList('profiles','name'), tList('initiative_actions','ord')]);
+    window.__bsc={objs}; window.__depts=depts; window.__profs=profs;
+    const objTitle=(id)=>{ const o=objs.find(x=>x.id===id); return o?o.title:null; };
+    const deptN=(id)=>{ const d=depts.find(x=>x.id===id); return d?d.name:null; };
+    const profN=(id)=>{ const p=profs.find(x=>x.id===id); return p?p.name:'—'; };
+    const actsOf=(id)=>acts.filter(a=>a.initiative_id===id);
+    const prog=(i)=>{ const l=actsOf(i.id); return l.length?Math.round(l.filter(x=>x.status==='Concluído').length/l.length*100):0; };
+    v.innerHTML=`<div class="section-head"><h3>Plano de Ação — Iniciativas</h3>${can('contributor')?`<button class="btn btn-accent" onclick="App.editIni()">+ Nova iniciativa</button>`:''}</div>
+      ${rows.length?rows.map(i=>{ const l=actsOf(i.id); const p=prog(i); return `<div class="card" style="border-left:4px solid var(--accent)">
+        <div class="section-head"><div><h3>${esc(i.name)}</h3>
+          <p class="desc" style="margin:2px 0 0">${objTitle(i.objective_id)?`🎯 ${esc(objTitle(i.objective_id))}`:'<span style="color:var(--red)">sem objetivo</span>'}${deptN(i.department_id)?` · 🏢 ${esc(deptN(i.department_id))}`:''}</p></div>
+          ${can('contributor')?`<div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editIni(${JSON.stringify(i).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delIni(${i.id})">Excluir</button></div>`:''}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px">${bar(p)}<small>${p}% · ${l.filter(x=>x.status==='Concluído').length}/${l.length} ações concluídas</small></div>
+        <div class="dept-sub"><h4>Ações (3Q1C) ${can('contributor')?`<button class="btn btn-light btn-sm" onclick="App.editAction(${i.id},0)">+ Ação</button>`:''}</h4>
+          <table><thead><tr><th>O quê</th><th>Quem</th><th>Quando</th><th>Como</th><th>Status</th>${can('contributor')?'<th></th>':''}</tr></thead><tbody>
+          ${l.length?l.map(a=>`<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px">${esc((a.when_date||'').slice(0,10))}</td><td style="font-size:12px">${esc(a.how||'')}</td><td>${statusPill(a.status)}</td>
+            ${can('contributor')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editAction(${i.id},${JSON.stringify(a).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delAction(${a.id})">Excluir</button></div></td>`:''}</tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhuma ação ainda. Cadastre as ações (Quem, Quando, O quê, Como).</td></tr>`}
+          </tbody></table></div>
+      </div>`; }).join(''):'<div class="empty">Nenhuma iniciativa. Crie a primeira.</div>'}`;
+  };
+  App_editIni = (i={}) => {
+    const objs=[{v:'',t:'—'}].concat((window.__bsc.objs||[]).map(o=>({v:o.id,t:o.title})));
+    const depts=[{v:'',t:'—'}].concat((window.__depts||[]).map(d=>({v:d.id,t:d.name})));
+    modal(i.id?'Editar iniciativa':'Nova iniciativa', form([
+      f.text('in-name','Nome da iniciativa *',i.name),
+      `<div class="field-row">${f.sel('in-obj','Objetivo estratégico *',objs,i.objective_id)}${f.sel('in-dep','Departamento *',depts,i.department_id)}</div>`,
+      f.area('in-why','Objetivo / Porquê desta iniciativa',i.why),
+      `<p class="desc" style="margin:-4px 0 8px">* obrigatórios. As ações (Quem/Quando/O quê/Como) são cadastradas dentro da iniciativa.</p>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveIni(${i.id||0})">Salvar</button>`]));
+  };
+  App_saveIni = async (id) => {
+    if(!val('in-name')||!val('in-obj')||!val('in-dep')){ toast('Preencha: Nome, Objetivo e Departamento.'); return; }
+    const row={ name:val('in-name'), objective_id:+val('in-obj')||null, department_id:+val('in-dep')||null, why:val('in-why') };
+    try{ id?await tUpdate('initiatives',id,row):await tInsert('initiatives',row);}catch(e){return toast(e.message);}
+    closeModal(); toast('Salvo'); go('iniciativas');
+  };
+  App_delIni = async (id) => { if(await delRow('initiatives',id,'Excluir esta iniciativa e suas ações?')) go('iniciativas'); };
+  App_editAction = (iniId, a) => { a=a||{};
+    const profs=[{v:'',t:'—'}].concat((window.__profs||[]).map(p=>({v:p.id,t:p.name})));
+    const st=['Não iniciado','Em andamento','Concluído','Atrasado'].map(x=>({v:x,t:x}));
+    modal(a.id?'Editar ação':'Nova ação (3Q1C)', form([
+      f.text('ac-what','O QUÊ — Ação *',a.what),
+      `<div class="field-row">${f.sel('ac-who','QUEM — Responsável *',profs,a.who_profile)}${f.date('ac-when','QUANDO — Prazo *',a.when_date)}</div>`,
+      f.area('ac-how','COMO *',a.how),
+      f.sel('ac-st','Status',st,a.status),
+      `<p class="desc" style="margin:-4px 0 8px">* obrigatórios</p>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveAction(${iniId},${a.id||0})">Salvar</button>`]));
+  };
+  App_saveAction = async (iniId, id) => {
+    if(!val('ac-what')||!val('ac-who')||!val('ac-when')||!val('ac-how')){ toast('Preencha: O quê, Quem, Quando e Como.'); return; }
+    const row={ initiative_id:iniId, what:val('ac-what'), who_profile:val('ac-who')||null, when_date:val('ac-when')||null, how:val('ac-how'), status:val('ac-st') };
+    try{ id?await tUpdate('initiative_actions',id,row):await tInsert('initiative_actions',row);}catch(e){return toast(e.message);}
+    closeModal(); toast('Salvo'); go('iniciativas');
+  };
+  App_delAction = async (id) => { if(await delRow('initiative_actions',id)) go('iniciativas'); };
+  App_manageMs = async (iniId) => {
+    const { data:ms } = await sb.from('initiative_milestones').select('*').eq('initiative_id',iniId).order('ord').order('id');
+    window.__msIni=iniId;
+    modal('Etapas da iniciativa', form([
+      `<p class="desc">Marque as etapas concluídas. O percentual da iniciativa é calculado automaticamente.</p>`,
+      `<div>${(ms&&ms.length)?ms.map(m=>`<div class="ms-row ${m.done?'done':''}"><input type="checkbox" id="ms-${m.id}" ${m.done?'checked':''} ${can('contributor')?'':'disabled'} onchange="App.toggleMs(${m.id},this.checked)"><label for="ms-${m.id}">${esc(m.name)}</label>${can('contributor')?`<a href="#" onclick="App.delMs(${m.id});return false;" style="color:var(--red);font-size:12px">excluir</a>`:''}</div>`).join(''):'<p class="desc">Nenhuma etapa cadastrada ainda.</p>'}</div>
+      ${can('contributor')?`<div class="ms-add"><input id="ms-new" placeholder="Nova etapa..."><button class="btn btn-accent btn-sm" onclick="App.addMs()">Adicionar</button></div>`:''}
+      <button class="btn btn-light btn-block" onclick="App.closeModal();App.go('iniciativas')">Concluir</button>`]));
+  };
+  App_addMs = async () => { const name=val('ms-new'); if(!name) return; try{ await tInsert('initiative_milestones',{initiative_id:window.__msIni,name}); }catch(e){return toast(e.message);} App_manageMs(window.__msIni); };
+  App_toggleMs = async (id,done) => { try{ await tUpdate('initiative_milestones',id,{done}); }catch(e){ toast(e.message); } };
+  App_delMs = async (id) => { try{ await tDelete('initiative_milestones',id);}catch(e){return toast(e.message);} App_manageMs(window.__msIni); };
+
+  /* ---------- Desempenho Semanal (vários anos) ---------- */
+  function weeksOfYear(year){
+    const weeks=[]; let d=new Date(year,0,1);
+    const dow=d.getDay(); d.setDate(d.getDate()+(dow===0?1:(dow===1?0:8-dow))); // primeira segunda-feira
+    let w=1;
+    while(d.getFullYear()<=year && w<=53){
+      const start=new Date(d), end=new Date(d); end.setDate(end.getDate()+6);
+      if(start.getFullYear()>year) break;
+      weeks.push({week:w,start:new Date(start),end:new Date(end)});
+      d.setDate(d.getDate()+7); w++;
+    }
+    return weeks;
+  }
+  const dm=(d)=>('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);
+  const MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  VIEWS.desempenho = async (v) => {
+    const goals = await tList('goals'); window.__goals=goals;
+    if(!goals.length){ v.innerHTML='<div class="empty">Cadastre metas primeiro (em Objetivos & Metas).</div>'; return; }
+    const { data:asg } = await sb.from('goal_assignees').select('goal_id').eq('profile_id', me.id);
+    const assigned=new Set((asg||[]).map(a=>a.goal_id)); window.__assigned=assigned;
+    const goalId = window.__pfGoal || goals[0].id; window.__pfGoal=goalId;
+    const year = window.__pfYear || new Date().getFullYear(); window.__pfYear=year;
+    const mode = window.__pfMode || 'semana'; window.__pfMode=mode;
+    const editable = can('manager') || assigned.has(goalId); window.__pfEditable=editable;
+    const yearOpts=[]; for(let y=year-2;y<=year+4;y++) yearOpts.push(y);
+    const { data:rows } = await sb.from('goal_weekly').select('*').eq('goal_id',goalId).eq('year',year);
+    const map={}; (rows||[]).forEach(r=>map[r.week]=r); window.__wkMap=map;
+    const weeks=weeksOfYear(year);
+    const totMeta=(rows||[]).reduce((a,b)=>a+(Number(b.meta)||0),0), totReal=(rows||[]).reduce((a,b)=>a+(Number(b.realizado)||0),0);
+    const selGoal = goals.find(g=>g.id==goalId)||{};
+    const head=`
+      <div class="card"><div class="section-head"><div><h3>Desempenho de Metas</h3>
+        <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
+        <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div>
+        <div class="field"><label>Selecione a meta</label>
+          <select class="goal-select" onchange="App.pfSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}</option>`).join('')}</select></div>
+        <div class="goal-full">${selGoal.smart_text?esc(selGoal.smart_text):''} ${selGoal.year?`<span class="pill pill-gray">T${selGoal.quarter||1} ${selGoal.year}</span>`:''} ${assigned.has(goalId)?'<span class="pill pill-blue">Sua meta</span>':(editable?'<span class="pill pill-gray">Edição liberada</span>':'<span class="pill pill-gray">Somente leitura</span>')}</div>
+        <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
+          <div class="field" style="margin-bottom:0;min-width:140px"><label>Ano</label><select onchange="App.pfSetYear(this.value)">${yearOpts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
+          <div class="desc" style="margin:0 0 8px">Acumulado ${year}: meta <b>${money(totMeta)}</b> · realizado <b>${money(totReal)}</b> · atingido <b>${pct(totReal,totMeta)}%</b></div>
+        </div>
+      </div>`;
+    if(mode==='semana'){
+      const byM={};
+      weeks.forEach(wk=>{ const m=wk.start.getMonth(); (byM[m]=byM[m]||[]).push(wk); });
+      let html='';
+      Object.keys(byM).sort((a,b)=>a-b).forEach(m=>{ const mw=byM[m];
+        const mm=mw.reduce((a,wk)=>a+(Number((map[wk.week]||{}).meta)||0),0);
+        const mr=mw.reduce((a,wk)=>a+(Number((map[wk.week]||{}).realizado)||0),0);
+        const cell=(wk,fn)=>{ const r=map[wk.week]||{}; return `<td>${fn(r)}</td>`; };
+        html+=`<div class="q-group"><div class="m-head">${MES[m]}</div>
+          <div style="overflow-x:auto"><table class="wk-grid"><thead><tr><th>Semana</th>${mw.map(wk=>`<th class="wk-col" onclick="App.openWeek(${wk.week})" title="Preencher esta semana">S${wk.week}</th>`).join('')}<th>Total do mês</th></tr></thead><tbody>
+          <tr><td>Período</td>${mw.map(wk=>`<td style="font-size:11.5px;color:var(--muted)">${dm(wk.start)}–${dm(wk.end)}</td>`).join('')}<td>—</td></tr>
+          <tr><td>Meta</td>${mw.map(wk=>cell(wk,r=>r.meta!=null?money(r.meta):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${money(mm)}</td></tr>
+          <tr><td>Resultado</td>${mw.map(wk=>cell(wk,r=>r.realizado!=null?money(r.realizado):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${money(mr)}</td></tr>
+          <tr><td>%</td>${mw.map(wk=>cell(wk,r=>{ const has=(r.meta!=null||r.realizado!=null); const p=pct(Number(r.realizado)||0,Number(r.meta)||0); return has?`<b class="${p>=100?'tag-ok':'tag-no'}">${p}%</b>`:''; })).join('')}<td class="wk-total">${pct(mr,mm)}%</td></tr>
+          <tr><td>Obs.</td>${mw.map(wk=>cell(wk,r=>(r.causa||r.acao)?`<span title="${esc((r.causa||'')+' '+(r.acao||''))}">📝</span>`:'')).join('')}<td></td></tr>
+          </tbody></table></div></div>`;
+      });
+      v.innerHTML = head + `<div class="card">${html||'<div class="empty">Sem semanas</div>'}</div>`;
+    } else {
+      const byQ={};
+      weeks.forEach(wk=>{ const m=wk.start.getMonth(); const q=Math.floor(m/3)+1; (byQ[q]=byQ[q]||{}); (byQ[q][m]=byQ[q][m]||[]).push(wk); });
+      let html='';
+      [1,2,3,4].forEach(q=>{ if(!byQ[q]) return; const qWeeks=Object.values(byQ[q]).reduce((a,b)=>a.concat(b),[]);
+        const qm=qWeeks.reduce((a,wk)=>a+(Number((map[wk.week]||{}).meta)||0),0), qr=qWeeks.reduce((a,wk)=>a+(Number((map[wk.week]||{}).realizado)||0),0);
+        html+=`<div class="q-group"><div class="q-head">${q}º Trimestre — meta ${money(qm)} · realizado ${money(qr)} · ${pct(qr,qm)}%</div>`;
+        Object.keys(byQ[q]).sort((a,b)=>a-b).forEach(m=>{ const mw=byQ[q][m];
+          html+=`<div class="m-head">${MES[m]}</div><table><thead><tr><th>Semana</th><th>Período</th><th>Meta</th><th>Realizado</th><th>%</th></tr></thead><tbody>`;
+          mw.forEach(wk=>{ const r=map[wk.week]||{}; const p=pct(Number(r.realizado)||0,Number(r.meta)||0);
+            html+=`<tr onclick="App.openWeek(${wk.week})" style="cursor:pointer"><td><b>S${wk.week}</b></td><td style="font-size:12px;color:var(--muted)">${dm(wk.start)}–${dm(wk.end)}</td><td>${money(r.meta||0)}</td><td>${money(r.realizado||0)}</td><td>${p}%</td></tr>`; });
+          html+='</tbody></table>';
+        });
+        html+='</div>';
+      });
+      v.innerHTML = head + `<div class="card">${html||'<div class="empty">Sem semanas</div>'}</div>`;
+    }
+  };
+  App_pfSetGoal=(g)=>{ window.__pfGoal=+g; go('desempenho'); };
+  App_pfSetYear=(y)=>{ window.__pfYear=+y; go('desempenho'); };
+  App_pfSetMode=(m)=>{ window.__pfMode=m; go('desempenho'); };
+  App_openWeek=(week)=>{
+    const r=(window.__wkMap||{})[week]||{}; const ed=window.__pfEditable; const ro=ed?'':'disabled';
+    const wk=weeksOfYear(window.__pfYear).find(w=>w.week===week)||{};
+    modal('Semana '+week+(wk.start?(' · '+dm(wk.start)+'–'+dm(wk.end)):''), form([
+      `<div class="field-row">${f.num('wp-meta','Meta da semana',r.meta,ro)}${f.num('wp-real','Resultado da semana',r.realizado,ro)}</div>`,
+      f.area('wp-causa','Causa (justifique o resultado, tenha atingido a meta ou não)',r.causa),
+      f.area('wp-acao','Ação (o que será feito para melhorar/atingir na próxima semana)',r.acao),
+      ed?`<button class="btn btn-primary btn-block" onclick="App.saveWeekPopup(${week})">Salvar</button>`:`<p class="desc" style="margin-top:6px">Somente leitura — você não é responsável por esta meta.</p>`]));
+    if(!ed){ ['wp-causa','wp-acao'].forEach(id=>{ const e=document.getElementById(id); if(e) e.setAttribute('disabled','disabled'); }); }
+  };
+  App_saveWeekPopup=async(week)=>{
+    if(!window.__pfEditable) return;
+    const meta=parseFloat(val('wp-meta')), real=parseFloat(val('wp-real'));
+    const row={ goal_id:window.__pfGoal, year:window.__pfYear, week, meta:isNaN(meta)?0:meta, realizado:isNaN(real)?0:real, causa:val('wp-causa'), acao:val('wp-acao'), updated_by:me.id, updated_at:new Date().toISOString() };
+    const { error }=await sb.from('goal_weekly').upsert(row,{onConflict:'goal_id,year,week'});
+    if(error){ toast(error.message); return; } closeModal(); toast('Semana '+week+' salva'); go('desempenho');
+  };
+
+  /* ---------- Avaliação ---------- */
+  VIEWS.avaliacao = async (v) => {
+    const { data:evs } = await sb.from('evaluations').select('*, profiles(name)').order('month');
+    const users={}; (evs||[]).forEach(r=>{ const nm=(r.profiles&&r.profiles.name)||'—'; (users[nm]=users[nm]||[]).push(r); });
+    v.innerHTML=`<div class="section-head"><h3>Avaliação de Desempenho</h3>${can('contributor')?`<button class="btn btn-accent" onclick="App.editEval()">+ Registrar</button>`:''}</div>
+      ${Object.keys(users).length?Object.entries(users).map(([name,list])=>`<div class="card"><h3>${esc(name)}</h3>
+        <table><thead><tr><th>Competência</th><th>Mês</th><th>Auto avaliação</th><th>Avaliação do gestor</th>${can('contributor')?'<th></th>':''}</tr></thead><tbody>
+        ${list.map(e=>`<tr><td>${esc(e.competency)}</td><td>${esc(e.month)}</td><td>${e.self_score}</td><td>${e.manager_score}</td>${can('contributor')?`<td>${actionsCol(`App.editEval(${JSON.stringify({id:e.id,competency:e.competency,month:e.month,self_score:e.self_score,manager_score:e.manager_score}).replace(/"/g,'&quot;')})`,null)}</td>`:''}</tr>`).join('')}
+        </tbody></table></div>`).join(''):'<div class="empty">Nenhuma avaliação registrada</div>'}`;
+  };
+  App_editEval = (e={}) => {
+    const comps=['Organização','Resultados Consistentes','Qualidade','Sagaz e Ágil','Inovador','Autodesenvolvimento','Comunicação'].map(x=>({v:x,t:x}));
+    const months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map(x=>({v:x,t:x}));
+    modal(e.id?'Editar avaliação':'Nova avaliação', form([
+      `<div class="field-row">${f.sel('ev-comp','Competência',comps,e.competency)}${f.sel('ev-month','Mês',months,e.month)}</div>`,
+      `<div class="field-row">${f.num('ev-self','Auto avaliação (0-10)',e.self_score)}${can('manager')?f.num('ev-mgr','Nota do gestor (0-10)',e.manager_score):''}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveEval(${e.id||0})">Salvar</button>`]));
+  };
+  App_saveEval = async (id) => {
+    const row={ competency:val('ev-comp'), month:val('ev-month'), self_score:+val('ev-self')||0 };
+    if(can('manager')) row.manager_score=+val('ev-mgr')||0;
+    try{ if(id) await tUpdate('evaluations',id,row); else { row.user_id=me.id; await tInsert('evaluations',row); } }catch(e){return toast(e.message);}
+    closeModal(); toast('Salvo'); go('avaliacao');
+  };
+
+  /* ---------- Usuários ---------- */
+  VIEWS.usuarios = async (v) => {
+    const [users, depts] = await Promise.all([tList('profiles','role'), tList('departments','ord')]);
+    const dn=(id)=>{ const d=depts.find(x=>x.id===id); return d?d.name:'—'; };
+    v.innerHTML=`<div class="section-head"><h3>Usuários & Controle de Acesso</h3></div>
+      <div class="card"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Departamento</th><th>Status</th>${can('admin')?'<th></th>':''}</tr></thead><tbody>
+      ${users.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.email)}</td><td><span class="pill pill-blue">${ROLE_LABEL[u.role]||u.role}</span></td><td>${esc(dn(u.department_id))}</td>
+        <td>${u.active?'<span class="pill pill-green">Ativo</span>':'<span class="pill pill-gray">Inativo</span>'}</td>
+        ${can('admin')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editUser(${JSON.stringify(u)})'>Editar</button></div></td>`:''}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="card"><h3>Papéis e permissões</h3><table><thead><tr><th>Papel</th><th>Permissões</th></tr></thead><tbody>
+        <tr><td><b>Administrador</b></td><td>Gerencia usuários, acessos, toda a estrutura e configurações</td></tr>
+        <tr><td><b>Gestor</b></td><td>Cria/edita objetivos, metas, departamentos, valores; acompanha indicadores</td></tr>
+        <tr><td><b>Colaborador</b></td><td>Insere e atualiza SWOT, iniciativas, desempenho e auto avaliação</td></tr>
+        <tr><td><b>Visualizador</b></td><td>Apenas consulta painéis e relatórios</td></tr>
+      </tbody></table></div>
+      ${can('admin')?`<div class="card"><div class="section-head"><h3>Convidar nova pessoa</h3></div>
+        <p class="desc">A pessoa cria a conta na tela de login (botão abaixo) ou você cadastra o e-mail/senha aqui. Depois defina o papel dela na tabela acima.</p>
+        <button class="btn btn-accent btn-sm" onclick="App.inviteUser()">+ Cadastrar pessoa</button></div>`:''}`;
+  };
+  App_editUser = (u) => {
+    const roles=[['admin','Administrador'],['manager','Gestor'],['contributor','Colaborador'],['viewer','Visualizador']].map(r=>({v:r[0],t:r[1]}));
+    const depts=[{v:'',t:'—'}].concat((window.__deptsAll||[]).map(d=>({v:d.id,t:d.name})));
+    // garantir lista de deptos
+    sb.from('departments').select('*').order('ord').then(({data})=>{ window.__deptsAll=data||[];
+      const dopts=[{v:'',t:'—'}].concat((window.__deptsAll).map(d=>({v:d.id,t:d.name})));
+      modal('Editar usuário', form([f.text('us-name','Nome',u.name),
+        `<div class="field-row">${f.sel('us-role','Papel',roles,u.role)}${f.sel('us-dep','Departamento',dopts,u.department_id)}</div>`,
+        f.sel('us-active','Status',[{v:'true',t:'Ativo'},{v:'false',t:'Inativo'}],String(u.active)),
+        `<button class="btn btn-primary btn-block" onclick="App.saveUser('${u.id}')">Salvar</button>`]));
+    });
+  };
+  App_saveUser = async (id) => { try{ await tUpdate('profiles',id,{name:val('us-name'),role:val('us-role'),department_id:+val('us-dep')||null,active:val('us-active')==='true'});}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('usuarios'); };
+  App_inviteUser = () => modal('Cadastrar pessoa', form([
+    `<p class="desc">Cria o acesso com e-mail e senha. A pessoa entra e você define o papel dela na lista.</p>`,
+    f.text('iv-name','Nome','','type=text'), f.text('iv-email','E-mail','','type=email'), f.text('iv-pass','Senha provisória','','type=text'),
+    `<button class="btn btn-primary btn-block" onclick="App.doInvite()">Cadastrar</button>`]));
+  App_doInvite = async () => {
+    const email=val('iv-email').trim().toLowerCase(), pass=val('iv-pass'), name=val('iv-name');
+    if(!email||!pass){ toast('Informe e-mail e senha'); return; }
+    const { error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ name, org_id: me.org_id } } });
+    if(error){ toast(error.message); return; }
+    closeModal(); toast('Pessoa cadastrada. Defina o papel na lista.'); setTimeout(()=>go('usuarios'),1200);
+  };
+
+  /* ---------- Notificações ---------- */
+  VIEWS.notificacoes = async (v) => {
+    const { data:rows } = await sb.from('notifications').select('*').order('id',{ascending:false}).limit(50);
+    v.innerHTML=card('Notificações','Lembretes e alertas', can('manager')?'App.newNotif()':null,
+      (rows&&rows.length)?`<table><thead><tr><th>Título</th><th>Mensagem</th><th>Data</th></tr></thead><tbody>
+      ${rows.map(n=>`<tr><td><b>${esc(n.title)}</b></td><td>${esc(n.body)}</td><td style="font-size:12px;color:var(--muted)">${esc((n.created_at||'').slice(0,16).replace('T',' '))}</td></tr>`).join('')}</tbody></table>`
+      :'<div class="empty">Nenhuma notificação</div>');
+  };
+  App_newNotif = () => modal('Novo lembrete', form([f.text('nt-title','Título','Atualize seus indicadores'),f.area('nt-body','Mensagem','Por favor, atualize o progresso das suas iniciativas e metas no sistema.'),`<button class="btn btn-primary btn-block" onclick="App.sendNotif()">Registrar</button>`]));
+  App_sendNotif = async () => { try{ await tInsert('notifications',{title:val('nt-title'),body:val('nt-body')});}catch(e){return toast(e.message);} closeModal(); toast('Registrado'); go('notificacoes'); };
+
+  /* ---------- Feedback e Sugestões ---------- */
+  VIEWS.feedback = async (v) => {
+    const rows = await tList('feedback','id'); rows.sort((a,b)=>b.id-a.id);
+    const isAdmin = can('admin');
+    const types=['Sugestão de melhoria','Problema (bug)','Dúvida','Elogio','Outro'];
+    const mods=['Painel','Filosofia','SWOT','Departamentos','Organograma','Curva de Valor','Mapa BSC','Objetivos & Metas','Iniciativas','Desempenho','Painel de Indicadores','Usuários','Geral / Outro'];
+    const prios=['Baixa','Média','Alta'];
+    const sts=['Novo','Em análise','Planejado','Concluído','Descartado'];
+    const stPill=(s)=>{ const m={'Novo':'pill-blue','Em análise':'pill-amber','Planejado':'pill-gray','Concluído':'pill-green','Descartado':'pill-red'}; return `<span class="pill ${m[s]||'pill-gray'}">${esc(s)}</span>`; };
+    v.innerHTML = `
+      <div class="card" style="max-width:680px"><div class="section-head"><h3>Enviar feedback ou sugestão</h3></div>
+        <p class="desc">Sua opinião ajuda a melhorar o sistema. Seja objetivo: o que acontece hoje, o que você gostaria e por que ajudaria.</p>
+        <div class="field-row">${f.sel('fb-type','Tipo',types.map(x=>({v:x,t:x})),'Sugestão de melhoria')}${f.sel('fb-mod','Módulo / Tela',mods.map(x=>({v:x,t:x})),'Geral / Outro')}</div>
+        ${f.sel('fb-prio','Prioridade (na sua visão)',prios.map(x=>({v:x,t:x})),'Média')}
+        ${f.text('fb-title','Título *','')}
+        ${f.area('fb-desc','Descrição — o que acontece hoje? o que gostaria? por que ajudaria?','')}
+        <button class="btn btn-primary btn-block" onclick="App.sendFeedback()">Enviar feedback</button></div>
+      <div class="card"><div class="section-head"><h3>${isAdmin?'Feedbacks da organização':'Meus feedbacks'}</h3></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Data</th>${isAdmin?'<th>Autor</th>':''}<th>Tipo</th><th>Módulo</th><th>Título</th><th>Prior.</th><th>Status</th><th></th></tr></thead><tbody>
+        ${rows.length?rows.map(r=>`<tr><td style="font-size:12px">${esc((r.created_at||'').slice(0,10))}</td>${isAdmin?`<td style="font-size:12px">${esc(r.author_name||'')}</td>`:''}
+          <td style="font-size:12px">${esc(r.type)}</td><td style="font-size:12px">${esc(r.module||'')}</td>
+          <td><b>${esc(r.title)}</b>${r.description?`<br><span style="color:var(--muted);font-size:11.5px">${esc(r.description)}</span>`:''}</td>
+          <td>${esc(r.priority||'')}</td>
+          <td>${isAdmin?`<select onchange="App.fbSetStatus(${r.id},this.value)">${sts.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select>`:stPill(r.status)}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="App.delFb(${r.id})">Excluir</button></td></tr>`).join(''):`<tr><td colspan="${isAdmin?8:7}" class="empty">Nenhum feedback ainda.</td></tr>`}
+        </tbody></table></div></div>`;
+  };
+  App_sendFeedback = async () => {
+    if(!val('fb-title')){ toast('Informe um título.'); return; }
+    const row={ type:val('fb-type'), module:val('fb-mod'), priority:val('fb-prio'), title:val('fb-title'), description:val('fb-desc'), created_by:me.id, author_name:me.name, author_email:me.email };
+    try{ await tInsert('feedback',row); }catch(e){ return toast(e.message); }
+    toast('Feedback enviado. Obrigado!'); go('feedback');
+  };
+  App_fbSetStatus = async (id,status) => { try{ await tUpdate('feedback',id,{status}); toast('Status atualizado'); }catch(e){ toast(e.message); } };
+  App_delFb = async (id) => { if(await delRow('feedback',id,'Excluir este feedback?')) go('feedback'); };
+
+  /* ---------- Meu Perfil ---------- */
+  VIEWS.perfil = async (v) => {
+    const { data:p } = await sb.from('profiles').select('*').eq('id', me.id).single();
+    const depts = await tList('departments','ord');
+    window.__newAvatar=undefined;
+    const av = p.avatar_url ? `<img src="${p.avatar_url}" class="avatar lg">` : `<span class="avatar lg avatar-fallback" style="font-size:32px">${esc((p.name||'?').slice(0,1).toUpperCase())}</span>`;
+    v.innerHTML = `<div class="card" style="max-width:620px">
+      <div class="section-head"><h3>Meu Perfil</h3></div>
+      <div style="display:flex;gap:18px;align-items:center;margin-bottom:16px">
+        <div id="pf-avatar-wrap">${av}</div>
+        <div><input type="file" id="pf-file" accept="image/*"><p class="desc" style="margin:6px 0 0">Foto quadrada fica melhor. É reduzida automaticamente.</p></div>
+      </div>
+      ${f.text('pf-name','Nome',p.name)}
+      <div class="field-row">${f.text('pf-title','Cargo',p.title)}${f.text('pf-phone','Telefone',p.phone)}</div>
+      ${f.area('pf-bio','Sobre mim',p.bio)}
+      <div class="field"><label>Departamento ${can('admin')?'':'(somente o administrador altera)'}</label>
+        <select id="pf-dep" ${can('admin')?'':'disabled'}>${[{v:'',t:'—'}].concat(depts.map(d=>({v:d.id,t:d.name}))).map(o=>`<option value="${o.v}" ${o.v==p.department_id?'selected':''}>${esc(o.t)}</option>`).join('')}</select></div>
+      <div class="field"><label>E-mail</label><input value="${esc(p.email||'')}" disabled></div>
+      <button class="btn btn-primary btn-block" onclick="App.saveProfile()">Salvar</button>
+    </div>`;
+    document.getElementById('pf-file').addEventListener('change',(e)=>{ const file=e.target.files[0]; if(!file) return; resizeAvatar(file,(d)=>{ window.__newAvatar=d; document.getElementById('pf-avatar-wrap').innerHTML=`<img src="${d}" class="avatar lg">`; }); });
+  };
+  function resizeAvatar(file, cb){
+    const reader=new FileReader();
+    reader.onload=()=>{ const img=new Image(); img.onload=()=>{ const s=256, min=Math.min(img.width,img.height); const c=document.createElement('canvas'); c.width=s;c.height=s; c.getContext('2d').drawImage(img,(img.width-min)/2,(img.height-min)/2,min,min,0,0,s,s); cb(c.toDataURL('image/jpeg',0.85)); }; img.src=reader.result; };
+    reader.readAsDataURL(file);
+  }
+  App_saveProfile = async () => {
+    const row={ name:val('pf-name'), title:val('pf-title'), phone:val('pf-phone'), bio:val('pf-bio') };
+    if(window.__newAvatar) row.avatar_url=window.__newAvatar;
+    if(can('admin')) row.department_id = +val('pf-dep')||null;
+    try{ await tUpdate('profiles', me.id, row); }catch(e){ return toast(e.message); }
+    me.name=row.name; if(row.avatar_url) me.avatar_url=row.avatar_url;
+    document.getElementById('user-chip').innerHTML=`<strong>${esc(me.name)}</strong><span>${esc(me.email)}</span>`;
+    toast('Perfil salvo'); go('perfil');
+  };
+
+  /* ---------- Relatórios e Gestão (admin) ---------- */
+  VIEWS.gestao = async (v) => {
+    window.__newLogo=undefined;
+    v.innerHTML = `<div class="card"><div class="section-head"><h3>Identidade visual da organização</h3></div>
+        <p class="desc">Personalize o logo e as cores que a sua equipe vê. Aplica-se apenas à <b>${esc(me.org_name||'')}</b>.</p>
+        <div style="display:flex;gap:18px;align-items:center;margin-bottom:14px">
+          <div id="brand-logo-prev">${me.org_logo?`<img src="${me.org_logo}" style="max-height:46px;max-width:180px;object-fit:contain">`:'<span class="logo-badge">DX</span>'}</div>
+          <div><input type="file" id="brand-file" accept="image/*"><p class="desc" style="margin:6px 0 0">PNG ou JPG. O logo é reduzido automaticamente.</p></div>
+        </div>
+        <div class="field-row" style="max-width:420px">${f.color('brand-primary','Cor primária',me.org_primary||'#1F3A5F')}${f.color('brand-accent','Cor de destaque',me.org_accent||'#2E8BC0')}</div>
+        <button class="btn btn-primary" onclick="App.saveBranding()">Salvar identidade</button></div>
+      <div class="card"><div class="section-head"><h3>Relatórios</h3></div>
+      <p class="desc">Exporte o plano estratégico completo. Disponível apenas para administradores.</p>
+      <div class="inline-actions"><button class="btn btn-accent" onclick="App.exportFile('excel')">⤓ Exportar Excel</button>
+        <button class="btn btn-light" onclick="App.exportFile('pdf')">⤓ Exportar PDF</button></div></div>
+      <div class="card"><div class="section-head"><h3>Atalhos de gestão</h3></div>
+      <div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.go('usuarios')">Usuários & Acessos</button>
+        <button class="btn btn-light btn-sm" onclick="App.go('okr')">Metas & Responsáveis</button>
+        <button class="btn btn-light btn-sm" onclick="App.go('notificacoes')">Notificações</button></div></div>`;
+    const bf=document.getElementById('brand-file'); if(bf) bf.addEventListener('change',(e)=>{ const file=e.target.files[0]; if(!file) return; resizeLogo(file,(d)=>{ window.__newLogo=d; document.getElementById('brand-logo-prev').innerHTML=`<img src="${d}" style="max-height:46px;max-width:180px;object-fit:contain">`; }); });
+  };
+  App_saveBranding = async () => {
+    const row={ primary_color:val('brand-primary'), accent_color:val('brand-accent') };
+    if(window.__newLogo) row.logo_url=window.__newLogo;
+    try{ const { error } = await sb.from('organizations').update(row).eq('id', me.org_id); if(error) throw error; }catch(e){ return toast(e.message); }
+    me.org_primary=row.primary_color; me.org_accent=row.accent_color; if(row.logo_url) me.org_logo=row.logo_url;
+    applyBranding(); toast('Identidade salva'); go('gestao');
+  };
+
+  /* ---------- Exportações ---------- */
+  async function exportFile(type){ if(!can('admin')){ toast('Exportação disponível apenas para administradores.'); return; } try{ if(type==='excel') await exportExcel(); else await exportPdf(); }catch(e){ toast(e.message); } }
+  async function loadAll(){
+    const [company,values,depts,procs,mems,persp,objs,goals,inis,swot,curve,weekly,evals]=await Promise.all([
+      sb.from('company').select('*').limit(1).single().then(r=>r.data),
+      tList('company_values','ord'),tList('departments','ord'),tList('department_processes','ord'),tList('department_members','ord'),
+      tList('bsc_perspectives','ord'),tList('objectives','ord'),tList('goals'),tList('initiatives','ord'),tList('swot_items'),
+      tList('value_curve','ord'),tList('goal_weekly'),sb.from('evaluations').select('*, profiles(name)').then(r=>r.data||[])]);
+    return {company,values,depts,procs,mems,persp,objs,goals,inis,swot,curve,weekly,evals};
+  }
+  async function exportExcel(){
+    toast('Gerando Excel…'); const D=await loadAll();
+    const objT=(id)=>{const o=D.objs.find(x=>x.id===id);return o?o.title:'';};
+    const goalT=(id)=>{const g=D.goals.find(x=>x.id===id);return g?g.smart_text:'';};
+    const wb=XLSX.utils.book_new(); const add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n);
+    const c=D.company;
+    add('Empresa',[['Campo','Valor'],['Empresa',c.name],['Missão',c.mission],['Visão',c.vision],['Vigência',`${c.plan_start} a ${c.plan_end}`],['Posicionamento',c.positioning]]);
+    add('Valores',[['Valor','Descrição'],...D.values.map(v=>[v.title,v.description])]);
+    add('Departamentos',[['Departamento','Atuação'],...D.depts.map(d=>[d.name,d.atuacao])]);
+    add('Macroprocessos',[['Departamento','Macroprocesso','Descrição'],...D.procs.map(p=>[(D.depts.find(d=>d.id===p.department_id)||{}).name||'',p.name,p.description])]);
+    add('Responsáveis',[['Departamento','Nome','Cargo'],...D.mems.map(m=>[(D.depts.find(d=>d.id===m.department_id)||{}).name||'',m.name,m.cargo])]);
+    add('SWOT (GUT)',[['Classificação','Item','Departamento','G','U','T','GUT'],...D.swot.map(s=>[s.classification,s.item,(D.depts.find(d=>d.id===s.department_id)||{}).name||'Geral',s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia])]);
+    add('Curva de Valor',[['Atributo',(c.name||'Empresa'),'Concorrência'],...D.curve.map(r=>[r.attribute,r.daexe_score,r.competitor_score])]);
+    add('Objetivos e Metas',[['Objetivo','Meta SMART','Ano','Trimestre'],...D.goals.map(g=>[objT(g.objective_id),g.smart_text,g.year,g.quarter])]);
+    add('Iniciativas 5W2H',[['Quê','Quem','Início','Fim','Como','Quanto','Onde','Porquê','Medida','Status','Progresso %'],...D.inis.map(i=>[i.name,i.who,i.date_start,i.date_end,i.how,i.how_much,i.where_,i.why,i.measure,i.status,i.progress])]);
+    add('Desempenho Semanal',[['Meta','Ano','Semana','Meta (alvo)','Realizado','% Atingido','Causa','Ação'],...D.weekly.map(w=>[goalT(w.goal_id),w.year,w.week,w.meta,w.realizado,pct(Number(w.realizado),Number(w.meta)),w.causa,w.acao])]);
+    add('Avaliações',[['Pessoa','Competência','Mês','Auto','Gestor'],...D.evals.map(e=>[(e.profiles&&e.profiles.name)||'',e.competency,e.month,e.self_score,e.manager_score])]);
+    XLSX.writeFile(wb,'Planejamento_DAEXE.xlsx');
+  }
+  async function exportPdf(){
+    toast('Gerando PDF…'); const D=await loadAll();
+    const objT=(id)=>{const o=D.objs.find(x=>x.id===id);return o?o.title:'';};
+    const row=(cells,h)=>'<tr>'+cells.map(x=>`<${h||'td'}>${x==null?'':x}</${h||'td'}>`).join('')+'</tr>';
+    const tbl=(head,rows)=>`<table><thead>${row(head,'th')}</thead><tbody>${rows.map(r=>row(r)).join('')}</tbody></table>`;
+    const c=D.company;
+    const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Planejamento ${esc(c.name||'')}</title>
+      <style>body{font-family:'Segoe UI',Arial,sans-serif;color:#22303f;padding:24px;font-size:12px}h1{color:#1F3A5F;border-bottom:3px solid #2E8BC0;padding-bottom:6px}h2{color:#1F3A5F;margin-top:22px;font-size:15px}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}th{background:#1F3A5F;color:#fff;text-align:left;padding:6px 8px}td{border-bottom:1px solid #e4e8ee;padding:5px 8px}.meta{color:#6b7a8d}</style></head><body>
+      <h1>${esc(c.name||'Planejamento')} · Planejamento Estratégico</h1><p class="meta">${esc(c.positioning||'')} — vigência ${esc(c.plan_start||'')} a ${esc(c.plan_end||'')}</p>
+      <h2>Filosofia</h2>${tbl(['Campo','Valor'],[['Missão',esc(c.mission)],['Visão',esc(c.vision)]])}
+      <h2>Valores</h2>${tbl(['Valor','Descrição'],D.values.map(v=>[esc(v.title),esc(v.description)]))}
+      <h2>Departamentos</h2>${tbl(['Departamento','Atuação'],D.depts.map(d=>[esc(d.name),esc(d.atuacao)]))}
+      <h2>SWOT (GUT)</h2>${tbl(['Classificação','Item','GUT'],D.swot.slice().sort((a,b)=>(b.gravidade*b.urgencia*b.tendencia)-(a.gravidade*a.urgencia*a.tendencia)).map(s=>[esc(s.classification),esc(s.item),s.gravidade*s.urgencia*s.tendencia]))}
+      <h2>Objetivos e Metas</h2>${tbl(['Objetivo','Meta SMART','Período'],D.goals.map(g=>[esc(objT(g.objective_id)),esc(g.smart_text),'T'+(g.quarter||'')+' '+(g.year||'')]))}
+      <h2>Iniciativas</h2>${tbl(['Iniciativa','Objetivo'],D.inis.map(i=>[esc(i.name),esc(objT(i.objective_id))]))}
+      <script>window.onload=function(){window.print();}<\/script></body></html>`;
+    const w=window.open('','_blank'); if(!w){ toast('Permita pop-ups para gerar o PDF'); return; } w.document.write(html); w.document.close();
+  }
+
+  /* ---------- init ---------- */
+  async function init(){
+    document.getElementById('login-form').addEventListener('submit', async (e)=>{ e.preventDefault();
+      document.getElementById('login-error').textContent='';
+      try{ await doLogin(val('login-email'), val('login-password')); }catch(err){ document.getElementById('login-error').textContent=err.message; }});
+    document.getElementById('logout-btn').onclick=logout;
+    document.getElementById('toggle-pass').addEventListener('click',()=>{ const p=document.getElementById('login-password'); p.type = p.type==='password'?'text':'password'; });
+    document.getElementById('nav-toggle').addEventListener('click',()=>{ document.body.classList.toggle('nav-collapsed'); });
+    document.getElementById('modal-backdrop').addEventListener('click',(e)=>{ if(e.target.id==='modal-backdrop') closeModal(); });
+    if(!sb){ document.getElementById('boot').innerHTML='Não foi possível carregar a biblioteca de conexão (Supabase).<br>Verifique sua internet e recarregue a página (F5).'; return; }
+    try{
+      const { data:{ session } } = await sb.auth.getSession();
+      if(session) await loadMeAndBoot(); else showLogin();
+    }catch(e){ showLogin(); }
+  }
+
+  const pub={ go, closeModal, exportFile, logout };
+  ['forgotPassword','dashSetGoal','editValue','saveValue','delValue','editCompany','saveCompany','editDept','saveDept','delDept',
+   'editProc','saveProc','delProc','editMember','saveMember','delMember','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev',
+   'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
+   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','pfSetGoal','pfSetYear','pfSetMode','openWeek','saveWeekPopup',
+   'indSetYear','indSetMode','indGoto','editEval','saveEval','editUser','saveUser','inviteUser','doInvite','newNotif','sendNotif','saveProfile','saveBranding','sendFeedback','fbSetStatus','delFb']
+   .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
+  return Object.assign(pub,{ init });
+})();
+function startApp(){
+  if (typeof supabase === 'undefined' || !supabase.createClient) return false;
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  App.init();
+  return true;
+}
+window.addEventListener('DOMContentLoaded', function(){
+  var tries=0;
+  (function wait(){
+    if (startApp()) return;
+    if (++tries > 60){ var b=document.getElementById('boot'); if(b) b.innerHTML='Nao foi possivel carregar a biblioteca de conexao.<br>Verifique sua internet e recarregue a pagina (F5).'; return; }
+    setTimeout(wait, 200);
+  })();
+});
+</script>
+</body>
+</html>
