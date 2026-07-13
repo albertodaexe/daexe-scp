@@ -432,9 +432,12 @@ const App = (() => {
     const topGut=swot.map(s=>({item:s.item,gut:s.gravidade*s.urgencia*s.tendencia,classification:s.classification})).sort((a,b)=>b.gut-a.gut).slice(0,5);
     const dashGoal = window.__dashGoal || (goals[0]&&goals[0].id) || null; window.__dashGoal=dashGoal;
     const dyear = new Date().getFullYear();
-    const dweeks=weeksOfYear(dyear); const dwkMonth={}; dweeks.forEach(wk=>dwkMonth[wk.week]=wk.start.getMonth());
+    const dweeks=weeksOfYear(dyear);
     const DMESH=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    const mAgg={}; weekly.filter(w=>w.goal_id===dashGoal && w.year===dyear).forEach(w=>{ const mo=dwkMonth[w.week]; if(mo==null)return; const x=(mAgg[mo]=mAgg[mo]||{m:0,r:0}); x.m+=Number(w.meta)||0; x.r+=Number(w.realizado)||0; });
+    const dCalcType = (goals.find(g=>g.id===dashGoal)||{}).calc_type||'soma';
+    const dwAgg={}; weekly.filter(w=>w.goal_id===dashGoal && w.year===dyear).forEach(w=>{ const x=(dwAgg[w.week]=dwAgg[w.week]||{m:0,r:0}); x.m+=Number(w.meta)||0; x.r+=Number(w.realizado)||0; });
+    const dmWeeks={}; dweeks.forEach(wk=>{ const mo=wk.start.getMonth(); const val=dwAgg[wk.week]; if(!val) return; (dmWeeks[mo]=dmWeeks[mo]||[]).push(val); });
+    const mAgg={}; Object.keys(dmWeeks).forEach(mo=>{ mAgg[mo]=periodAgg(dmWeeks[mo], dCalcType); });
     v.innerHTML = `
       <div class="cards">
         <div class="stat"><div class="label">Objetivos Estratégicos</div><div class="value">${objs.length}</div><div class="sub">${goals.length} metas SMART</div></div>
@@ -457,38 +460,54 @@ const App = (() => {
   /* ---------- Painel de Indicadores ---------- */
   VIEWS.indicadores = async (v) => {
     const year = window.__indYear || new Date().getFullYear(); window.__indYear=year;
-    const [persp, objs, goals, depts, weekly] = await Promise.all([
+    const [persp, objs, goals, depts, weekly, profs, gdep, gasg] = await Promise.all([
       tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'), tList('departments','ord'),
-      sb.from('goal_weekly').select('*').eq('year',year).then(r=>r.data||[])]);
+      sb.from('goal_weekly').select('*').eq('year',year).then(r=>r.data||[]), tList('profiles','name'),
+      sb.from('goal_departments').select('goal_id,department_id').then(r=>r.data||[]),
+      sb.from('goal_assignees').select('goal_id,profile_id').then(r=>r.data||[])]);
     const mode = window.__indMode || 'mensal'; window.__indMode=mode;
-    const weeks = weeksOfYear(year); const wkMonth={}; weeks.forEach(wk=>wkMonth[wk.week]=wk.start.getMonth());
-    const aggM={}, aggW={};
-    weekly.forEach(row=>{ const a=(aggM[row.goal_id]=aggM[row.goal_id]||{}); const mo=wkMonth[row.week]; if(mo!=null){ const x=(a[mo]=a[mo]||{m:0,r:0}); x.m+=Number(row.meta)||0; x.r+=Number(row.realizado)||0; } const b=(aggW[row.goal_id]=aggW[row.goal_id]||{}); const yy=(b[row.week]=b[row.week]||{m:0,r:0}); yy.m+=Number(row.meta)||0; yy.r+=Number(row.realizado)||0; });
+    const deptFilter = window.__indDept || ''; const respFilter = window.__indResp || ''; const quarterFilter = window.__indQuarter || '';
+    let weeks = weeksOfYear(year);
+    if(mode==='semanal' && quarterFilter){ weeks = weeks.filter(wk=> (Math.floor(wk.start.getMonth()/3)+1) === +quarterFilter); }
+    const aggW={};
+    weekly.forEach(row=>{ const b=(aggW[row.goal_id]=aggW[row.goal_id]||{}); const yy=(b[row.week]=b[row.week]||{m:0,r:0}); yy.m+=Number(row.meta)||0; yy.r+=Number(row.realizado)||0; });
+    const monthAgg=(gid,month,calcType)=>{ const ws=weeksOfYear(year).filter(wk=>wk.start.getMonth()===month); const vals=ws.map(wk=>(aggW[gid]||{})[wk.week]).filter(Boolean); return periodAgg(vals,calcType); };
+    const yearAgg=(gid,calcType)=>{ const vals=weeksOfYear(year).map(wk=>(aggW[gid]||{})[wk.week]).filter(Boolean); return periodAgg(vals,calcType); };
     const perspName=(id)=>{const p=persp.find(x=>x.id===id);return p?p.name:'';};
     const deptName2=(id)=>{const d=depts.find(x=>x.id===id);return d?d.name:'';};
-    const yearGoals = goals.filter(g=> g.year==year || g.year==null);
+    const gdMap={}; gdep.forEach(x=>{ (gdMap[x.goal_id]=gdMap[x.goal_id]||[]).push(x.department_id); });
+    const gaMap={}; gasg.forEach(x=>{ (gaMap[x.goal_id]=gaMap[x.goal_id]||[]).push(x.profile_id); });
+    let yearGoals = goals.filter(g=> g.year==year || g.year==null);
+    if(deptFilter) yearGoals = yearGoals.filter(g=> (gdMap[g.id]||[]).includes(+deptFilter));
+    if(respFilter) yearGoals = yearGoals.filter(g=> (gaMap[g.id]||[]).includes(respFilter));
     const objWithGoals = objs.filter(o=> yearGoals.some(g=>g.objective_id===o.id));
+    window.__indWeekly=weekly; window.__indGoals=yearGoals; window.__indProfs=profs;
     const yopts=[]; for(let y=year-2;y<=year+3;y++) yopts.push(y);
     const MESH=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     const col=(m,r)=>{ if(!m && !r) return '#eef2f7'; if(!m) return '#cdd8e6'; const p=r/m*100; if(p>=100) return 'var(--green)'; if(p>=70) return 'var(--accent)'; if(p>=40) return 'var(--amber)'; return 'var(--red)'; };
     let cols; if(mode==='mensal') cols=MESH.map((lb,i)=>({key:i,label:lb})); else if(mode==='semanal') cols=weeks.map(wk=>({key:wk.week,label:'S'+wk.week})); else cols=[{key:'ano',label:String(year)}];
-    const cellOf=(gid,key)=>{ if(mode==='mensal') return (aggM[gid]||{})[key]||{m:0,r:0}; if(mode==='semanal') return (aggW[gid]||{})[key]||{m:0,r:0}; const a=aggM[gid]||{}; let m=0,r=0; Object.keys(a).forEach(k=>{m+=a[k].m;r+=a[k].r;}); return {m,r}; };
+    const cellOf=(gid,key,calcType)=>{ if(mode==='mensal') return monthAgg(gid,key,calcType); if(mode==='semanal') return (aggW[gid]||{})[key]||{m:0,r:0}; return yearAgg(gid,calcType); };
+    const qopts=[{v:'',t:'Todos'},{v:'1',t:'T1'},{v:'2',t:'T2'},{v:'3',t:'T3'},{v:'4',t:'T4'}];
     let html = `<div class="card"><div class="section-head"><div><h3>Painel de Metas</h3><p class="desc">Acompanhamento das metas, agrupadas por perspectiva › objetivo › departamento.</p></div>
         <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
           <div class="toggle-group"><button class="${mode==='semanal'?'active':''}" onclick="App.indSetMode('semanal')">Semanal</button><button class="${mode==='mensal'?'active':''}" onclick="App.indSetMode('mensal')">Mensal</button><button class="${mode==='anual'?'active':''}" onclick="App.indSetMode('anual')">Anual</button></div>
           <div class="field" style="margin:0;min-width:100px"><label>Ano</label><select onchange="App.indSetYear(this.value)">${yopts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
+          <div class="field" style="margin:0;min-width:140px"><label>Departamento</label><select onchange="App.indSetDept(this.value)"><option value="">Todos</option>${depts.map(d=>`<option value="${d.id}" ${String(d.id)===String(deptFilter)?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+          <div class="field" style="margin:0;min-width:160px"><label>Responsável</label><select onchange="App.indSetResp(this.value)"><option value="">Todos</option>${profs.map(p=>`<option value="${p.id}" ${String(p.id)===String(respFilter)?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div>
+          ${mode==='semanal'?`<div class="field" style="margin:0;min-width:100px"><label>Trimestre</label><select onchange="App.indSetQuarter(this.value)">${qopts.map(q=>`<option value="${q.v}" ${q.v===quarterFilter?'selected':''}>${q.t}</option>`).join('')}</select></div>`:''}
           ${can('manager')?`<button class="btn btn-accent btn-sm" onclick="App.go('okr')">+ Nova meta</button>`:''}</div></div>
         <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-          <span><span class="ind-key" style="background:var(--green)"></span>≥100%</span><span><span class="ind-key" style="background:var(--accent)"></span>70–99%</span><span><span class="ind-key" style="background:var(--amber)"></span>40–69%</span><span><span class="ind-key" style="background:var(--red)"></span>&lt;40%</span><span><span class="ind-key" style="background:#eef2f7"></span>sem dados</span></div></div>`;
-    if(!objWithGoals.length){ html += '<div class="empty">Nenhuma meta para '+year+'. Cadastre metas em Objetivos &amp; Metas.</div>'; }
+          <span><span class="ind-key" style="background:var(--green)"></span>≥100%</span><span><span class="ind-key" style="background:var(--accent)"></span>70–99%</span><span><span class="ind-key" style="background:var(--amber)"></span>40–69%</span><span><span class="ind-key" style="background:var(--red)"></span>&lt;40%</span><span><span class="ind-key" style="background:#eef2f7"></span>sem dados</span></div>
+        ${mode==='semanal'?'<p class="desc" style="margin-top:6px">Clique no cabeçalho de uma semana para ver o resumo detalhado.</p>':''}</div>`;
+    if(!objWithGoals.length){ html += '<div class="empty">Nenhuma meta para '+year+' com os filtros selecionados.</div>'; }
     objWithGoals.forEach(o=>{
       const gs = yearGoals.filter(g=>g.objective_id===o.id);
       html += `<div class="card" style="padding:0;overflow:hidden">
         <div class="ind-group">${esc(perspName(o.perspective_id)||'—')} <span>›</span> <b>${esc(o.title)}</b>${o.department_id?` <span>›</span> Divisão: ${esc(deptName2(o.department_id))}`:''}</div>
-        <div style="overflow-x:auto"><table class="ind-table"><thead><tr><th class="ind-name">Indicador</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}${mode==='anual'?'':`<th>${year}</th>`}</tr></thead><tbody>
-        ${gs.map(g=>{ const cells=cols.map(c=>{ const x=cellOf(g.id,c.key); const tip=`${c.label}: meta ${fmtByUnit(x.m,g.unit)} · resultado ${fmtByUnit(x.r,g.unit)} · ${pct(x.r,x.m)}%`; return `<td title="${tip}"><span class="ind-cell" style="background:${col(x.m,x.r)}"></span></td>`; }).join('');
-          const at=aggM[g.id]||{}; let ym=0,yr=0; Object.keys(at).forEach(k=>{ym+=at[k].m;yr+=at[k].r;});
-          return `<tr><td class="ind-name" title="${esc(g.smart_text)}" onclick="App.indGoto(${g.id})" style="cursor:pointer">${esc(g.smart_text)}</td>${cells}${mode==='anual'?'':`<td><b>${pct(yr,ym)}%</b></td>`}</tr>`;
+        <div style="overflow-x:auto"><table class="ind-table"><thead><tr><th class="ind-name">Indicador</th>${cols.map(c=>`<th${mode==='semanal'?` onclick="App.indWeekSummary(${c.key})" style="cursor:pointer" title="Ver resumo da semana"`:''}>${c.label}</th>`).join('')}${mode==='anual'?'':`<th>${year}</th>`}</tr></thead><tbody>
+        ${gs.map(g=>{ const calcType=g.calc_type||'soma'; const cells=cols.map(c=>{ const x=cellOf(g.id,c.key,calcType); const tip=`${c.label}: meta ${fmtByUnit(x.m,g.unit)} · resultado ${fmtByUnit(x.r,g.unit)} · ${pct(x.r,x.m)}%`; return `<td title="${tip}"><span class="ind-cell" style="background:${col(x.m,x.r)}"></span></td>`; }).join('');
+          const {m:ym,r:yr} = yearAgg(g.id,calcType);
+          return `<tr><td class="ind-name" title="${esc(g.smart_text)}" onclick="App.indGoto(${g.id})" style="cursor:pointer">${esc(g.smart_text)}${calcType==='media'?' <span class="pill pill-gray">média</span>':''}</td>${cells}${mode==='anual'?'':`<td><b>${pct(yr,ym)}%</b></td>`}</tr>`;
         }).join('')}
         </tbody></table></div></div>`;
     });
@@ -496,7 +515,26 @@ const App = (() => {
   };
   App_indSetYear=(y)=>{ window.__indYear=+y; go('indicadores'); };
   App_indSetMode=(m)=>{ window.__indMode=m; go('indicadores'); };
+  App_indSetDept=(d)=>{ window.__indDept=d; go('indicadores'); };
+  App_indSetResp=(p)=>{ window.__indResp=p; go('indicadores'); };
+  App_indSetQuarter=(q)=>{ window.__indQuarter=q; go('indicadores'); };
   App_indGoto=(gid)=>{ window.__pfGoal=gid; window.__pfYear=window.__indYear; go('desempenho'); };
+  App_indWeekSummary=(week)=>{
+    const year = window.__indYear; const weekly = window.__indWeekly||[]; const goals = window.__indGoals||[]; const profs = window.__indProfs||[];
+    const profName=(id)=>{ if(!id) return ''; const p=profs.find(x=>x.id===id); return p?p.name:''; };
+    const rowsForWeek = weekly.filter(w=>w.week===week);
+    const wk = weeksOfYear(year).find(w=>w.week===week)||{};
+    const body = goals.map(g=>{
+      const rows = rowsForWeek.filter(r=>r.goal_id===g.id);
+      if(!rows.length) return '';
+      const m = rows.reduce((a,b)=>a+(Number(b.meta)||0),0), r = rows.reduce((a,b)=>a+(Number(b.realizado)||0),0);
+      const notes = rows.filter(x=>x.causa||x.acao).map(x=>`<li><b>${esc(profName(x.profile_id)||'—')}:</b> ${x.causa?('Causa: '+esc(x.causa)+' '):''}${x.acao?('Ação: '+esc(x.acao)):''}</li>`).join('');
+      return `<div class="card" style="padding:12px;margin-bottom:8px"><b style="color:var(--navy)">${esc(g.smart_text)}</b>
+        <p class="desc" style="margin-top:4px">Meta: <b>${fmtByUnit(m,g.unit)}</b> · Resultado: <b>${fmtByUnit(r,g.unit)}</b> · ${pct(r,m)}%</p>
+        ${notes?`<ul style="margin:6px 0 0 18px;font-size:12.5px;color:var(--muted)">${notes}</ul>`:''}</div>`;
+    }).filter(Boolean).join('');
+    modal('Resumo da Semana '+week+(wk.start?(' · '+dm(wk.start)+'–'+dm(wk.end)):''), body || '<div class="empty">Nenhum lançamento nesta semana (com os filtros atuais).</div>');
+  };
 
   /* ---------- Filosofia ---------- */
   VIEWS.filosofia = async (v) => {
@@ -873,22 +911,27 @@ const App = (() => {
 
   /* ---------- OKR ---------- */
   VIEWS.okr = async (v) => {
-    const [persp, objs, goals, profs, asg] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'),
-      tList('profiles','name'), sb.from('goal_assignees').select('goal_id, profile_id, profiles(name)').then(r=>r.data||[])]);
-    window.__bsc={persp,objs}; window.__profs=profs;
+    const [persp, objs, goals, profs, asg, depts, gdep] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'),
+      tList('profiles','name'), sb.from('goal_assignees').select('goal_id, profile_id, profiles(name)').then(r=>r.data||[]),
+      tList('departments','ord'), sb.from('goal_departments').select('goal_id, department_id, departments(name)').then(r=>r.data||[])]);
+    window.__bsc={persp,objs}; window.__profs=profs; window.__deptsAll=depts;
     const owners=(gid)=>asg.filter(a=>a.goal_id===gid);
+    const goalDepts=(gid)=>gdep.filter(a=>a.goal_id===gid);
     const perLabel=(g)=> g.year? ('T'+(g.quarter||1)+' '+g.year) : (g.period||'');
     v.innerHTML=`<div class="section-head"><h3>Detalhamento OKR / BSC</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>`:''}</div>
       ${objs.map(o=>`<div class="card"><div class="section-head"><h3>${esc(o.title)}</h3>${can('manager')?`<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar objetivo</button>`:''}</div>
-        <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
+        <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Departamento(s)</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
         ${goals.filter(g=>g.objective_id===o.id).map(g=>`<tr><td>${esc(g.smart_text)}${g.unit?` <span class="pill pill-gray" style="margin-left:6px">${esc(g.unit)}</span>`:''}</td><td>${esc(perLabel(g))}</td>
+          <td>${goalDepts(g.id).map(a=>`<span class="owner-chip">${esc((a.departments&&a.departments.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
           <td>${owners(g.id).map(a=>`<span class="owner-chip">${esc((a.profiles&&a.profiles.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
-          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="4" class="empty">Sem metas</td></tr>'}
+          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageDepts(${g.id})">Departamentos</button><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="5" class="empty">Sem metas</td></tr>'}
         </tbody></table></div>`).join('')}`;
   };
   function yearOptions(){ const y0=new Date().getFullYear(); let o=[]; for(let y=y0-1;y<=y0+5;y++) o.push({v:y,t:y}); return o; }
   const UNIT_OPTS=[{v:'',t:'— Não definida —'},{v:'R$',t:'Monetário (R$)'},{v:'%',t:'Percentual (%)'},{v:'un',t:'Unitário (un)'},{v:'h',t:'Horas (h)'},{v:'outro',t:'Outro (personalizado)'}];
   function fmtByUnit(n, unit){ const num=Number(n)||0; if(unit==='R$') return 'R$ '+money(num); if(unit==='%') return money(num)+'%'; if(!unit) return money(num); return money(num)+' '+unit; }
+  const CALC_OPTS=[{v:'soma',t:'Soma'},{v:'media',t:'Média'}];
+  function periodAgg(vals, calcType){ if(!vals.length) return {m:0,r:0}; const sm=vals.reduce((a,b)=>a+b.m,0), sr=vals.reduce((a,b)=>a+b.r,0); return calcType==='media' ? {m:sm/vals.length, r:sr/vals.length} : {m:sm, r:sr}; }
   App_editGoal = (g={}) => {
     const objs=(window.__bsc.objs||[]).map(o=>({v:o.id,t:o.title}));
     const qopts=[1,2,3,4].map(q=>({v:q,t:'Trimestre '+q}));
@@ -899,10 +942,27 @@ const App = (() => {
       `<div class="field-row">${f.sel('gl-year','Ano',yearOptions(),g.year||new Date().getFullYear())}${f.sel('gl-q','Trimestre',qopts,g.quarter||1)}</div>`,
       f.sel('gl-unit','Unidade de medida da meta',UNIT_OPTS,unitSel),
       f.text('gl-unit-custom','Rótulo personalizado (só se escolher "Outro", ex: clientes, pontos)', unitSel==='outro'?g.unit:''),
+      f.sel('gl-calc','Fórmula de cálculo do período (mês/trimestre/ano)',CALC_OPTS,g.calc_type||'soma'),
       `<button class="btn btn-primary btn-block" onclick="App.saveGoal(${g.id||0})">Salvar</button>`]));
   };
-  App_saveGoal = async (id) => { const y=+val('gl-year'),q=+val('gl-q'); const uSel=val('gl-unit'); const unit = uSel==='outro' ? (val('gl-unit-custom').trim()||null) : (uSel||null); const row={objective_id:+val('gl-obj'),smart_text:val('gl-smart'),year:y,quarter:q,period:'T'+q+' '+y,unit}; try{ id?await tUpdate('goals',id,row):await tInsert('goals',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('okr'); };
+  App_saveGoal = async (id) => { const y=+val('gl-year'),q=+val('gl-q'); const uSel=val('gl-unit'); const unit = uSel==='outro' ? (val('gl-unit-custom').trim()||null) : (uSel||null); const row={objective_id:+val('gl-obj'),smart_text:val('gl-smart'),year:y,quarter:q,period:'T'+q+' '+y,unit,calc_type:val('gl-calc')||'soma'}; try{ id?await tUpdate('goals',id,row):await tInsert('goals',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('okr'); };
   App_delGoal = async (id) => { if(await delRow('goals',id)) go('okr'); };
+  App_manageDepts = async (gid) => {
+    const depts = window.__deptsAll || await tList('departments','ord'); window.__deptsAll=depts;
+    const { data:cur } = await sb.from('goal_departments').select('department_id').eq('goal_id',gid);
+    const set=new Set((cur||[]).map(x=>x.department_id));
+    modal('Departamentos responsáveis pela meta', form([
+      `<p class="desc">Selecione o(s) departamento(s) responsável(is) por esta meta.</p>`,
+      `<div class="check-list">${depts.map(d=>`<label><input type="checkbox" value="${d.id}" ${set.has(d.id)?'checked':''}> ${esc(d.name)}</label>`).join('')||'<span class="empty">Nenhum departamento cadastrado</span>'}</div>`,
+      `<button class="btn btn-primary btn-block" onclick="App.saveDepts(${gid})">Salvar</button>`]));
+  };
+  App_saveDepts = async (gid) => {
+    const ids=[...document.querySelectorAll('.check-list input:checked')].map(i=>i.value);
+    try{ await sb.from('goal_departments').delete().eq('goal_id',gid);
+      if(ids.length) await sb.from('goal_departments').insert(ids.map(did=>({goal_id:gid,department_id:did}))); }
+    catch(e){ return toast(e.message); }
+    closeModal(); toast('Departamentos salvos'); go('okr');
+  };
   App_manageOwners = async (gid) => {
     const profs = window.__profs || await tList('profiles','name');
     const { data:cur } = await sb.from('goal_assignees').select('profile_id').eq('goal_id',gid);
@@ -1031,7 +1091,12 @@ const App = (() => {
     if(!goals.length){ v.innerHTML='<div class="empty">Cadastre metas primeiro (em Objetivos & Metas).</div>'; return; }
     const { data:asg } = await sb.from('goal_assignees').select('goal_id').eq('profile_id', me.id);
     const assigned=new Set((asg||[]).map(a=>a.goal_id)); window.__assigned=assigned;
-    const goalId = window.__pfGoal || goals[0].id; window.__pfGoal=goalId;
+    const mine = window.__pfMine !== false;
+    let visibleGoals = mine ? goals.filter(g=>assigned.has(g.id)) : goals;
+    if(!visibleGoals.length) visibleGoals = goals;
+    let goalId = window.__pfGoal;
+    if(!goalId || !visibleGoals.some(g=>g.id===goalId)) goalId = visibleGoals[0].id;
+    window.__pfGoal=goalId;
     const year = window.__pfYear || new Date().getFullYear(); window.__pfYear=year;
     const mode = window.__pfMode || 'semana'; window.__pfMode=mode;
     const editable = can('manager') || assigned.has(goalId); window.__pfEditable=editable;
@@ -1044,15 +1109,17 @@ const App = (() => {
     (rows||[]).forEach(r=>{ const cur=(map[r.week]=map[r.week]||{meta:0,realizado:0,causa:[],acao:[],hasData:false}); cur.meta+=Number(r.meta)||0; cur.realizado+=Number(r.realizado)||0; cur.hasData=true; if(r.causa) cur.causa.push(r.causa); if(r.acao) cur.acao.push(r.acao); });
     window.__wkMap=map;
     const weeks=weeksOfYear(year);
-    const totMeta=(rows||[]).reduce((a,b)=>a+(Number(b.meta)||0),0), totReal=(rows||[]).reduce((a,b)=>a+(Number(b.realizado)||0),0);
     const selGoal = goals.find(g=>g.id==goalId)||{};
+    const weekVals = Object.values(map).filter(x=>x.hasData).map(x=>({m:x.meta,r:x.realizado}));
+    const { m:totMeta, r:totReal } = periodAgg(weekVals, selGoal.calc_type||'soma');
     const noAssignees = !(window.__pfAssignees||[]).length;
     const head=`
       <div class="card"><div class="section-head"><div><h3>Preenchimento de Metas</h3>
         <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação — um lançamento por responsável.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
-        <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><div class="toggle-group"><button class="${mine?'active':''}" onclick="App.pfSetMine(true)">Minhas metas</button><button class="${!mine?'active':''}" onclick="App.pfSetMine(false)">Todas</button></div>
+        <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div></div>
         <div class="field"><label>Selecione a meta</label>
-          <select class="goal-select" onchange="App.pfSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div>
+          <select class="goal-select" onchange="App.pfSetGoal(this.value)">${visibleGoals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div>
         <div class="goal-full">${selGoal.smart_text?esc(selGoal.smart_text):''} ${selGoal.year?`<span class="pill pill-gray">T${selGoal.quarter||1} ${selGoal.year}</span>`:''} ${selGoal.unit?`<span class="pill pill-gray">${esc(selGoal.unit)}</span>`:''} ${assigned.has(goalId)?'<span class="pill pill-blue">Sua meta</span>':(editable?'<span class="pill pill-gray">Edição liberada</span>':'<span class="pill pill-gray">Somente leitura</span>')}</div>
         ${noAssignees?`<p class="desc" style="color:var(--red);margin-top:8px">Nenhum responsável atribuído a esta meta.${can('manager')?` <a href="#" onclick="App.manageOwners(${goalId});return false;">Atribuir responsáveis</a> para poder preencher os valores semanais.`:' Peça a um gestor para atribuir responsáveis.'}</p>`:`<p class="desc" style="margin-top:8px">Responsáveis: ${(window.__pfAssignees||[]).map(a=>esc((a.profiles&&a.profiles.name)||'')).join(', ')}</p>`}
         <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
@@ -1065,8 +1132,8 @@ const App = (() => {
       weeks.forEach(wk=>{ const m=wk.start.getMonth(); (byM[m]=byM[m]||[]).push(wk); });
       let html='';
       Object.keys(byM).sort((a,b)=>a-b).forEach(m=>{ const mw=byM[m];
-        const mm=mw.reduce((a,wk)=>a+(Number((map[wk.week]||{}).meta)||0),0);
-        const mr=mw.reduce((a,wk)=>a+(Number((map[wk.week]||{}).realizado)||0),0);
+        const mVals = mw.map(wk=>map[wk.week]).filter(x=>x&&x.hasData).map(x=>({m:x.meta,r:x.realizado}));
+        const { m:mm, r:mr } = periodAgg(mVals, selGoal.calc_type||'soma');
         const cell=(wk,fn)=>{ const r=map[wk.week]||{}; return `<td>${fn(r)}</td>`; };
         html+=`<div class="q-group"><div class="m-head">${MES[m]}</div>
           <div style="overflow-x:auto"><table class="wk-grid"><thead><tr><th>Semana</th>${mw.map(wk=>`<th class="wk-col" onclick="App.openWeek(${wk.week})" title="Preencher esta semana">S${wk.week}</th>`).join('')}<th>Total do mês</th></tr></thead><tbody>
@@ -1083,7 +1150,8 @@ const App = (() => {
       weeks.forEach(wk=>{ const m=wk.start.getMonth(); const q=Math.floor(m/3)+1; (byQ[q]=byQ[q]||{}); (byQ[q][m]=byQ[q][m]||[]).push(wk); });
       let html='';
       [1,2,3,4].forEach(q=>{ if(!byQ[q]) return; const qWeeks=Object.values(byQ[q]).reduce((a,b)=>a.concat(b),[]);
-        const qm=qWeeks.reduce((a,wk)=>a+(Number((map[wk.week]||{}).meta)||0),0), qr=qWeeks.reduce((a,wk)=>a+(Number((map[wk.week]||{}).realizado)||0),0);
+        const qVals = qWeeks.map(wk=>map[wk.week]).filter(x=>x&&x.hasData).map(x=>({m:x.meta,r:x.realizado}));
+        const { m:qm, r:qr } = periodAgg(qVals, selGoal.calc_type||'soma');
         html+=`<div class="q-group"><div class="q-head">${q}º Trimestre — meta ${fmtByUnit(qm,selGoal.unit)} · realizado ${fmtByUnit(qr,selGoal.unit)} · ${pct(qr,qm)}%</div>`;
         Object.keys(byQ[q]).sort((a,b)=>a-b).forEach(m=>{ const mw=byQ[q][m];
           html+=`<div class="m-head">${MES[m]}</div><table><thead><tr><th>Semana</th><th>Período</th><th>Meta</th><th>Realizado</th><th>%</th></tr></thead><tbody>`;
@@ -1099,6 +1167,7 @@ const App = (() => {
   App_pfSetGoal=(g)=>{ window.__pfGoal=+g; go('desempenho'); };
   App_pfSetYear=(y)=>{ window.__pfYear=+y; go('desempenho'); };
   App_pfSetMode=(m)=>{ window.__pfMode=m; go('desempenho'); };
+  App_pfSetMine=(mine)=>{ window.__pfMine=mine; window.__pfGoal=null; go('desempenho'); };
   App_openWeek=(week)=>{
     const assignees = window.__pfAssignees||[];
     if(!assignees.length){ toast('Atribua responsáveis a esta meta antes de preencher a semana.'); return; }
@@ -1433,7 +1502,9 @@ const App = (() => {
     add('Responsáveis',[['Departamento','Nome','Cargo'],...D.mems.map(m=>[(D.depts.find(d=>d.id===m.department_id)||{}).name||'',m.name,m.cargo])]);
     add('SWOT (GUT)',[['Classificação','Item','Departamento','G','U','T','GUT'],...D.swot.map(s=>[s.classification,s.item,(D.depts.find(d=>d.id===s.department_id)||{}).name||'Geral',s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia])]);
     add('Curva de Valor',[['Atributo',(c.name||'Empresa'),'Concorrência'],...D.curve.map(r=>[r.attribute,r.daexe_score,r.competitor_score])]);
-    add('Objetivos e Metas',[['Objetivo','Meta SMART','Unidade','Ano','Trimestre'],...D.goals.map(g=>[objT(g.objective_id),g.smart_text,g.unit||'',g.year,g.quarter])]);
+    const goalWeekAgg={}; D.weekly.forEach(w=>{ const g=(goalWeekAgg[w.goal_id]=goalWeekAgg[w.goal_id]||{}); const k=w.year+'_'+w.week; const x=(g[k]=g[k]||{m:0,r:0}); x.m+=Number(w.meta)||0; x.r+=Number(w.realizado)||0; });
+    const goalTotal=(id,calcType)=>periodAgg(Object.values(goalWeekAgg[id]||{}),calcType);
+    add('Objetivos e Metas',[['Objetivo','Meta SMART','Unidade','Ano','Trimestre','Fórmula','Total Meta','Total Realizado','% Atingido'],...D.goals.map(g=>{ const ct=g.calc_type||'soma'; const {m,r}=goalTotal(g.id,ct); return [objT(g.objective_id),g.smart_text,g.unit||'',g.year,g.quarter,ct==='media'?'Média':'Soma',m,r,pct(r,m)]; })]);
     add('Iniciativas 5W2H',[['Quê','Quem','Início','Fim','Como','Quanto','Onde','Porquê','Medida','Status','Progresso %'],...D.inis.map(i=>[i.name,i.who,i.date_start,i.date_end,i.how,i.how_much,i.where_,i.why,i.measure,i.status,i.progress])]);
     const goalUnit=(id)=>{const g=D.goals.find(x=>x.id===id);return g?(g.unit||''):'';};
     const profName=(id)=>{ if(!id) return ''; const p=D.profiles.find(x=>x.id===id); return p?p.name:''; };
@@ -1479,9 +1550,9 @@ const App = (() => {
   ['forgotPassword','dashSetGoal','editValue','saveValue','delValue','editCompany','saveCompany','editDept','saveDept','delDept',
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
-   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','openWeek','saveWeekPopup',
+   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
-   'indSetYear','indSetMode','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','saveBranding','sendFeedback','fbSetStatus','delFb']
+   'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','saveBranding','sendFeedback','fbSetStatus','delFb']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
   return Object.assign(pub,{ init });
 })();
