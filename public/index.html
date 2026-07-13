@@ -1036,18 +1036,25 @@ const App = (() => {
     const mode = window.__pfMode || 'semana'; window.__pfMode=mode;
     const editable = can('manager') || assigned.has(goalId); window.__pfEditable=editable;
     const yearOpts=[]; for(let y=year-2;y<=year+4;y++) yearOpts.push(y);
+    const { data:assignees } = await sb.from('goal_assignees').select('profile_id, profiles(name)').eq('goal_id',goalId);
+    window.__pfAssignees = assignees||[];
     const { data:rows } = await sb.from('goal_weekly').select('*').eq('goal_id',goalId).eq('year',year);
-    const map={}; (rows||[]).forEach(r=>map[r.week]=r); window.__wkMap=map;
+    window.__wkRows = rows||[];
+    const map={};
+    (rows||[]).forEach(r=>{ const cur=(map[r.week]=map[r.week]||{meta:0,realizado:0,causa:[],acao:[],hasData:false}); cur.meta+=Number(r.meta)||0; cur.realizado+=Number(r.realizado)||0; cur.hasData=true; if(r.causa) cur.causa.push(r.causa); if(r.acao) cur.acao.push(r.acao); });
+    window.__wkMap=map;
     const weeks=weeksOfYear(year);
     const totMeta=(rows||[]).reduce((a,b)=>a+(Number(b.meta)||0),0), totReal=(rows||[]).reduce((a,b)=>a+(Number(b.realizado)||0),0);
     const selGoal = goals.find(g=>g.id==goalId)||{};
+    const noAssignees = !(window.__pfAssignees||[]).length;
     const head=`
       <div class="card"><div class="section-head"><div><h3>Preenchimento de Metas</h3>
-        <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
+        <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação — um lançamento por responsável.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
         <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div>
         <div class="field"><label>Selecione a meta</label>
           <select class="goal-select" onchange="App.pfSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div>
         <div class="goal-full">${selGoal.smart_text?esc(selGoal.smart_text):''} ${selGoal.year?`<span class="pill pill-gray">T${selGoal.quarter||1} ${selGoal.year}</span>`:''} ${selGoal.unit?`<span class="pill pill-gray">${esc(selGoal.unit)}</span>`:''} ${assigned.has(goalId)?'<span class="pill pill-blue">Sua meta</span>':(editable?'<span class="pill pill-gray">Edição liberada</span>':'<span class="pill pill-gray">Somente leitura</span>')}</div>
+        ${noAssignees?`<p class="desc" style="color:var(--red);margin-top:8px">Nenhum responsável atribuído a esta meta.${can('manager')?` <a href="#" onclick="App.manageOwners(${goalId});return false;">Atribuir responsáveis</a> para poder preencher os valores semanais.`:' Peça a um gestor para atribuir responsáveis.'}</p>`:`<p class="desc" style="margin-top:8px">Responsáveis: ${(window.__pfAssignees||[]).map(a=>esc((a.profiles&&a.profiles.name)||'')).join(', ')}</p>`}
         <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
           <div class="field" style="margin-bottom:0;min-width:140px"><label>Ano</label><select onchange="App.pfSetYear(this.value)">${yearOpts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
           <div class="desc" style="margin:0 0 8px">Acumulado ${year}: meta <b>${fmtByUnit(totMeta,selGoal.unit)}</b> · realizado <b>${fmtByUnit(totReal,selGoal.unit)}</b> · atingido <b>${pct(totReal,totMeta)}%</b></div>
@@ -1064,10 +1071,10 @@ const App = (() => {
         html+=`<div class="q-group"><div class="m-head">${MES[m]}</div>
           <div style="overflow-x:auto"><table class="wk-grid"><thead><tr><th>Semana</th>${mw.map(wk=>`<th class="wk-col" onclick="App.openWeek(${wk.week})" title="Preencher esta semana">S${wk.week}</th>`).join('')}<th>Total do mês</th></tr></thead><tbody>
           <tr><td>Período</td>${mw.map(wk=>`<td style="font-size:11.5px;color:var(--muted)">${dm(wk.start)}–${dm(wk.end)}</td>`).join('')}<td>—</td></tr>
-          <tr><td>Meta</td>${mw.map(wk=>cell(wk,r=>r.meta!=null?fmtByUnit(r.meta,selGoal.unit):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${fmtByUnit(mm,selGoal.unit)}</td></tr>
-          <tr><td>Resultado</td>${mw.map(wk=>cell(wk,r=>r.realizado!=null?fmtByUnit(r.realizado,selGoal.unit):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${fmtByUnit(mr,selGoal.unit)}</td></tr>
-          <tr><td>%</td>${mw.map(wk=>cell(wk,r=>{ const has=(r.meta!=null||r.realizado!=null); const p=pct(Number(r.realizado)||0,Number(r.meta)||0); return has?`<b class="${p>=100?'tag-ok':'tag-no'}">${p}%</b>`:''; })).join('')}<td class="wk-total">${pct(mr,mm)}%</td></tr>
-          <tr><td>Obs.</td>${mw.map(wk=>cell(wk,r=>(r.causa||r.acao)?`<span title="${esc((r.causa||'')+' '+(r.acao||''))}">📝</span>`:'')).join('')}<td></td></tr>
+          <tr><td>Meta</td>${mw.map(wk=>cell(wk,r=>r.hasData?fmtByUnit(r.meta,selGoal.unit):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${fmtByUnit(mm,selGoal.unit)}</td></tr>
+          <tr><td>Resultado</td>${mw.map(wk=>cell(wk,r=>r.hasData?fmtByUnit(r.realizado,selGoal.unit):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${fmtByUnit(mr,selGoal.unit)}</td></tr>
+          <tr><td>%</td>${mw.map(wk=>cell(wk,r=>{ const p=pct(Number(r.realizado)||0,Number(r.meta)||0); return r.hasData?`<b class="${p>=100?'tag-ok':'tag-no'}">${p}%</b>`:''; })).join('')}<td class="wk-total">${pct(mr,mm)}%</td></tr>
+          <tr><td>Obs.</td>${mw.map(wk=>cell(wk,r=>(r.causa&&r.causa.length)||(r.acao&&r.acao.length)?`<span title="${esc((r.causa||[]).join(' | ')+' — '+(r.acao||[]).join(' | '))}">📝</span>`:'')).join('')}<td></td></tr>
           </tbody></table></div></div>`;
       });
       v.innerHTML = head + `<div class="card">${html||'<div class="empty">Sem semanas</div>'}</div>`;
@@ -1093,23 +1100,51 @@ const App = (() => {
   App_pfSetYear=(y)=>{ window.__pfYear=+y; go('desempenho'); };
   App_pfSetMode=(m)=>{ window.__pfMode=m; go('desempenho'); };
   App_openWeek=(week)=>{
-    const r=(window.__wkMap||{})[week]||{}; const ed=window.__pfEditable; const ro=ed?'':'disabled';
+    const assignees = window.__pfAssignees||[];
+    if(!assignees.length){ toast('Atribua responsáveis a esta meta antes de preencher a semana.'); return; }
     const wk=weeksOfYear(window.__pfYear).find(w=>w.week===week)||{};
-    const ug=(window.__goals||[]).find(x=>x.id===window.__pfGoal)||{};
-    const uSuf = ug.unit?(' ('+ug.unit+')'):'';
+    const selGoal=(window.__goals||[]).find(g=>g.id===window.__pfGoal)||{};
+    const uTxt = selGoal.unit?(' ('+selGoal.unit+')'):'';
+    const weekRows = (window.__wkRows||[]).filter(r=>r.week===week);
+    const rowOf = (pid)=> weekRows.find(r=>r.profile_id===pid) || {};
+    const curAgg = (window.__wkMap||{})[week] || {meta:0,realizado:0};
+    const blocks = assignees.map(a=>{
+      const pid=a.profile_id, nm=(a.profiles&&a.profiles.name)||'—';
+      const r=rowOf(pid); const ed = can('manager') || pid===me.id;
+      if(ed){
+        return `<div class="card" style="padding:12px;margin-bottom:10px;background:#f7f9fc">
+          <b style="color:var(--navy)">${esc(nm)}</b>
+          <div class="field-row" style="margin-top:8px">${f.num('wp-meta-'+pid,'Meta da semana'+uTxt,r.meta)}${f.num('wp-real-'+pid,'Resultado da semana'+uTxt,r.realizado)}</div>
+          ${f.area('wp-causa-'+pid,'Causa',r.causa)}
+          ${f.area('wp-acao-'+pid,'Ação',r.acao)}
+        </div>`;
+      }
+      return `<div class="card" style="padding:12px;margin-bottom:10px">
+        <b style="color:var(--navy)">${esc(nm)}</b> <span class="pill pill-gray" style="margin-left:6px">somente leitura</span>
+        <p class="desc" style="margin-top:6px">Meta: <b>${fmtByUnit(r.meta||0,selGoal.unit)}</b> · Resultado: <b>${fmtByUnit(r.realizado||0,selGoal.unit)}</b></p>
+        ${(r.causa||r.acao)?`<p class="desc">${r.causa?('Causa: '+esc(r.causa)+' '):''}${r.acao?('Ação: '+esc(r.acao)):''}</p>`:''}
+      </div>`;
+    }).join('');
+    const canSaveAny = assignees.some(a=>can('manager')||a.profile_id===me.id);
     modal('Semana '+week+(wk.start?(' · '+dm(wk.start)+'–'+dm(wk.end)):''), form([
-      `<div class="field-row">${f.num('wp-meta','Meta da semana'+uSuf,r.meta,ro)}${f.num('wp-real','Resultado da semana'+uSuf,r.realizado,ro)}</div>`,
-      f.area('wp-causa','Causa (justifique o resultado, tenha atingido a meta ou não)',r.causa),
-      f.area('wp-acao','Ação (o que será feito para melhorar/atingir na próxima semana)',r.acao),
-      ed?`<button class="btn btn-primary btn-block" onclick="App.saveWeekPopup(${week})">Salvar</button>`:`<p class="desc" style="margin-top:6px">Somente leitura — você não é responsável por esta meta.</p>`]));
-    if(!ed){ ['wp-causa','wp-acao'].forEach(id=>{ const e=document.getElementById(id); if(e) e.setAttribute('disabled','disabled'); }); }
+      `<p class="desc">Total atual da semana: meta <b>${fmtByUnit(curAgg.meta||0,selGoal.unit)}</b> · resultado <b>${fmtByUnit(curAgg.realizado||0,selGoal.unit)}</b> (soma de todos os responsáveis)</p>`,
+      blocks,
+      canSaveAny?`<button class="btn btn-primary btn-block" onclick="App.saveWeekPopup(${week})">Salvar</button>`:`<p class="desc" style="margin-top:6px">Somente leitura — você não é responsável por esta meta.</p>`]));
   };
   App_saveWeekPopup=async(week)=>{
-    if(!window.__pfEditable) return;
-    const meta=parseFloat(val('wp-meta')), real=parseFloat(val('wp-real'));
-    const row={ goal_id:window.__pfGoal, year:window.__pfYear, week, meta:isNaN(meta)?0:meta, realizado:isNaN(real)?0:real, causa:val('wp-causa'), acao:val('wp-acao'), updated_by:me.id, updated_at:new Date().toISOString() };
-    const { error }=await sb.from('goal_weekly').upsert(row,{onConflict:'goal_id,year,week'});
-    if(error){ toast(error.message); return; } closeModal(); toast('Semana '+week+' salva'); go('desempenho');
+    const assignees = window.__pfAssignees||[];
+    const editableOnes = assignees.filter(a=>can('manager')||a.profile_id===me.id);
+    if(!editableOnes.length) return;
+    try{
+      for(const a of editableOnes){
+        const pid=a.profile_id;
+        const meta=parseFloat(val('wp-meta-'+pid)), real=parseFloat(val('wp-real-'+pid));
+        const row={ goal_id:window.__pfGoal, profile_id:pid, year:window.__pfYear, week, meta:isNaN(meta)?0:meta, realizado:isNaN(real)?0:real, causa:val('wp-causa-'+pid), acao:val('wp-acao-'+pid), updated_by:me.id, updated_at:new Date().toISOString() };
+        const { error }=await sb.from('goal_weekly').upsert(row,{onConflict:'goal_id,profile_id,year,week'});
+        if(error) throw error;
+      }
+    }catch(e){ toast(e.message); return; }
+    closeModal(); toast('Semana '+week+' salva'); go('desempenho');
   };
 
   /* ---------- Desempenho de Iniciativas (status semanal das ações 3Q1C) ---------- */
@@ -1378,12 +1413,12 @@ const App = (() => {
   /* ---------- Exportações ---------- */
   async function exportFile(type){ if(!can('admin')){ toast('Exportação disponível apenas para administradores.'); return; } try{ if(type==='excel') await exportExcel(); else await exportPdf(); }catch(e){ toast(e.message); } }
   async function loadAll(){
-    const [company,values,depts,procs,mems,persp,objs,goals,inis,swot,curve,weekly]=await Promise.all([
+    const [company,values,depts,procs,mems,persp,objs,goals,inis,swot,curve,weekly,profiles]=await Promise.all([
       sb.from('company').select('*').limit(1).single().then(r=>r.data),
       tList('company_values','ord'),tList('departments','ord'),tList('department_processes','ord'),tList('department_members','ord'),
       tList('bsc_perspectives','ord'),tList('objectives','ord'),tList('goals'),tList('initiatives','ord'),tList('swot_items'),
-      tList('value_curve','ord'),tList('goal_weekly')]);
-    return {company,values,depts,procs,mems,persp,objs,goals,inis,swot,curve,weekly};
+      tList('value_curve','ord'),tList('goal_weekly'),tList('profiles','name')]);
+    return {company,values,depts,procs,mems,persp,objs,goals,inis,swot,curve,weekly,profiles};
   }
   async function exportExcel(){
     toast('Gerando Excel…'); const D=await loadAll();
@@ -1401,7 +1436,8 @@ const App = (() => {
     add('Objetivos e Metas',[['Objetivo','Meta SMART','Unidade','Ano','Trimestre'],...D.goals.map(g=>[objT(g.objective_id),g.smart_text,g.unit||'',g.year,g.quarter])]);
     add('Iniciativas 5W2H',[['Quê','Quem','Início','Fim','Como','Quanto','Onde','Porquê','Medida','Status','Progresso %'],...D.inis.map(i=>[i.name,i.who,i.date_start,i.date_end,i.how,i.how_much,i.where_,i.why,i.measure,i.status,i.progress])]);
     const goalUnit=(id)=>{const g=D.goals.find(x=>x.id===id);return g?(g.unit||''):'';};
-    add('Desempenho Semanal',[['Meta','Unidade','Ano','Semana','Meta (alvo)','Realizado','% Atingido','Causa','Ação'],...D.weekly.map(w=>[goalT(w.goal_id),goalUnit(w.goal_id),w.year,w.week,w.meta,w.realizado,pct(Number(w.realizado),Number(w.meta)),w.causa,w.acao])]);
+    const profName=(id)=>{ if(!id) return ''; const p=D.profiles.find(x=>x.id===id); return p?p.name:''; };
+    add('Desempenho Semanal',[['Meta','Unidade','Responsável','Ano','Semana','Meta (alvo)','Realizado','% Atingido','Causa','Ação'],...D.weekly.map(w=>[goalT(w.goal_id),goalUnit(w.goal_id),profName(w.profile_id),w.year,w.week,w.meta,w.realizado,pct(Number(w.realizado),Number(w.meta)),w.causa,w.acao])]);
     XLSX.writeFile(wb,'Planejamento_DAEXE.xlsx');
   }
   async function exportPdf(){
