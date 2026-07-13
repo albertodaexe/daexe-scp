@@ -443,7 +443,7 @@ const App = (() => {
         <div class="stat" style="border-color:var(--gold)"><div class="label">Itens SWOT</div><div class="value">${swot.length}</div><div class="sub">mapeados</div></div>
       </div>
       <div class="card"><div class="section-head"><div><h3>Desempenho</h3><p class="desc">Meta × realizado por mês (${dyear})</p></div></div>
-        ${goals.length?`<div class="field" style="margin:0 0 12px;max-width:520px"><label>Meta SMART</label><select onchange="App.dashSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==dashGoal?'selected':''}>${esc(g.smart_text)}</option>`).join('')}</select></div><canvas id="ch-perf" height="110"></canvas>`:'<div class="empty">Cadastre metas para ver o desempenho.</div>'}</div>
+        ${goals.length?`<div class="field" style="margin:0 0 12px;max-width:520px"><label>Meta SMART</label><select onchange="App.dashSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==dashGoal?'selected':''}>${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div><canvas id="ch-perf" height="110"></canvas>`:'<div class="empty">Cadastre metas para ver o desempenho.</div>'}</div>
       <div class="card"><h3>Top 5 prioridades (Matriz GUT)</h3>
         <table><thead><tr><th>Item</th><th>Classificação</th><th>GUT</th></tr></thead><tbody>
         ${topGut.map(t=>`<tr><td>${esc(t.item)}</td><td>${esc(t.classification)}</td><td class="gut-num">${t.gut}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Sem dados</td></tr>'}
@@ -486,7 +486,7 @@ const App = (() => {
       html += `<div class="card" style="padding:0;overflow:hidden">
         <div class="ind-group">${esc(perspName(o.perspective_id)||'—')} <span>›</span> <b>${esc(o.title)}</b>${o.department_id?` <span>›</span> Divisão: ${esc(deptName2(o.department_id))}`:''}</div>
         <div style="overflow-x:auto"><table class="ind-table"><thead><tr><th class="ind-name">Indicador</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}${mode==='anual'?'':`<th>${year}</th>`}</tr></thead><tbody>
-        ${gs.map(g=>{ const cells=cols.map(c=>{ const x=cellOf(g.id,c.key); const tip=`${c.label}: meta ${money(x.m)} · resultado ${money(x.r)} · ${pct(x.r,x.m)}%`; return `<td title="${tip}"><span class="ind-cell" style="background:${col(x.m,x.r)}"></span></td>`; }).join('');
+        ${gs.map(g=>{ const cells=cols.map(c=>{ const x=cellOf(g.id,c.key); const tip=`${c.label}: meta ${fmtByUnit(x.m,g.unit)} · resultado ${fmtByUnit(x.r,g.unit)} · ${pct(x.r,x.m)}%`; return `<td title="${tip}"><span class="ind-cell" style="background:${col(x.m,x.r)}"></span></td>`; }).join('');
           const at=aggM[g.id]||{}; let ym=0,yr=0; Object.keys(at).forEach(k=>{ym+=at[k].m;yr+=at[k].r;});
           return `<tr><td class="ind-name" title="${esc(g.smart_text)}" onclick="App.indGoto(${g.id})" style="cursor:pointer">${esc(g.smart_text)}</td>${cells}${mode==='anual'?'':`<td><b>${pct(yr,ym)}%</b></td>`}</tr>`;
         }).join('')}
@@ -881,21 +881,27 @@ const App = (() => {
     v.innerHTML=`<div class="section-head"><h3>Detalhamento OKR / BSC</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>`:''}</div>
       ${objs.map(o=>`<div class="card"><div class="section-head"><h3>${esc(o.title)}</h3>${can('manager')?`<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar objetivo</button>`:''}</div>
         <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
-        ${goals.filter(g=>g.objective_id===o.id).map(g=>`<tr><td>${esc(g.smart_text)}</td><td>${esc(perLabel(g))}</td>
+        ${goals.filter(g=>g.objective_id===o.id).map(g=>`<tr><td>${esc(g.smart_text)}${g.unit?` <span class="pill pill-gray" style="margin-left:6px">${esc(g.unit)}</span>`:''}</td><td>${esc(perLabel(g))}</td>
           <td>${owners(g.id).map(a=>`<span class="owner-chip">${esc((a.profiles&&a.profiles.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
           ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="4" class="empty">Sem metas</td></tr>'}
         </tbody></table></div>`).join('')}`;
   };
   function yearOptions(){ const y0=new Date().getFullYear(); let o=[]; for(let y=y0-1;y<=y0+5;y++) o.push({v:y,t:y}); return o; }
+  const UNIT_OPTS=[{v:'',t:'— Não definida —'},{v:'R$',t:'Monetário (R$)'},{v:'%',t:'Percentual (%)'},{v:'un',t:'Unitário (un)'},{v:'h',t:'Horas (h)'},{v:'outro',t:'Outro (personalizado)'}];
+  function fmtByUnit(n, unit){ const num=Number(n)||0; if(unit==='R$') return 'R$ '+money(num); if(unit==='%') return money(num)+'%'; if(!unit) return money(num); return money(num)+' '+unit; }
   App_editGoal = (g={}) => {
     const objs=(window.__bsc.objs||[]).map(o=>({v:o.id,t:o.title}));
     const qopts=[1,2,3,4].map(q=>({v:q,t:'Trimestre '+q}));
+    const presets=['','R$','%','un','h'];
+    const unitSel = g.unit && !presets.includes(g.unit) ? 'outro' : (g.unit||'');
     modal(g.id?'Editar meta':'Nova meta SMART', form([
       f.sel('gl-obj','Objetivo',objs,g.objective_id), f.area('gl-smart','Meta SMART',g.smart_text),
       `<div class="field-row">${f.sel('gl-year','Ano',yearOptions(),g.year||new Date().getFullYear())}${f.sel('gl-q','Trimestre',qopts,g.quarter||1)}</div>`,
+      f.sel('gl-unit','Unidade de medida da meta',UNIT_OPTS,unitSel),
+      f.text('gl-unit-custom','Rótulo personalizado (só se escolher "Outro", ex: clientes, pontos)', unitSel==='outro'?g.unit:''),
       `<button class="btn btn-primary btn-block" onclick="App.saveGoal(${g.id||0})">Salvar</button>`]));
   };
-  App_saveGoal = async (id) => { const y=+val('gl-year'),q=+val('gl-q'); const row={objective_id:+val('gl-obj'),smart_text:val('gl-smart'),year:y,quarter:q,period:'T'+q+' '+y}; try{ id?await tUpdate('goals',id,row):await tInsert('goals',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('okr'); };
+  App_saveGoal = async (id) => { const y=+val('gl-year'),q=+val('gl-q'); const uSel=val('gl-unit'); const unit = uSel==='outro' ? (val('gl-unit-custom').trim()||null) : (uSel||null); const row={objective_id:+val('gl-obj'),smart_text:val('gl-smart'),year:y,quarter:q,period:'T'+q+' '+y,unit}; try{ id?await tUpdate('goals',id,row):await tInsert('goals',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('okr'); };
   App_delGoal = async (id) => { if(await delRow('goals',id)) go('okr'); };
   App_manageOwners = async (gid) => {
     const profs = window.__profs || await tList('profiles','name');
@@ -1040,11 +1046,11 @@ const App = (() => {
         <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
         <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div>
         <div class="field"><label>Selecione a meta</label>
-          <select class="goal-select" onchange="App.pfSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}</option>`).join('')}</select></div>
-        <div class="goal-full">${selGoal.smart_text?esc(selGoal.smart_text):''} ${selGoal.year?`<span class="pill pill-gray">T${selGoal.quarter||1} ${selGoal.year}</span>`:''} ${assigned.has(goalId)?'<span class="pill pill-blue">Sua meta</span>':(editable?'<span class="pill pill-gray">Edição liberada</span>':'<span class="pill pill-gray">Somente leitura</span>')}</div>
+          <select class="goal-select" onchange="App.pfSetGoal(this.value)">${goals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div>
+        <div class="goal-full">${selGoal.smart_text?esc(selGoal.smart_text):''} ${selGoal.year?`<span class="pill pill-gray">T${selGoal.quarter||1} ${selGoal.year}</span>`:''} ${selGoal.unit?`<span class="pill pill-gray">${esc(selGoal.unit)}</span>`:''} ${assigned.has(goalId)?'<span class="pill pill-blue">Sua meta</span>':(editable?'<span class="pill pill-gray">Edição liberada</span>':'<span class="pill pill-gray">Somente leitura</span>')}</div>
         <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
           <div class="field" style="margin-bottom:0;min-width:140px"><label>Ano</label><select onchange="App.pfSetYear(this.value)">${yearOpts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
-          <div class="desc" style="margin:0 0 8px">Acumulado ${year}: meta <b>${money(totMeta)}</b> · realizado <b>${money(totReal)}</b> · atingido <b>${pct(totReal,totMeta)}%</b></div>
+          <div class="desc" style="margin:0 0 8px">Acumulado ${year}: meta <b>${fmtByUnit(totMeta,selGoal.unit)}</b> · realizado <b>${fmtByUnit(totReal,selGoal.unit)}</b> · atingido <b>${pct(totReal,totMeta)}%</b></div>
         </div>
       </div>`;
     if(mode==='semana'){
@@ -1058,8 +1064,8 @@ const App = (() => {
         html+=`<div class="q-group"><div class="m-head">${MES[m]}</div>
           <div style="overflow-x:auto"><table class="wk-grid"><thead><tr><th>Semana</th>${mw.map(wk=>`<th class="wk-col" onclick="App.openWeek(${wk.week})" title="Preencher esta semana">S${wk.week}</th>`).join('')}<th>Total do mês</th></tr></thead><tbody>
           <tr><td>Período</td>${mw.map(wk=>`<td style="font-size:11.5px;color:var(--muted)">${dm(wk.start)}–${dm(wk.end)}</td>`).join('')}<td>—</td></tr>
-          <tr><td>Meta</td>${mw.map(wk=>cell(wk,r=>r.meta!=null?money(r.meta):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${money(mm)}</td></tr>
-          <tr><td>Resultado</td>${mw.map(wk=>cell(wk,r=>r.realizado!=null?money(r.realizado):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${money(mr)}</td></tr>
+          <tr><td>Meta</td>${mw.map(wk=>cell(wk,r=>r.meta!=null?fmtByUnit(r.meta,selGoal.unit):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${fmtByUnit(mm,selGoal.unit)}</td></tr>
+          <tr><td>Resultado</td>${mw.map(wk=>cell(wk,r=>r.realizado!=null?fmtByUnit(r.realizado,selGoal.unit):'<span style="color:var(--muted)">—</span>')).join('')}<td class="wk-total">${fmtByUnit(mr,selGoal.unit)}</td></tr>
           <tr><td>%</td>${mw.map(wk=>cell(wk,r=>{ const has=(r.meta!=null||r.realizado!=null); const p=pct(Number(r.realizado)||0,Number(r.meta)||0); return has?`<b class="${p>=100?'tag-ok':'tag-no'}">${p}%</b>`:''; })).join('')}<td class="wk-total">${pct(mr,mm)}%</td></tr>
           <tr><td>Obs.</td>${mw.map(wk=>cell(wk,r=>(r.causa||r.acao)?`<span title="${esc((r.causa||'')+' '+(r.acao||''))}">📝</span>`:'')).join('')}<td></td></tr>
           </tbody></table></div></div>`;
@@ -1071,11 +1077,11 @@ const App = (() => {
       let html='';
       [1,2,3,4].forEach(q=>{ if(!byQ[q]) return; const qWeeks=Object.values(byQ[q]).reduce((a,b)=>a.concat(b),[]);
         const qm=qWeeks.reduce((a,wk)=>a+(Number((map[wk.week]||{}).meta)||0),0), qr=qWeeks.reduce((a,wk)=>a+(Number((map[wk.week]||{}).realizado)||0),0);
-        html+=`<div class="q-group"><div class="q-head">${q}º Trimestre — meta ${money(qm)} · realizado ${money(qr)} · ${pct(qr,qm)}%</div>`;
+        html+=`<div class="q-group"><div class="q-head">${q}º Trimestre — meta ${fmtByUnit(qm,selGoal.unit)} · realizado ${fmtByUnit(qr,selGoal.unit)} · ${pct(qr,qm)}%</div>`;
         Object.keys(byQ[q]).sort((a,b)=>a-b).forEach(m=>{ const mw=byQ[q][m];
           html+=`<div class="m-head">${MES[m]}</div><table><thead><tr><th>Semana</th><th>Período</th><th>Meta</th><th>Realizado</th><th>%</th></tr></thead><tbody>`;
           mw.forEach(wk=>{ const r=map[wk.week]||{}; const p=pct(Number(r.realizado)||0,Number(r.meta)||0);
-            html+=`<tr onclick="App.openWeek(${wk.week})" style="cursor:pointer"><td><b>S${wk.week}</b></td><td style="font-size:12px;color:var(--muted)">${dm(wk.start)}–${dm(wk.end)}</td><td>${money(r.meta||0)}</td><td>${money(r.realizado||0)}</td><td>${p}%</td></tr>`; });
+            html+=`<tr onclick="App.openWeek(${wk.week})" style="cursor:pointer"><td><b>S${wk.week}</b></td><td style="font-size:12px;color:var(--muted)">${dm(wk.start)}–${dm(wk.end)}</td><td>${fmtByUnit(r.meta||0,selGoal.unit)}</td><td>${fmtByUnit(r.realizado||0,selGoal.unit)}</td><td>${p}%</td></tr>`; });
           html+='</tbody></table>';
         });
         html+='</div>';
@@ -1089,8 +1095,10 @@ const App = (() => {
   App_openWeek=(week)=>{
     const r=(window.__wkMap||{})[week]||{}; const ed=window.__pfEditable; const ro=ed?'':'disabled';
     const wk=weeksOfYear(window.__pfYear).find(w=>w.week===week)||{};
+    const ug=(window.__goals||[]).find(x=>x.id===window.__pfGoal)||{};
+    const uSuf = ug.unit?(' ('+ug.unit+')'):'';
     modal('Semana '+week+(wk.start?(' · '+dm(wk.start)+'–'+dm(wk.end)):''), form([
-      `<div class="field-row">${f.num('wp-meta','Meta da semana',r.meta,ro)}${f.num('wp-real','Resultado da semana',r.realizado,ro)}</div>`,
+      `<div class="field-row">${f.num('wp-meta','Meta da semana'+uSuf,r.meta,ro)}${f.num('wp-real','Resultado da semana'+uSuf,r.realizado,ro)}</div>`,
       f.area('wp-causa','Causa (justifique o resultado, tenha atingido a meta ou não)',r.causa),
       f.area('wp-acao','Ação (o que será feito para melhorar/atingir na próxima semana)',r.acao),
       ed?`<button class="btn btn-primary btn-block" onclick="App.saveWeekPopup(${week})">Salvar</button>`:`<p class="desc" style="margin-top:6px">Somente leitura — você não é responsável por esta meta.</p>`]));
@@ -1390,9 +1398,10 @@ const App = (() => {
     add('Responsáveis',[['Departamento','Nome','Cargo'],...D.mems.map(m=>[(D.depts.find(d=>d.id===m.department_id)||{}).name||'',m.name,m.cargo])]);
     add('SWOT (GUT)',[['Classificação','Item','Departamento','G','U','T','GUT'],...D.swot.map(s=>[s.classification,s.item,(D.depts.find(d=>d.id===s.department_id)||{}).name||'Geral',s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia])]);
     add('Curva de Valor',[['Atributo',(c.name||'Empresa'),'Concorrência'],...D.curve.map(r=>[r.attribute,r.daexe_score,r.competitor_score])]);
-    add('Objetivos e Metas',[['Objetivo','Meta SMART','Ano','Trimestre'],...D.goals.map(g=>[objT(g.objective_id),g.smart_text,g.year,g.quarter])]);
+    add('Objetivos e Metas',[['Objetivo','Meta SMART','Unidade','Ano','Trimestre'],...D.goals.map(g=>[objT(g.objective_id),g.smart_text,g.unit||'',g.year,g.quarter])]);
     add('Iniciativas 5W2H',[['Quê','Quem','Início','Fim','Como','Quanto','Onde','Porquê','Medida','Status','Progresso %'],...D.inis.map(i=>[i.name,i.who,i.date_start,i.date_end,i.how,i.how_much,i.where_,i.why,i.measure,i.status,i.progress])]);
-    add('Desempenho Semanal',[['Meta','Ano','Semana','Meta (alvo)','Realizado','% Atingido','Causa','Ação'],...D.weekly.map(w=>[goalT(w.goal_id),w.year,w.week,w.meta,w.realizado,pct(Number(w.realizado),Number(w.meta)),w.causa,w.acao])]);
+    const goalUnit=(id)=>{const g=D.goals.find(x=>x.id===id);return g?(g.unit||''):'';};
+    add('Desempenho Semanal',[['Meta','Unidade','Ano','Semana','Meta (alvo)','Realizado','% Atingido','Causa','Ação'],...D.weekly.map(w=>[goalT(w.goal_id),goalUnit(w.goal_id),w.year,w.week,w.meta,w.realizado,pct(Number(w.realizado),Number(w.meta)),w.causa,w.acao])]);
     XLSX.writeFile(wb,'Planejamento_DAEXE.xlsx');
   }
   async function exportPdf(){
@@ -1431,4 +1440,37 @@ const App = (() => {
   }
 
   const pub={ go, closeModal, exportFile, logout };
-  ['forgotPassword','dashSetGoal','editV
+  ['forgotPassword','dashSetGoal','editValue','saveValue','delValue','editCompany','saveCompany','editDept','saveDept','delDept',
+   'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
+   'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
+   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','openWeek','saveWeekPopup',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek',
+   'indSetYear','indSetMode','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','saveBranding','sendFeedback','fbSetStatus','delFb']
+   .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
+  return Object.assign(pub,{ init });
+})();
+function startApp(){
+  if (typeof supabase === 'undefined' || !supabase.createClient) return false;
+  try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ return false; }
+  App.init();
+  return true;
+}
+function loadSbFallback(){
+  if (window.__sbFb) return; window.__sbFb = true;
+  var s=document.createElement('script');
+  s.src='https://unpkg.com/@supabase/supabase-js@2';
+  s.onerror=function(){ var s2=document.createElement('script'); s2.src='https://esm.sh/@supabase/supabase-js@2?bundle&target=es2019&exports=createClient'; document.head.appendChild(s2); };
+  document.head.appendChild(s);
+}
+window.addEventListener('DOMContentLoaded', function(){
+  var tries=0;
+  (function wait(){
+    if (startApp()) return;
+    if (tries===20) loadSbFallback();
+    if (++tries > 150){ var b=document.getElementById('boot'); if(b) b.innerHTML='Nao foi possivel carregar a biblioteca de conexao.<br>Tente recarregar a pagina (F5). Se persistir, tente em outra rede ou navegador.'; return; }
+    setTimeout(wait, 200);
+  })();
+});
+</script>
+</body>
+</html>
