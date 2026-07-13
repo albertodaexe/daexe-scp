@@ -1431,4 +1431,38 @@ const App = (() => {
   }
 
   const pub={ go, closeModal, exportFile, logout };
-  ['forgotPassword','dashSetGoal','editV
+  ['forgotPassword','dashSetGoal','editValue','saveValue','delValue','editCompany','saveCompany','editDept','saveDept','delDept',
+   'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
+   'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
+   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','openWeek','saveWeekPopup',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek',
+   'indSetYear','indSetMode','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','saveBranding','sendFeedback','fbSetStatus','delFb']
+   .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
+  return Object.assign(pub,{ init });
+})();
+function startApp(){
+  if (typeof supabase === 'undefined' || !supabase.createClient) return false;
+  try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ return false; }
+  App.init();
+  return true;
+}
+function loadSbFallback(){
+  if (window.__sbFb) return; window.__sbFb = true;
+  var s=document.createElement('script');
+  s.src='https://unpkg.com/@supabase/supabase-js@2';
+  s.onerror=function(){ var s2=document.createElement('script'); s2.src='https://esm.sh/@supabase/supabase-js@2?bundle&target=es2019&exports=createClient'; document.head.appendChild(s2); };
+  document.head.appendChild(s);
+}
+window.addEventListener('DOMContentLoaded', function(){
+  var tries=0;
+  (function wait(){
+    if (startApp()) return;
+    if (tries===20) loadSbFallback();
+    if (++tries > 150){ var b=document.getElementById('boot'); if(b) b.innerHTML='Nao foi possivel carregar a biblioteca de conexao.<br>Tente recarregar a pagina (F5). Se persistir, tente em outra rede ou navegador.'; return; }
+    setTimeout(wait, 200);
+  })();
+});
+</script>
+</body>
+</html>
+
