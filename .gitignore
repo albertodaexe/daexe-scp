@@ -3,3 +3,10 @@ daexe-scp/data/
 daexe-scp/package-lock.json
 *.log
 daexe-scp/log.txt
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
