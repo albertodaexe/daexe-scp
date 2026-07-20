@@ -1432,8 +1432,23 @@ const App = (() => {
         <select id="pf-dep" ${can('admin')?'':'disabled'}>${[{v:'',t:'—'}].concat(depts.map(d=>({v:d.id,t:d.name}))).map(o=>`<option value="${o.v}" ${o.v==p.department_id?'selected':''}>${esc(o.t)}</option>`).join('')}</select></div>
       <div class="field"><label>E-mail</label><input value="${esc(p.email||'')}" disabled></div>
       <button class="btn btn-primary btn-block" onclick="App.saveProfile()">Salvar</button>
+    </div>
+    <div class="card" style="max-width:620px">
+      <div class="section-head"><h3>Alterar senha</h3></div>
+      <p class="desc">Defina uma nova senha para acessar o sistema. Use ao menos 6 caracteres.</p>
+      ${f.text('pf-pw1','Nova senha','','type="password" autocomplete="new-password"')}
+      ${f.text('pf-pw2','Confirmar nova senha','','type="password" autocomplete="new-password"')}
+      <button class="btn btn-primary btn-block" onclick="App.changePassword()">Alterar senha</button>
     </div>`;
     document.getElementById('pf-file').addEventListener('change',(e)=>{ const file=e.target.files[0]; if(!file) return; resizeAvatar(file,(d)=>{ window.__newAvatar=d; document.getElementById('pf-avatar-wrap').innerHTML=`<img src="${d}" class="avatar lg">`; }); });
+  };
+  App_changePassword = async () => {
+    const p1=val('pf-pw1'), p2=val('pf-pw2');
+    if(!p1 || p1.length<6){ toast('A senha deve ter ao menos 6 caracteres.'); return; }
+    if(p1!==p2){ toast('As senhas não coincidem.'); return; }
+    try{ const { error } = await sb.auth.updateUser({ password:p1 }); if(error) throw error; }
+    catch(e){ toast(e.message); return; }
+    toast('Senha alterada com sucesso'); go('perfil');
   };
   function resizeAvatar(file, cb){
     const reader=new FileReader();
@@ -1552,7 +1567,7 @@ const App = (() => {
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
-   'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','saveBranding','sendFeedback','fbSetStatus','delFb']
+   'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
   return Object.assign(pub,{ init });
 })();
