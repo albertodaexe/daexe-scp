@@ -1086,6 +1086,13 @@ const App = (() => {
   }
   const dm=(d)=>('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);
   const MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function lastCompletedWeek(){
+    const today=new Date(); const year=today.getFullYear(); const ws=weeksOfYear(year);
+    const idx=ws.findIndex(w=> today>=w.start && today<=w.end);
+    if(idx>0) return { year, week: ws[idx-1].week };
+    if(idx===0){ const py=year-1; const pws=weeksOfYear(py); return { year:py, week: pws.length?pws[pws.length-1].week:1 }; }
+    return { year, week: ws.length?ws[ws.length-1].week:1 };
+  }
   VIEWS.desempenho = async (v) => {
     const goals = await tList('goals'); window.__goals=goals;
     if(!goals.length){ v.innerHTML='<div class="empty">Cadastre metas primeiro (em Objetivos & Metas).</div>'; return; }
@@ -1116,7 +1123,7 @@ const App = (() => {
     const head=`
       <div class="card"><div class="section-head"><div><h3>Preenchimento de Metas</h3>
         <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação — um lançamento por responsável.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><div class="toggle-group"><button class="${mine?'active':''}" onclick="App.pfSetMine(true)">Minhas metas</button><button class="${!mine?'active':''}" onclick="App.pfSetMine(false)">Todas</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-accent btn-sm" onclick="App.pfRAS()" title="Preencher todas as suas metas da semana passada">Preenchimento para RAS</button><div class="toggle-group"><button class="${mine?'active':''}" onclick="App.pfSetMine(true)">Minhas metas</button><button class="${!mine?'active':''}" onclick="App.pfSetMine(false)">Todas</button></div>
         <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div></div>
         <div class="field"><label>Selecione a meta</label>
           <select class="goal-select" onchange="App.pfSetGoal(this.value)">${visibleGoals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div>
@@ -1168,6 +1175,43 @@ const App = (() => {
   App_pfSetYear=(y)=>{ window.__pfYear=+y; go('desempenho'); };
   App_pfSetMode=(m)=>{ window.__pfMode=m; go('desempenho'); };
   App_pfSetMine=(mine)=>{ window.__pfMine=mine; window.__pfGoal=null; go('desempenho'); };
+  App_pfRAS = async () => {
+    const target = lastCompletedWeek();
+    const { data:asg } = await sb.from('goal_assignees').select('goal_id').eq('profile_id', me.id);
+    const myGoalIds = [...new Set((asg||[]).map(a=>a.goal_id))];
+    if(!myGoalIds.length){ toast('Você não tem metas atribuídas.'); return; }
+    const goals = (window.__goals||[]).filter(g=>myGoalIds.includes(g.id));
+    const goalsFull = goals.length ? goals : (await tList('goals')).filter(g=>myGoalIds.includes(g.id));
+    const { data:rows } = await sb.from('goal_weekly').select('*').eq('profile_id', me.id).eq('year', target.year).eq('week', target.week).in('goal_id', myGoalIds);
+    const rowOf = (gid) => (rows||[]).find(r=>r.goal_id===gid) || {};
+    const wk = weeksOfYear(target.year).find(w=>w.week===target.week) || {};
+    window.__rasGoals = goalsFull.map(g=>g.id);
+    const blocks = goalsFull.map(g=>{
+      const r = rowOf(g.id); const uTxt = g.unit?(' ('+g.unit+')'):'';
+      return `<div class="card" style="padding:12px;margin-bottom:10px;background:#f7f9fc">
+        <b style="color:var(--navy)">${esc(g.smart_text)}</b>
+        <div class="field-row" style="margin-top:8px">${f.num('ras-meta-'+g.id,'Meta da semana'+uTxt,r.meta)}${f.num('ras-real-'+g.id,'Resultado da semana'+uTxt,r.realizado)}</div>
+        ${f.area('ras-causa-'+g.id,'Causa',r.causa)}
+        ${f.area('ras-acao-'+g.id,'Ação',r.acao)}
+      </div>`;
+    }).join('');
+    modal('Preenchimento para RAS — Semana '+target.week+(wk.start?(' · '+dm(wk.start)+'–'+dm(wk.end)):''), form([
+      `<p class="desc">Preencha os resultados de todas as suas metas referentes à semana passada (semana ${target.week}${wk.start?', '+dm(wk.start)+' a '+dm(wk.end):''}).</p>`,
+      blocks || '<div class="empty">Nenhuma meta encontrada.</div>',
+      goalsFull.length?`<button class="btn btn-primary btn-block" onclick="App.saveRAS(${target.year},${target.week})">Salvar tudo</button>`:'']));
+  };
+  App_saveRAS = async (year, week) => {
+    const ids = window.__rasGoals || [];
+    try{
+      for(const gid of ids){
+        const meta=parseFloat(val('ras-meta-'+gid)), real=parseFloat(val('ras-real-'+gid));
+        const row={ goal_id:gid, profile_id:me.id, year, week, meta:isNaN(meta)?0:meta, realizado:isNaN(real)?0:real, causa:val('ras-causa-'+gid), acao:val('ras-acao-'+gid), updated_by:me.id, updated_at:new Date().toISOString() };
+        const { error } = await sb.from('goal_weekly').upsert(row,{onConflict:'goal_id,profile_id,year,week'});
+        if(error) throw error;
+      }
+    }catch(e){ toast(e.message); return; }
+    closeModal(); toast('Semana '+week+' preenchida com sucesso'); go('desempenho');
+  };
   App_openWeek=(week)=>{
     const assignees = window.__pfAssignees||[];
     if(!assignees.length){ toast('Atribua responsáveis a esta meta antes de preencher a semana.'); return; }
@@ -1565,7 +1609,7 @@ const App = (() => {
   ['forgotPassword','dashSetGoal','editValue','saveValue','delValue','editCompany','saveCompany','editDept','saveDept','delDept',
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
-   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','openWeek','saveWeekPopup',
+   'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
