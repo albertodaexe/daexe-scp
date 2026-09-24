@@ -213,6 +213,21 @@ body.nav-collapsed .content{margin-left:0}
 .ind-table td{text-align:center;padding:5px 6px;border-bottom:1px solid var(--line)}
 .ind-table .ind-name{text-align:left;min-width:220px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--navy);font-weight:500}
 .ind-cell{display:inline-block;width:24px;height:16px;border-radius:3px}
+.tut-flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.tut-step{background:#f7f9fc;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:10px 12px;cursor:pointer}
+.tut-step:hover{border-color:var(--accent)}
+.tut-step b{display:block;color:var(--navy);font-size:13.5px}.tut-step span{font-size:12px;color:var(--muted)}
+.tut-item{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff;scroll-margin-top:80px}
+.tut-item summary{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;list-style:none}
+.tut-item summary::-webkit-details-marker{display:none}
+.tut-item summary b{color:var(--navy);font-size:14.5px}
+.tut-item summary::after{content:'▸';margin-left:auto;color:var(--muted);transition:.15s}
+.tut-item[open] summary::after{transform:rotate(90deg)}
+.tut-who{font-size:11.5px;color:var(--muted);background:#eef2f7;border-radius:20px;padding:2px 10px}
+.tut-body{padding:0 16px 14px 42px;font-size:13.5px}
+.tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
+.tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
+.help-btn{font-weight:700}
 </style>
 </head>
 <body>
@@ -240,6 +255,28 @@ body.nav-collapsed .content{margin-left:0}
     </div>
   </div>
 
+  <div id="recovery-screen" class="login-screen hidden">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="logo-badge">DX</div>
+        <h1>Nova senha</h1>
+        <p>Crie uma nova senha para acessar o sistema</p>
+      </div>
+      <form id="recovery-form" onsubmit="event.preventDefault();App.doRecovery()">
+        <p id="recovery-info" class="desc" style="font-size:13px;color:var(--muted);text-align:center"></p>
+        <div id="recovery-fields">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:12px 0 5px">Nova senha</label>
+          <input type="password" id="rec-pw1" autocomplete="new-password" placeholder="mínimo de 6 caracteres" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px" />
+          <label style="display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:12px 0 5px">Confirmar nova senha</label>
+          <input type="password" id="rec-pw2" autocomplete="new-password" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px" />
+          <button type="submit" class="btn btn-primary btn-block">Salvar nova senha</button>
+        </div>
+        <button type="button" class="link-btn" onclick="App.backToLogin()">Voltar para o login</button>
+        <p id="recovery-error" class="login-error"></p>
+      </form>
+    </div>
+  </div>
+
   <div id="app" class="app hidden">
     <aside class="sidebar">
       <div class="sidebar-brand" id="sidebar-brand">
@@ -259,6 +296,7 @@ body.nav-collapsed .content{margin-left:0}
           <h2 id="page-title">Painel</h2>
         </div>
         <div class="topbar-actions">
+          <button class="btn btn-light btn-sm help-btn" onclick="App.help()" title="Como preencher esta página">❔ Ajuda</button>
           <span id="role-badge" class="role-badge"></span>
         </div>
       </header>
@@ -278,6 +316,7 @@ body.nav-collapsed .content{margin-left:0}
 /* ====== CONFIGURAÇÃO SUPABASE (banco/login na nuvem) ====== */
 const SUPABASE_URL = 'https://qgkelrlftxqpoyspxmsf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFna2VscmxmdHhxcG95c3B4bXNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjczNTUsImV4cCI6MjA5NTkwMzM1NX0.dvEPOWwBLbrJJdYtXnhfjTsWvH4MxCDj3mxq9Yit7B0';
+const APP_URL = 'https://sisplanoestrategico.organiza.workers.dev/';
 let sb = null; // criado no bootstrap, quando a biblioteca Supabase terminar de carregar
 
 /* ---------- helpers de banco ---------- */
@@ -291,6 +330,415 @@ async function tList(table, order, asc=true){
 async function tInsert(table, row){ const { data, error } = await sb.from(table).insert(row).select(); if(error) throw error; return data; }
 async function tUpdate(table, id, row){ const { error } = await sb.from(table).update(row).eq('id', id); if(error) throw error; }
 async function tDelete(table, id){ const { error } = await sb.from(table).delete().eq('id', id); if(error) throw error; }
+
+/* ====== RELATÓRIO TRIMESTRAL DE METAS (Word + PowerPoint no modelo Daexe) ====== */
+const RelMetas = (() => {
+  const NAVY='1C4587', GOLD='B8923F', GOLD_L='DAB868', TXT='33415C';
+  const ST = { A:['Atingida','1E7B3C','E3F2E6'], P:['Parcial','9A6B00','FFF3D6'], N:['Não atingida','B3261E','FBE4E2'], S:['Sem dados','5F6368','ECEDEF'] };
+  const ORD = ['1º','2º','3º','4º'];
+  const MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const xe = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+  const nf = (n, d=0) => (Number(n)||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:d});
+  const dm = (d) => ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);
+  const cut = (s, n) => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n-1).replace(/\s+\S*$/,'')+'…' : s; };
+  const lines = (t) => String(t||'').split('\n').map(x=>x.trim().replace(/^[-•*]\s+/,'')).filter(Boolean);
+
+  function weeksOfYear(year){
+    const weeks=[]; let d=new Date(year,0,1);
+    const dow=d.getDay(); d.setDate(d.getDate()+(dow===0?1:(dow===1?0:8-dow)));
+    let w=1;
+    while(d.getFullYear()<=year && w<=53){ const s=new Date(d), e=new Date(d); e.setDate(e.getDate()+6); if(s.getFullYear()>year) break; weeks.push({week:w,start:s,end:e}); d.setDate(d.getDate()+7); w++; }
+    return weeks;
+  }
+  function fmtU(n, unit){
+    const v=Number(n)||0;
+    if(unit==='R$') return 'R$ '+nf(v, Math.abs(v)<1000?2:0);
+    if(unit==='%') return nf(v,1)+'%';
+    if(!unit) return nf(v,1);
+    return nf(v,1)+' '+unit;
+  }
+  const STOP = new Set(['e','de','do','da','dos','das','a','o','os','as','em','&']);
+  function deptCode(name){
+    const ws=String(name||'').trim().split(/[\s,\/-]+/).filter(w=>w && !STOP.has(w.toLowerCase()));
+    let c=ws.map(w=>w[0]).join('').toUpperCase();
+    if(c.length<3 && ws[0]) c=ws[0].slice(0,3).toUpperCase();
+    return c.slice(0,4)||'—';
+  }
+
+  /* ---------- 1. Cálculo a partir dos dados do sistema ---------- */
+  function compute(D, year, quarter, today){
+    today = today || new Date();
+    const qMonths=[3*(quarter-1), 3*(quarter-1)+1, 3*(quarter-1)+2];
+    const qWeeks=weeksOfYear(year).filter(w=>qMonths.includes(w.start.getMonth()));
+    const closed=qWeeks.filter(w=>w.end < new Date(today.getFullYear(),today.getMonth(),today.getDate()));
+    const closedSet=new Set(closed.map(w=>w.week));
+    const partial = closed.length < qWeeks.length;
+    const lastClosed = closed.length ? closed[closed.length-1].week : 0;
+    const profName=(id)=>{ const p=D.profiles.find(x=>x.id===id); return p?p.name:'?'; };
+    const persp=D.persp.slice().sort((a,b)=>(a.ord||0)-(b.ord||0));
+    const objOf=(id)=>D.objs.find(o=>o.id===id)||{};
+    const perspOrd=(pid)=>{ const i=persp.findIndex(p=>p.id===pid); return i<0?99:i; };
+    const deptsById={}; D.depts.forEach(d=>deptsById[d.id]=d);
+    const goals=D.goals.filter(g=>g.year===year && g.quarter===quarter).sort((a,b)=>{
+      const oa=objOf(a.objective_id), ob=objOf(b.objective_id);
+      return perspOrd(oa.perspective_id)-perspOrd(ob.perspective_id) || (oa.ord||0)-(ob.ord||0) || a.id-b.id; });
+    const goalIds=new Set(goals.map(g=>g.id));
+    const gDepts=(gid)=>D.goalDepts.filter(x=>x.goal_id===gid).map(x=>deptsById[x.department_id]).filter(Boolean);
+    const hasVal=(e)=>(Number(e.meta)||0)!==0 || (Number(e.realizado)||0)!==0;
+    const hasTxt=(e)=>!!((e.causa||'').trim()||(e.acao||'').trim()||(e.note||'').trim());
+    const flags=[], flagPS=[], flagF=[];
+
+    const rows=goals.map(g=>{
+      const o=objOf(g.objective_id); const p=persp.find(x=>x.id===o.perspective_id)||{name:'Sem perspectiva',id:0};
+      const ds=gDepts(g.id);
+      let dlist=ds.length?ds:(o.department_id&&deptsById[o.department_id]?[deptsById[o.department_id]]:[]);
+      const all=D.weekly.filter(w=>w.goal_id===g.id && w.year===year);
+      const ents=all.filter(w=>closedSet.has(w.week));
+      const agg={}; ents.forEach(e=>{ if(!hasVal(e)) return; const x=(agg[e.week]=agg[e.week]||{m:0,r:0}); x.m+=Number(e.meta)||0; x.r+=Number(e.realizado)||0; });
+      const vals=Object.values(agg); const ct=g.calc_type||'soma';
+      const sm=vals.reduce((a,b)=>a+b.m,0), sr=vals.reduce((a,b)=>a+b.r,0);
+      const m= ct==='media'&&vals.length ? sm/vals.length : sm, r= ct==='media'&&vals.length ? sr/vals.length : sr;
+      const pct = m ? Math.round(r/m*100) : null;
+      let st='S'; if(vals.length && m){ st = pct>=100?'A':(pct>=70?'P':'N'); }
+      let res = !vals.length ? 'Sem lançamentos' : (m ? `${fmtU(r,g.unit)} de ${fmtU(m,g.unit)} (${nf(pct)}%)` : `${fmtU(r,g.unit)} (sem meta lançada)`);
+      if(vals.length && ct==='media') res += ' · média semanal';
+      const txt=ents.filter(hasTxt).sort((a,b)=>b.week-a.week);
+      const seen=new Set(); const parts=[];
+      txt.forEach(e=>{ const c=(e.causa||'').trim(), a=(e.acao||'').trim(), n=(e.note||'').trim();
+        const s=[c&&('Causa: '+c), a&&('Ação: '+a), (!c&&!a&&n)?n:''].filter(Boolean).join(' · ');
+        const k=s.toLowerCase(); if(s && !seen.has(k) && parts.length<2){ seen.add(k); parts.push(`S${e.week}: ${s}`); } });
+      let com = parts.length ? cut(parts.join(' | '), 260) : (vals.length ? 'Sem comentários de causa/ação no período.' : 'Nenhum lançamento no trimestre.');
+      // pontos de atenção automáticos
+      const short=cut(g.smart_text,70);
+      if(g.unit==='%' && ct==='soma' && vals.length>1) flagPS.push(short);
+      const rs=ents.filter(e=>Number(e.realizado)>0).map(e=>Number(e.realizado)).sort((a,b)=>a-b);
+      if(rs.length>=3){ const med=rs[Math.floor(rs.length/2)]; ents.forEach(e=>{ if(Number(e.realizado)>med*10 && med>0) flags.push(`**Valor fora de escala:** ${fmtU(e.realizado,g.unit)} na sem. ${e.week} (${profName(e.profile_id)}) em "${short}" — cerca de ${nf(Number(e.realizado)/med)}× a mediana das semanas.`); }); }
+      ents.forEach(e=>{ const mm=Number(e.meta)||0, rr=Number(e.realizado)||0; if(mm>0 && rr>mm*20 && rr>1000) flags.push(`**Meta e resultado em escalas diferentes:** sem. ${e.week} de "${short}" tem meta ${fmtU(mm,g.unit)} e resultado ${fmtU(rr,g.unit)} (${profName(e.profile_id)}).`); });
+      const byP={}; ents.filter(hasVal).sort((a,b)=>a.week-b.week).forEach(e=>{ const k=e.profile_id||'-'; const prev=byP[k]; if(prev && prev.week===e.week-1 && Number(prev.realizado)===Number(e.realizado) && Number(e.realizado)>0 && g.unit==='R$') flags.push(`**Valor repetido:** ${fmtU(e.realizado,g.unit)} nas sem. ${prev.week} e ${e.week} em "${short}" (${profName(e.profile_id)}). Confirme se não é cópia.`); byP[k]=e; });
+      const futW=new Set(weeksOfYear(year).filter(x=>x.start>today).map(x=>x.week));
+      const fut=all.filter(w=>futW.has(w.week) && Number(w.realizado)!==0);
+      if(fut.length) flagF.push(`"${cut(g.smart_text,45)}" (sem. ${[...new Set(fut.map(f=>f.week))].join(', ')})`);
+      return { gid:g.id, persp:p.name, perspId:p.id, dept: dlist.map(d=>deptCode(d.name)).join('/')||'—', deptIds:dlist.map(d=>d.id), meta:g.smart_text||'', unit:g.unit||'', res, st, com, pct, n:vals.length };
+    });
+
+    if(flagPS.length) flags.unshift(`**Metas em % com fórmula "Soma" (${flagPS.length}):** o sistema soma os percentuais semanais (ex.: "${flagPS[0]}"). Para metas em %, o ideal é a fórmula "Média".`);
+    if(flagF.length) flags.push(`**Lançamentos em semanas futuras (${flagF.length} meta(s)):** ${flagF.slice(0,3).join('; ')}${flagF.length>3?'…':'.'} Eles não entram neste relatório.`);
+    // departamentos
+    const deptList=D.depts.slice().sort((a,b)=>(a.ord||0)-(b.ord||0)).filter(d=>rows.some(r=>r.deptIds.includes(d.id)))
+      .map(d=>({id:d.id, name:String(d.name||'').trim(), code:deptCode(d.name)}));
+    if(rows.some(r=>!r.deptIds.length)) deptList.push({id:0,name:'Sem departamento',code:'—'});
+
+    // preenchimento
+    const asg=D.assignees.filter(a=>goalIds.has(a.goal_id));
+    const people=[...new Set(asg.map(a=>a.profile_id))];
+    const fill=people.map(pid=>{
+      const p=D.profiles.find(x=>x.id===pid)||{name:'?'}; const gids=asg.filter(a=>a.profile_id===pid).map(a=>a.goal_id);
+      const ents=D.weekly.filter(w=>w.profile_id===pid && w.year===year && closedSet.has(w.week) && gids.includes(w.goal_id));
+      const filled=new Set(ents.filter(e=>hasVal(e)||hasTxt(e)).map(e=>e.goal_id+'_'+e.week)).size;
+      const poss=gids.length*closed.length; const ad=poss?Math.round(filled/poss*100):0;
+      const just=ents.filter(e=>(e.causa||'').trim()||(e.acao||'').trim()).length;
+      const empty=gids.filter(g=>!ents.some(e=>e.goal_id===g && (hasVal(e)||hasTxt(e))));
+      const dep=p.department_id&&deptsById[p.department_id]?deptCode(deptsById[p.department_id].name):'—';
+      let obs = empty.length ? `Sem lançamentos em ${empty.length} meta(s): ${empty.slice(0,2).map(g=>'“'+cut((goals.find(x=>x.id===g)||{}).smart_text,45)+'”').join('; ')}${empty.length>2?'…':''}` : (ad>=70?'Preenchimento regular.':'Preenchimento irregular ao longo das semanas.');
+      return { name:p.name||'?', dep, nm:gids.length, ad, just, obs };
+    }).sort((a,b)=>b.ad-a.ad);
+    const noEntry=rows.filter(r=>r.n===0 && !D.weekly.some(w=>w.goal_id===r.gid && w.year===year && closedSet.has(w.week) && hasTxt(w)));
+    const avgAd = fill.length ? Math.round(fill.reduce((a,b)=>a+b.ad,0)/fill.length) : 0;
+
+    // reportes por departamento (causas e ações)
+    const rep={};
+    deptList.forEach(d=>{
+      const gids=rows.filter(r=>d.id?r.deptIds.includes(d.id):!r.deptIds.length).map(r=>r.gid);
+      const ents=D.weekly.filter(w=>gids.includes(w.goal_id) && w.year===year && closedSet.has(w.week) && ((w.causa||'').trim()||(w.acao||'').trim())).sort((a,b)=>b.week-a.week);
+      const seen=new Set(); const out=[];
+      ents.forEach(e=>{ if(out.length>=4) return; const k=((e.causa||'')+'|'+(e.acao||'')).trim().toLowerCase(); if(seen.has(k)) return; seen.add(k);
+        const g=goals.find(x=>x.id===e.goal_id)||{};
+        out.push(`**${cut(g.smart_text,50)} (sem. ${e.week}):** ${cut([e.causa&&e.causa.trim(), e.acao&&('Ação: '+e.acao.trim())].filter(Boolean).join('. '),180)}`); });
+      rep[d.code]= out.join('\n');
+    });
+
+    // iniciativas
+    const qStart=qWeeks.length?qWeeks[0].start:new Date(year,qMonths[0],1), qEnd=qWeeks.length?qWeeks[qWeeks.length-1].end:new Date(year,qMonths[2]+1,0);
+    const inis=D.inis.slice().sort((a,b)=>(a.ord||0)-(b.ord||0)).map(i=>{
+      const owners=(D.iniAssignees||[]).filter(a=>a.initiative_id===i.id).map(a=>profName(a.profile_id)).filter(n=>n!=='?');
+      const acts=(D.iniActions||[]).filter(a=>a.initiative_id===i.id && a.when_date && new Date(a.when_date+'T12:00')>=qStart && new Date(a.when_date+'T12:00')<=qEnd);
+      const late = i.date_end && new Date(i.date_end+'T23:59') < today && i.status!=='Concluído';
+      return { name:i.name||'', who: owners.join(', ')||i.who||'—', st:i.status||'Não iniciado', pr:(i.progress||0)+'%', late, acts:acts.map(a=>`${a.what} (${a.status||'—'})`) };
+    });
+    const actsQ=inis.reduce((a,b)=>a+b.acts.length,0);
+    const lateN=inis.filter(i=>i.late).length;
+    const iniNote = inis.length ? `${inis.length} iniciativa(s) cadastradas: ${inis.filter(i=>i.st==='Concluído').length} concluída(s), ${inis.filter(i=>i.st==='Em andamento').length} em andamento${lateN?`, ${lateN} com prazo vencido`:''}. No trimestre foram registradas ${actsQ} ação(ões) com prazo no período nos planos 3Q1C.` : 'Nenhuma iniciativa cadastrada.';
+
+    // textos automáticos
+    const cnt=countSt(rows);
+    const top=rows.filter(r=>r.st==='A').sort((a,b)=>(b.pct||0)-(a.pct||0)).slice(0,4);
+    const low=rows.filter(r=>r.st==='N').sort((a,b)=>(a.pct||0)-(b.pct||0)).slice(0,4);
+    const pos=top.map(r=>`**${r.dept} — ${cut(r.meta,70)}:** ${r.res}.`);
+    const neg=low.map(r=>`**${r.dept} — ${cut(r.meta,70)}:** ${r.res}.`);
+    if(cnt.S) neg.push(`**${cnt.S} meta(s) sem dados suficientes** para avaliação.`);
+    if(!pos.length) pos.push('Nenhuma meta atingiu 100% no período.');
+    const rec=[];
+    if(cnt.N) rec.push(`**Metas não atingidas (${cnt.N}):** revisar causa raiz e plano de ação na reunião de fechamento, com responsável e prazo.`);
+    if(cnt.S || noEntry.length) rec.push(`**Metas sem dados:** garantir o lançamento semanal (meta e resultado) de todas as metas atribuídas.`);
+    if(fill.some(f=>f.ad<50)) rec.push(`**Cadência de preenchimento:** lembrete semanal e acompanhamento de quem ficou abaixo de 50% de adesão (${fill.filter(f=>f.ad<50).map(f=>f.name.split(' ')[0]).join(', ')}).`);
+    if(flags.length) rec.push(`**Qualidade dos dados:** corrigir os lançamentos apontados em "Pontos de atenção" antes de apresentar o fechamento.`);
+    if(lateN) rec.push(`**Iniciativas:** reprogramar os prazos das ${lateN} iniciativa(s) vencida(s) e ligar cada uma às metas que ela sustenta.`);
+    rec.push(`**Próximo trimestre:** revisar as metas do T${quarter===4?1:quarter+1} à luz destes resultados antes de cadastrá-las no sistema.`);
+    const w0=qWeeks[0], w1=closed[closed.length-1]||qWeeks[qWeeks.length-1];
+    const periodTxt = qWeeks.length ? `semanas ${w0.week} a ${w1.week} (${dm(w0.start)} a ${dm(w1.end)})` : '';
+    const synth = `Das **${rows.length} metas** do T${quarter}, **${cnt.A} foram atingidas**, **${cnt.P} tiveram atingimento parcial**, **${cnt.N} não foram atingidas** e **${cnt.S} não têm dados suficientes** para avaliação.` + (partial && qWeeks.length ? ` O trimestre ainda tem ${qWeeks.length-closed.length} semana(s) em aberto, então os números são uma prévia do fechamento.` : '');
+    const leitura = deptList.map(d=>{ const rs=rows.filter(r=>d.id?r.deptIds.includes(d.id):!r.deptIds.length); const c=countSt(rs); return `${d.code}: ${c.A} de ${rs.length} atingidas`; }).join(' · ') + '.';
+
+    return {
+      v:1, year, quarter, org:D.orgName||'', generatedAt: today.toISOString(), partial,
+      periodTxt, weeksTotal:qWeeks.length, weeksClosed:closed.length, firstWeek:w0?w0.week:0, lastClosed,
+      rows, depts:deptList, fill, avgAd, noEntry:noEntry.map(r=>`${r.dept} – ${cut(r.meta,80)}`),
+      rep, inis, iniNote,
+      text:{ synth, pos:pos.join('\n'), neg:neg.join('\n'), leitura, flags:[...new Set(flags)].slice(0,10).join('\n'), rec:rec.join('\n'),
+        fillNote:`**Adesão média: ${avgAd}%.**` + (noEntry.length?` ${noEntry.length} meta(s) sem nenhum lançamento no trimestre.`:'') }
+    };
+  }
+  function countSt(rows){ const c={A:0,P:0,N:0,S:0}; rows.forEach(r=>c[r.st]=(c[r.st]||0)+1); return c; }
+
+  /* ---------- 2. Word (.docx) no papel timbrado ---------- */
+  function buildDocXml(M){
+    const FONT='Garamond', W_TOTAL=9073;
+    const rpr=(o)=>{ let s=`<w:rPr><w:rFonts w:ascii="${FONT}" w:hAnsi="${FONT}" w:cs="${FONT}" w:eastAsia="${FONT}"/>`; if(o.bold) s+='<w:b/><w:bCs/>'; if(o.italic) s+='<w:i/><w:iCs/>'; if(o.color) s+=`<w:color w:val="${o.color}"/>`; return s+`<w:sz w:val="${o.size||22}"/><w:szCs w:val="${o.size||22}"/></w:rPr>`; };
+    const run=(t,o)=>`<w:r>${rpr(o)}<w:t xml:space="preserve">${xe(t)}</w:t></w:r>`;
+    const runs=(t,o)=>String(t).split('**').map((p,i)=>p?run(p,Object.assign({},o,{bold:(i%2===1)||o.bold})):'').join('');
+    const p=(t,o={})=>{ let ppr='<w:pPr>'; if(o.style) ppr+=`<w:pStyle w:val="${o.style}"/>`; if(o.keep) ppr+='<w:keepNext/>'; ppr+=`<w:spacing w:before="${o.before||0}" w:after="${o.after==null?120:o.after}" w:line="${o.line||276}" w:lineRule="auto"/>`; if(o.align) ppr+=`<w:jc w:val="${o.align}"/>`; ppr+='</w:pPr>';
+      return `<w:p>${ppr}${runs(t||'',{size:o.size||22,color:o.color||'262626',bold:o.bold,italic:o.italic})}</w:p>`; };
+    const h1=(n,t)=>`<w:p><w:pPr><w:pStyle w:val="Heading1"/><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="${GOLD_L}"/></w:pBdr><w:spacing w:before="360" w:after="120"/></w:pPr>${run(n+'. ',{size:28,bold:true,color:GOLD})}${run(t.toUpperCase(),{size:28,bold:true,color:NAVY})}</w:p>`;
+    const h2=(t)=>p(t,{size:24,color:NAVY,bold:true,before:240,after:80,style:'Heading2',keep:true});
+    const bullet=(t,size=22)=>`<w:p><w:pPr><w:spacing w:before="0" w:after="60" w:line="264" w:lineRule="auto"/><w:ind w:left="340" w:hanging="220"/></w:pPr>${run('• ',{size,color:GOLD,bold:true})}${runs(t,{size,color:'262626'})}</w:p>`;
+    const cp=(t,o={})=>{ let ppr='<w:pPr><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>'; if(o.align) ppr+=`<w:jc w:val="${o.align}"/>`; ppr+='</w:pPr>'; return `<w:p>${ppr}${runs(t||'',{size:o.size||18,color:o.color||'262626',bold:o.bold,italic:o.italic})}</w:p>`; };
+    const cell=(x,w,fill)=>`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${fill?`<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>`:''}<w:vAlign w:val="center"/></w:tcPr>${x}</w:tc>`;
+    const table=(ws,rows)=>{ const bc='D0D5DD'; return `<w:tbl><w:tblPr><w:tblW w:w="${ws.reduce((a,b)=>a+b,0)}" w:type="dxa"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="${bc}"/><w:left w:val="nil"/><w:bottom w:val="single" w:sz="4" w:color="${bc}"/><w:right w:val="nil"/><w:insideH w:val="single" w:sz="4" w:color="${bc}"/><w:insideV w:val="nil"/></w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="90" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="90" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${ws.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.join('')}</w:tbl>`+p('',{after:60,size:8}); };
+    const tr=(cells,hdr)=>`<w:tr><w:trPr><w:cantSplit/>${hdr?'<w:tblHeader/>':''}</w:trPr>${cells.join('')}</w:tr>`;
+    const head=(labels,ws,al)=>tr(labels.map((l,i)=>cell(cp(l,{size:17,color:'FFFFFF',bold:true,align:(al||[])[i]}),ws[i],NAVY)),true);
+    const adc=(ad)=>ad>=70?['1E7B3C','E3F2E6']:(ad>=50?['9A6B00','FFF3D6']:['B3261E','FBE4E2']);
+
+    const R=M.rows, cnt=countSt(R), T=M.text, q=M.quarter, B=[];
+    const pc=(k)=>R.length?Math.round(100*cnt[k]/R.length):0;
+    B.push(p('',{after:0}));
+    B.push(p('RELATÓRIO DE RESULTADOS DE METAS',{size:36,color:NAVY,bold:true,after:40}));
+    B.push(p(`${ORD[q-1]} TRIMESTRE DE ${M.year}`,{size:28,color:GOLD,bold:true,after:120}));
+    B.push(p(`Fechamento do T${q} · Sistema de Planejamento Estratégico${M.org?' · '+M.org:''}`,{size:22,color:'595959',italic:true,after:40}));
+    const gd=new Date(M.generatedAt);
+    B.push(p(`Dados extraídos em ${dm(gd)}/${gd.getFullYear()} · ${M.periodTxt} · ${R.length} metas · ${M.depts.length} departamentos`,{size:20,color:'595959',after:240}));
+
+    B.push(h1(1,'Resumo executivo'));
+    const kw=Math.floor(W_TOTAL/4);
+    B.push(table([kw,kw,kw,kw],[tr('APNS'.split('').map(k=>cell(cp(String(cnt[k]),{size:44,color:ST[k][1],bold:true,align:'center'})+cp(ST[k][0].toUpperCase(),{size:16,color:ST[k][1],bold:true,align:'center'})+cp(`${pc(k)}% das metas`,{size:16,color:'595959',align:'center'}),kw,ST[k][2])))]));
+    B.push(p(T.synth,{before:60,after:120}));
+    if(lines(T.pos).length||lines(T.neg).length){
+      B.push(p('Destaques',{size:22,color:NAVY,bold:true,after:60,keep:true}));
+      lines(T.pos).forEach(t=>B.push(bullet(t))); lines(T.neg).forEach(t=>B.push(bullet(t)));
+    }
+
+    B.push(h1(2,'Resultado por departamento'));
+    let w=[3073,1000,1250,1250,1250,1250];
+    let rows=[head(['Departamento','Metas','Atingidas','Parciais','Não atingidas','Sem dados'],w,[null,'center','center','center','center','center'])];
+    M.depts.forEach(d=>{ const rs=R.filter(r=>d.id?r.deptIds.includes(d.id):!r.deptIds.length); const c=countSt(rs);
+      rows.push(tr([cell(cp(`**${d.name}** (${d.code})`,{size:18}),w[0]), cell(cp(String(rs.length),{size:18,align:'center',bold:true}),w[1])].concat('APNS'.split('').map((k,i)=>cell(cp(c[k]?String(c[k]):'–',{size:18,align:'center',color:c[k]?ST[k][1]:'9AA0A6',bold:!!c[k]}),w[i+2],c[k]?ST[k][2]:null))))); });
+    rows.push(tr([cell(cp('**Total**',{size:18}),w[0],'F2F4F7'),cell(cp(String(R.length),{size:18,align:'center',bold:true}),w[1],'F2F4F7')].concat('APNS'.split('').map((k,i)=>cell(cp(String(cnt[k]),{size:18,align:'center',bold:true,color:ST[k][1]}),w[i+2],'F2F4F7')))));
+    B.push(table(w,rows));
+    if(T.leitura) B.push(p(`**Leitura rápida:** ${T.leitura}`,{size:20,after:80}));
+    B.push(p('Por perspectiva do BSC:',{size:20,color:NAVY,bold:true,after:40,before:60,keep:true}));
+    const perspNames=[...new Set(R.map(r=>r.persp))];
+    perspNames.forEach(pn=>{ const rs=R.filter(r=>r.persp===pn), c=countSt(rs); B.push(bullet(`**${pn}** (${rs.length} metas): ${c.A} atingidas · ${c.P} parciais · ${c.N} não atingidas · ${c.S} sem dados`,20)); });
+
+    B.push(h1(3,'Detalhamento por meta'));
+    B.push(p(`Resultado consolidado das ${M.periodTxt}, com base nos lançamentos de cada responsável. Status: Atingida ≥ 100% · Parcial 70–99% · Não atingida < 70% · Sem dados (sem lançamentos), revisado pelo administrador antes da emissão.`,{size:20,color:'595959',italic:true,after:100}));
+    w=[720,2450,1500,1050,3353];
+    perspNames.forEach(pn=>{
+      B.push(h2(`Perspectiva ${pn}`));
+      const rr=[head(['Depto','Meta',`Resultado T${q}`,'Status','O que os reportes dizem'],w,['center',null,null,'center',null])];
+      R.filter(r=>r.persp===pn).forEach(r=>{ const s=ST[r.st]; rr.push(tr([cell(cp(r.dept,{size:16,bold:true,color:NAVY,align:'center'}),w[0]),cell(cp(r.meta,{size:17}),w[1]),cell(cp(r.res,{size:17,bold:true}),w[2]),cell(cp(s[0],{size:16,bold:true,color:s[1],align:'center'}),w[3],s[2]),cell(cp(r.com,{size:16,color:'3C4043'}),w[4])])); });
+      B.push(table(w,rr));
+    });
+
+    B.push(h1(4,'Resumo dos reportes (causas e ações)'));
+    M.depts.forEach(d=>{ const it=lines(M.rep[d.code]); B.push(h2(`${d.name} (${d.code})`)); if(it.length) it.forEach(t=>B.push(bullet(t,20))); else B.push(p('Sem causas ou ações registradas no período.',{size:20,italic:true,color:'595959'})); });
+
+    B.push(h1(5,'Quem preencheu o sistema'));
+    B.push(p(`**Adesão** é o percentual de semanas fechadas (${M.firstWeek} a ${M.lastClosed}) com lançamento que tem valor ou comentário, somando todas as metas atribuídas à pessoa.`,{size:20,color:'595959',after:100}));
+    w=[1850,800,1000,1150,1000,3273];
+    rows=[head(['Responsável','Depto','Metas atrib.','Adesão semanal','Com justif.','Observação'],w,[null,'center','center','center','center',null])];
+    M.fill.forEach(f=>{ const [fg,bg]=adc(f.ad); rows.push(tr([cell(cp(`**${f.name}**`,{size:17}),w[0]),cell(cp(f.dep,{size:16,align:'center'}),w[1]),cell(cp(String(f.nm),{size:17,align:'center'}),w[2]),cell(cp(f.ad+'%',{size:18,align:'center',bold:true,color:fg}),w[3],bg),cell(cp(String(f.just),{size:17,align:'center'}),w[4]),cell(cp(f.obs,{size:16,color:'3C4043'}),w[5])])); });
+    if(M.fill.length) B.push(table(w,rows)); else B.push(p('Nenhuma meta do trimestre tem responsáveis atribuídos.',{size:20,italic:true}));
+    B.push(bullet(T.fillNote,20));
+    if(M.noEntry.length) B.push(bullet(`**Metas sem nenhum lançamento no trimestre:** ${M.noEntry.join('; ')}.`,20));
+
+    B.push(h1(6,'Iniciativas estratégicas'));
+    B.push(p(M.iniNote,{size:20,after:100}));
+    if(M.inis.length){
+      w=[4073,2000,1700,1300];
+      rows=[head(['Iniciativa','Responsável','Status','Progresso'],w,[null,null,'center','center'])];
+      M.inis.forEach(i=>{ const [fg,bg]=i.st==='Concluído'?['1E7B3C','E3F2E6']:(i.st==='Em andamento'?['9A6B00','FFF3D6']:['B3261E','FBE4E2']);
+        rows.push(tr([cell(cp(i.name,{size:17})+(i.acts.length?cp('Ações no período: '+i.acts.join('; '),{size:15,color:'595959',italic:true}):''),w[0]),cell(cp(i.who,{size:17}),w[1]),cell(cp(i.st+(i.late?' · prazo vencido':''),{size:16,bold:true,color:fg,align:'center'}),w[2],bg),cell(cp(i.pr,{size:17,bold:true,align:'center'}),w[3])])); });
+      B.push(table(w,rows));
+    }
+
+    B.push(h1(7,'Pontos de atenção nos dados'));
+    const fl=lines(T.flags); if(fl.length) fl.forEach(t=>B.push(bullet(t,20))); else B.push(p('Nenhuma inconsistência relevante encontrada nos lançamentos.',{size:20,italic:true}));
+    B.push(h1(8,`Recomendações para o T${q===4?1:q+1}`));
+    lines(T.rec).forEach(t=>B.push(bullet(t,20)));
+    B.push(p('Fonte: base do Sistema de Planejamento Estratégico (metas, lançamentos semanais, responsáveis e iniciativas). Relatório gerado pelo sistema e revisado com base nos comentários de causa e ação de cada lançamento.',{size:16,color:'80868B',italic:true,before:240}));
+    return B.join('');
+  }
+  async function buildDocx(M, templateBuf){
+    const zip=await JSZip.loadAsync(templateBuf);
+    const doc=await zip.file('word/document.xml').async('string');
+    const s=doc.indexOf('<w:body>')+'<w:body>'.length, e=doc.indexOf('<w:sectPr>');
+    zip.file('word/document.xml', doc.slice(0,s)+buildDocXml(M)+doc.slice(e));
+    return zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', compression:'DEFLATE'});
+  }
+
+  /* ---------- 3. PowerPoint (.pptx) no modelo Daexe ---------- */
+  function pptParts(){
+    const TF='Garamond', BF='Roboto'; let _id=200; const nid=()=>++_id;
+    const rpr=(sz,color,bold,font,italic)=>`<a:rPr lang="pt-BR" sz="${Math.round(sz*100)}" b="${bold?1:0}" i="${italic?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:latin typeface="${font}"/><a:ea typeface="${font}"/><a:cs typeface="${font}"/><a:sym typeface="${font}"/></a:rPr>`;
+    const runs=(t,sz,color,bold,font,italic,bc)=>String(t).split('**').map((p,i)=>p?`<a:r>${rpr(sz,(i%2===1&&bc)?bc:color,bold||(i%2===1),font,italic)}<a:t>${xe(p)}</a:t></a:r>`:'').join('');
+    const para=(t,o={})=>{ const sz=o.sz||14, color=o.color||TXT, font=o.font||BF, algn=o.algn||'l', sa=o.sa==null?6:o.sa, line=o.line||100;
+      const ppr = o.bullet ? `<a:pPr marL="228600" indent="-228600" algn="${algn}"><a:lnSpc><a:spcPct val="${line*1000}"/></a:lnSpc><a:spcBef><a:spcPts val="0"/></a:spcBef><a:spcAft><a:spcPts val="${sa*100}"/></a:spcAft><a:buClr><a:srgbClr val="${GOLD_L}"/></a:buClr><a:buSzPct val="100000"/><a:buFont typeface="Arial"/><a:buChar char="•"/></a:pPr>`
+        : `<a:pPr marL="0" indent="0" algn="${algn}"><a:lnSpc><a:spcPct val="${line*1000}"/></a:lnSpc><a:spcBef><a:spcPts val="0"/></a:spcBef><a:spcAft><a:spcPts val="${sa*100}"/></a:spcAft><a:buNone/></a:pPr>`;
+      return `<a:p>${ppr}${runs(t,sz,color,o.bold,font,o.italic,o.bc)}<a:endParaRPr lang="pt-BR" sz="${Math.round(sz*100)}"/></a:p>`; };
+    const tb=(x,y,w,h,paras,o={})=>{ const i=nid(); const fill=o.fill?`<a:solidFill><a:srgbClr val="${o.fill}"/></a:solidFill>`:'<a:noFill/>';
+      return `<p:sp><p:nvSpPr><p:cNvPr id="${i}" name="${xe(o.name||'Texto')} ${i}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${Math.round(x)}" y="${Math.round(y)}"/><a:ext cx="${Math.round(w)}" cy="${Math.round(h)}"/></a:xfrm><a:prstGeom prst="${o.geom||'rect'}"><a:avLst/></a:prstGeom>${fill}<a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr wrap="square" lIns="91440" tIns="91440" rIns="91440" bIns="91440" anchor="${o.anchor||'t'}" rtlCol="0">${o.autofit===false?'<a:noAutofit/>':'<a:normAutofit/>'}</a:bodyPr><a:lstStyle/>${paras.join('')}</p:txBody></p:sp>`; };
+    const title=(t,sub)=>tb(1000000,330000,10192000,620000,[para(t.toUpperCase(),{sz:t.length>44?20:(t.length>34?23:28),color:GOLD_L,bold:true,font:TF,algn:'ctr',sa:0})],{name:'Título',anchor:'ctr',autofit:false})
+      + (sub?tb(1000000,900000,10192000,360000,[para(sub,{sz:13,color:'6B7A99',algn:'ctr',sa:0,italic:true})],{name:'Subtítulo',autofit:false}):'');
+    const cellx=(c)=>{ const fill=c.fill?`<a:solidFill><a:srgbClr val="${c.fill}"/></a:solidFill>`:'<a:noFill/>';
+      const border='<a:lnL w="0"><a:noFill/></a:lnL><a:lnR w="0"><a:noFill/></a:lnR><a:lnT w="6350"><a:solidFill><a:srgbClr val="D0D5DD"/></a:solidFill></a:lnT><a:lnB w="6350"><a:solidFill><a:srgbClr val="D0D5DD"/></a:solidFill></a:lnB>';
+      return `<a:tc><a:txBody><a:bodyPr/><a:lstStyle/>${String(c.text).split('\n').map(t=>para(t,{sz:c.sz||10,color:c.color||TXT,bold:c.bold,algn:c.algn||'l',sa:0,bc:c.bc})).join('')}</a:txBody><a:tcPr marL="64008" marR="64008" marT="36576" marB="36576" anchor="ctr">${border}${fill}</a:tcPr></a:tc>`; };
+    const table=(x,y,ws,rows,rowH,name)=>{ const i=nid(); const W=ws.reduce((a,b)=>a+b,0);
+      const hs=rows.map(r=>r.h||rowH); const H=hs.reduce((a,b)=>a+b,0);
+      return `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="${i}" name="${name||'Tabela'} ${i}"/><p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr><p:nvPr/></p:nvGraphicFramePr><p:xfrm><a:off x="${Math.round(x)}" y="${Math.round(y)}"/><a:ext cx="${Math.round(W)}" cy="${Math.round(H)}"/></p:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table"><a:tbl><a:tblPr firstRow="1" bandRow="0"/><a:tblGrid>${ws.map(w=>`<a:gridCol w="${Math.round(w)}"/>`).join('')}</a:tblGrid>${rows.map((r,k)=>`<a:tr h="${hs[k]}">${r.cells.map(cellx).join('')}</a:tr>`).join('')}</a:tbl></a:graphicData></a:graphic></p:graphicFrame>`; };
+    const hdr=(labels,al,sz)=>({cells:labels.map((l,i)=>({text:l,sz:sz||10.5,color:'FFFFFF',bold:true,fill:NAVY,algn:(al||[])[i]||'l'}))});
+    return {para,tb,title,table,hdr,TF,BF};
+  }
+  function chunkBy(items, costFn, budget, maxN){
+    const tot=items.reduce((a,b)=>a+costFn(b),0); const n=Math.max(1, Math.ceil(tot/budget), Math.ceil(items.length/maxN)); const target=Math.min(budget, tot/n*1.12);
+    const out=[]; let cur=[], used=0; items.forEach(it=>{ const c=costFn(it); if(cur.length && (used+c>target || cur.length>=maxN) && out.length<n-1){ out.push(cur); cur=[]; used=0; } cur.push(it); used+=c; }); if(cur.length) out.push(cur); return out; }
+
+  function buildSlides(M){
+    const {para,tb,title,table,hdr,TF}=pptParts();
+    const X0=480000, XW=11232000; const R=M.rows, cnt=countSt(R), T=M.text, q=M.quarter;
+    const S=[]; // conteúdo dos slides de conteúdo (na ordem)
+    const sub=`Fechamento do T${q} · ${M.periodTxt} · ${R.length} metas · ${M.depts.length} departamentos`;
+    // Resumo executivo
+    let s=title('Resumo executivo', sub); const cw=2640000, gap=224000;
+    'APNS'.split('').forEach((k,j)=>{ const [nm,fg,bg]=ST[k]; s+=tb(X0+j*(cw+gap),1450000,cw,1500000,[para(String(cnt[k]),{sz:48,color:fg,bold:true,font:TF,algn:'ctr',sa:0}),para(nm.toUpperCase(),{sz:13,color:fg,bold:true,algn:'ctr',sa:2}),para(`${R.length?Math.round(100*cnt[k]/R.length):0}% das metas`,{sz:11,color:'5F6368',algn:'ctr',sa:0})],{name:'Indicador '+nm,anchor:'ctr',autofit:false,fill:bg,geom:'roundRect'}); });
+    s+=tb(X0,3100000,XW,950000,[para(T.synth,{sz:15,line:120,bc:NAVY})],{name:'Síntese'});
+    const perspNames=[...new Set(R.map(r=>r.persp))];
+    let w=[3900000,1500000,1500000,1500000,1500000];
+    let rows=[hdr(['Perspectiva BSC','Atingidas','Parciais','Não atingidas','Sem dados'],['l','ctr','ctr','ctr','ctr'])];
+    perspNames.forEach(pn=>{ const rs=R.filter(r=>r.persp===pn), c=countSt(rs); rows.push({cells:[{text:`**${pn}** (${rs.length})`,sz:11,bc:NAVY}].concat('APNS'.split('').map(k=>({text:c[k]?String(c[k]):'–',sz:12,bold:!!c[k],color:c[k]?ST[k][1]:'9AA0A6',algn:'ctr',fill:c[k]?ST[k][2]:null})))}); });
+    const rh=Math.min(340000, Math.floor(2400000/rows.length));
+    s+=table(X0+(XW-9900000)/2, 4150000, w, rows, rh, 'Tabela perspectivas');
+    S.push(s);
+    // Destaques
+    s=title('Destaques do trimestre'); const colw=5450000;
+    [['O QUE FUNCIONOU',lines(T.pos),'1E7B3C','E3F2E6'],['O QUE NÃO FUNCIONOU',lines(T.neg),'B3261E','FBE4E2']].forEach(([hd,it,fg,bg],j)=>{ const x=X0+j*(colw+332000);
+      const sz=it.length>5?12.5:14;
+      s+=tb(x,1250000,colw,460000,[para(hd,{sz:15,color:fg,bold:true,font:TF,algn:'ctr',sa:0})],{name:'Cabeçalho coluna',anchor:'ctr',autofit:false,fill:bg});
+      s+=tb(x,1790000,colw,4450000,(it.length?it:['—']).slice(0,7).map(t=>para(cut(t,190),{sz,bullet:true,sa:9,line:110,bc:NAVY})),{name:'Lista'}); });
+    S.push(s);
+    // Por departamento
+    s=title('Resultado por departamento'); w=[4200000,1200000,1450000,1450000,1450000,1450000];
+    rows=[hdr(['Departamento','Metas','Atingidas','Parciais','Não atingidas','Sem dados'],['l','ctr','ctr','ctr','ctr','ctr'],12)];
+    M.depts.forEach(d=>{ const rs=R.filter(r=>d.id?r.deptIds.includes(d.id):!r.deptIds.length), c=countSt(rs); rows.push({cells:[{text:`**${d.name}** (${d.code})`,sz:13,bc:NAVY},{text:String(rs.length),sz:14,bold:true,algn:'ctr'}].concat('APNS'.split('').map(k=>({text:c[k]?String(c[k]):'–',sz:14,bold:!!c[k],color:c[k]?ST[k][1]:'9AA0A6',algn:'ctr',fill:c[k]?ST[k][2]:null})))}); });
+    rows.push({cells:[{text:'**Total**',sz:13,fill:'F2F4F7',bc:NAVY},{text:String(R.length),sz:14,bold:true,algn:'ctr',fill:'F2F4F7'}].concat('APNS'.split('').map(k=>({text:String(cnt[k]),sz:14,bold:true,color:ST[k][1],algn:'ctr',fill:'F2F4F7'})))});
+    const drh=Math.min(520000, Math.floor(3700000/rows.length));
+    s+=table(X0+(XW-11200000)/2,1350000,w,rows,drh,'Tabela departamentos');
+    if(T.leitura) s+=tb(X0,1450000+drh*rows.length+150000,XW,900000,[para(`**Leitura rápida:** ${T.leitura}`,{sz:13,line:115,bc:NAVY})],{name:'Leitura'});
+    S.push(s);
+    // Detalhamento por meta
+    const dw=[700000,2700000,1800000,1250000,4782000];
+    const rowCost=(r)=>{ const l=Math.max(Math.ceil(r.meta.length/34), Math.ceil(r.res.length/22), Math.ceil(r.com.length/66), 1); return 110000+l*170000; };
+    perspNames.forEach(pn=>{
+      const rs=R.filter(r=>r.persp===pn).map(r=>Object.assign({},r,{meta:cut(r.meta,170),com:cut(r.com,260)}));
+      const parts=chunkBy(rs,rowCost,4900000,9);
+      parts.forEach((part,ix)=>{ let t=title(`Perspectiva ${pn}${parts.length>1?` (${ix+1}/${parts.length})`:''}`);
+        const tr=[hdr(['Depto','Meta',`Resultado T${q}`,'Status','O que os reportes dizem'],['ctr','l','l','ctr','l'])];
+        part.forEach(r=>{ const [nm,fg,bg]=ST[r.st]; tr.push({h:rowCost(r),cells:[{text:r.dept,sz:10,bold:true,color:NAVY,algn:'ctr'},{text:r.meta,sz:10.5},{text:r.res,sz:10.5,bold:true,color:NAVY},{text:nm,sz:10,bold:true,color:fg,algn:'ctr',fill:bg},{text:r.com,sz:9.5,color:'4A5568'}]}); });
+        t+=table(X0,1120000,dw,tr,330000,'Tabela metas'); S.push(t); });
+    });
+    // Causas e ações
+    const dcs=M.depts.filter(d=>lines(M.rep[d.code]).length);
+    const groups = dcs.length<=3 ? [dcs] : [dcs.slice(0,Math.floor(dcs.length/2)), dcs.slice(Math.floor(dcs.length/2))];
+    const gchunks=[]; groups.forEach(g=>{ for(let i=0;i<g.length;i+=3) gchunks.push(g.slice(i,i+3)); });
+    gchunks.filter(g=>g.length).forEach((g,ix)=>{ let t=title(`Causas e ações relatadas${gchunks.length>1?` (${ix+1}/${gchunks.length})`:''}`);
+      const gapc=250000, cw2=(XW-gapc*(g.length-1))/g.length, sz=g.length>=3?11.5:13;
+      g.forEach((d,j)=>{ const x=X0+j*(cw2+gapc);
+        t+=tb(x,1250000,cw2,520000,[para(`${d.name.toUpperCase()} (${d.code})`,{sz:12,color:'FFFFFF',bold:true,font:TF,algn:'ctr',sa:0})],{name:'Cabeçalho depto',anchor:'ctr',autofit:false,fill:NAVY});
+        t+=tb(x,1830000,cw2,4300000,lines(M.rep[d.code]).slice(0,4).map(it=>para(cut(it,g.length>=3?190:240),{sz,bullet:true,sa:9,line:110,bc:NAVY})),{name:'Causas e ações',fill:'F7F8FA'}); });
+      S.push(t); });
+    // Quem preencheu
+    const fw=[2250000,1050000,1100000,1250000,1250000,4332000];
+    const fparts=M.fill.length?chunkBy(M.fill,()=>1,10,10):[[]];
+    fparts.forEach((part,ix)=>{ let t=title(`Quem preencheu o sistema${fparts.length>1?` (${ix+1}/${fparts.length})`:''}`, `Adesão = % das semanas fechadas (${M.firstWeek} a ${M.lastClosed}) com lançamento preenchido, somando as metas da pessoa`);
+      const tr=[hdr(['Responsável','Depto','Metas','Adesão','Com justif.','Observação'],['l','ctr','ctr','ctr','ctr','l'])];
+      part.forEach(f=>{ const [fg,bg]=f.ad>=70?['1E7B3C','E3F2E6']:(f.ad>=50?['9A6B00','FFF3D6']:['B3261E','FBE4E2']);
+        tr.push({cells:[{text:f.name,sz:11,bold:true,color:NAVY},{text:f.dep,sz:10,algn:'ctr'},{text:String(f.nm),sz:11,algn:'ctr'},{text:f.ad+'%',sz:12,bold:true,color:fg,fill:bg,algn:'ctr'},{text:String(f.just),sz:11,algn:'ctr'},{text:cut(f.obs,120),sz:9.5,color:'4A5568'}]}); });
+      if(part.length) t+=table(X0,1400000,fw,tr,370000,'Tabela preenchimento');
+      else t+=tb(X0,1500000,XW,600000,[para('Nenhuma meta do trimestre tem responsáveis atribuídos.',{sz:14})]);
+      if(ix===fparts.length-1) t+=tb(X0,5550000,XW,650000,[para(T.fillNote+(M.noEntry.length?` Sem lançamento: ${cut(M.noEntry.join('; '),160)}.`:''),{sz:12,bc:NAVY})],{name:'Nota'});
+      S.push(t); });
+    // Iniciativas
+    if(M.inis.length){ const iw=[5000000,2800000,1900000,1500000];
+      const iparts=chunkBy(M.inis,()=>1,10,10);
+      iparts.forEach((part,ix)=>{ let t=title(`Iniciativas estratégicas${iparts.length>1?` (${ix+1}/${iparts.length})`:''}`);
+        const tr=[hdr(['Iniciativa','Responsável','Status','Progresso'],['l','l','ctr','ctr'],12)];
+        part.forEach(i=>{ const [fg,bg]=i.st==='Concluído'?['1E7B3C','E3F2E6']:(i.st==='Em andamento'?['9A6B00','FFF3D6']:['B3261E','FBE4E2']);
+          tr.push({cells:[{text:cut(i.name,90),sz:11.5,color:NAVY,bold:true},{text:cut(i.who,60),sz:10.5},{text:i.st+(i.late?'\nprazo vencido':''),sz:10.5,bold:true,color:fg,fill:bg,algn:'ctr'},{text:i.pr,sz:12,bold:true,algn:'ctr'}]}); });
+        t+=table(X0+(XW-11200000)/2,1300000,iw,tr,370000,'Tabela iniciativas');
+        if(ix===iparts.length-1) t+=tb(X0,5500000,XW,700000,[para(M.iniNote,{sz:12,line:115})],{name:'Nota'});
+        S.push(t); }); }
+    // Pontos de atenção
+    const fl=lines(T.flags).slice(0,7);
+    s=title('Pontos de atenção nos dados');
+    s+=tb(X0+300000,1300000,XW-600000,4900000,(fl.length?fl:['Nenhuma inconsistência relevante encontrada nos lançamentos.']).map(t=>para(cut(t,230),{sz:fl.length>5?14:16,bullet:true,sa:12,line:115,bc:NAVY})),{name:'Lista'});
+    S.push(s);
+    // Recomendações (slide 4 do modelo, com a foto)
+    const rec=lines(T.rec).slice(0,8);
+    const recXml=tb(4197738,600000,7295100,620000,[para(`RECOMENDAÇÕES PARA O T${q===4?1:q+1}`,{sz:28,color:GOLD_L,bold:true,font:TF,sa:0})],{name:'Título',anchor:'ctr',autofit:false})
+      + tb(4283950,1350000,7416900,4950000,rec.map(t=>para(cut(t,200),{sz:rec.length>6?14:16,bullet:true,sa:10,line:110,bc:NAVY})),{name:'Lista'});
+    return {S, recXml};
+  }
+  async function buildPptx(M, templateBuf){
+    const zip=await JSZip.loadAsync(templateBuf);
+    const {S, recXml}=buildSlides(M);
+    const P='ppt/slides/';
+    const rd=(f)=>zip.file(f).async('string');
+    const inject=(xml,body,keepPic)=>{ const gs=xml.indexOf('</p:grpSpPr>')+'</p:grpSpPr>'.length; let extra=''; if(keepPic){ const m=xml.match(/<p:pic>[\s\S]*?<\/p:pic>/); if(m) extra=m[0]; } return xml.slice(0,gs)+body+extra+xml.slice(xml.indexOf('</p:spTree>')); };
+    // slide 2 — título
+    let s2=await rd(P+'slide2.xml');
+    s2=s2.replace('TÍTULO DA APRESENTAÇÃO', xe(`RESULTADOS DE METAS · T${M.quarter} ${M.year}`)).replace('Caso precise de um texto de apoio, coloque aqui embaixo', xe(`Fechamento do ${ORD[M.quarter-1]} trimestre${M.partial?' (prévia)':''}`));
+    s2=s2.replace(/<p:sp><p:nvSpPr><p:cNvPr id="113"[\s\S]*?<\/p:sp>/,'');
+    zip.file(P+'slide2.xml',s2);
+    // slide 4 — recomendações
+    zip.file(P+'slide4.xml', inject(await rd(P+'slide4.xml'), recXml, true));
+    // slides de conteúdo a partir do slide 3
+    const base3=await rd(P+'slide3.xml');
+    const rels3=(await rd(P+'_rels/slide3.xml.rels')).replace(/<Relationship Id="rId2"[^>]*notesSlide[^>]*\/>/,'');
+    zip.file(P+'slide3.xml', inject(base3,S[0]));
+    let ct=await rd('[Content_Types].xml'), pres=await rd('ppt/presentation.xml'), prels=await rd('ppt/_rels/presentation.xml.rels');
+    const newIds=[];
+    for(let k=1;k<S.length;k++){ const n=4+k; // slide5.xml, slide6.xml…
+      zip.file(`${P}slide${n}.xml`, inject(base3,S[k]));
+      zip.file(`${P}_rels/slide${n}.xml.rels`, rels3);
+      ct=ct.replace('</Types>',`<Override PartName="/ppt/slides/slide${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/></Types>`);
+      const rid='rIdR'+n; prels=prels.replace('</Relationships>',`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${n}.xml"/></Relationships>`);
+      newIds.push(`<p:sldId id="${300+k}" r:id="${rid}"/>`); }
+    // ordem: capa, título, resumo(slide3), novos…, recomendações(slide4)
+    pres=pres.replace(/(<p:sldId id="\d+" r:id="rId4"\/>)/, '$1'+newIds.join(''));
+    zip.file('[Content_Types].xml',ct); zip.file('ppt/presentation.xml',pres); zip.file('ppt/_rels/presentation.xml.rels',prels);
+    const app=zip.file('docProps/app.xml'); if(app){ let a=await app.async('string'); a=a.replace(/<Slides>\d+<\/Slides>/,`<Slides>${S.length+3}</Slides>`); zip.file('docProps/app.xml',a); }
+    return zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.presentationml.presentation', compression:'DEFLATE'});
+  }
+  return { compute, buildDocx, buildPptx, countSt, ST, deptCode, weeksOfYear };
+})();
 
 const App = (() => {
   let me = null, charts = {};
@@ -366,14 +814,37 @@ const App = (() => {
   App_forgotPassword = async () => {
     const email = val('login-email');
     if(!email){ toast('Digite seu e-mail primeiro'); return; }
-    const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase());
-    toast(error ? error.message : 'Se o e-mail existir, enviaremos instruções.');
+    const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: appUrl() });
+    if(error){ toast(/rate|seconds|limit/i.test(error.message)?'Aguarde um minuto antes de pedir outro e-mail.':error.message); return; }
+    document.getElementById('login-error').style.color='var(--green)';
+    document.getElementById('login-error').textContent='Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha. Confira também a caixa de spam.';
   };
+  function appUrl(){ return location.protocol.indexOf('http')===0 ? (location.origin + location.pathname) : APP_URL; }
+  function showRecovery(errMsg){
+    document.getElementById('boot').classList.add('hidden'); document.getElementById('app').classList.add('hidden'); document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('recovery-screen').classList.remove('hidden');
+    document.getElementById('recovery-fields').style.display = errMsg ? 'none' : '';
+    document.getElementById('recovery-info').textContent = errMsg || 'Link confirmado. Digite a nova senha duas vezes.';
+    if(errMsg) document.getElementById('recovery-error').textContent='';
+  }
+  App_doRecovery = async () => {
+    const p1=document.getElementById('rec-pw1').value, p2=document.getElementById('rec-pw2').value, er=document.getElementById('recovery-error'); er.textContent='';
+    if(!p1 || p1.length<6){ er.textContent='A senha deve ter ao menos 6 caracteres.'; return; }
+    if(p1!==p2){ er.textContent='As senhas não coincidem.'; return; }
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ er.textContent='O link expirou. Volte ao login e peça um novo e-mail em "Esqueci minha senha".'; return; }
+    const { error } = await sb.auth.updateUser({ password:p1 });
+    if(error){ er.textContent = /different|same/i.test(error.message) ? 'A nova senha precisa ser diferente da anterior.' : error.message; return; }
+    window.__recovery=false; try{ history.replaceState(null,'',location.pathname); }catch(e){}
+    document.getElementById('recovery-screen').classList.add('hidden'); toast('Senha alterada com sucesso'); await loadMeAndBoot();
+  };
+  App_backToLogin = async () => { window.__recovery=false; try{ history.replaceState(null,'',location.pathname); }catch(e){} try{ await sb.auth.signOut(); }catch(e){} document.getElementById('recovery-screen').classList.add('hidden'); showLogin(); };
 
   /* ---------- Navegação ---------- */
   const NAV = [
     { sec:'Visão Geral' },
     { id:'dashboard', label:'Painel', ico:'📊' },
+    { id:'tutorial', label:'Como usar (Tutorial)', ico:'📘' },
     { sec:'Diagnóstico' },
     { id:'diag', label:'Diagnóstico 360', ico:'📡' },
     { id:'swot', label:'SWOT / GUT', ico:'⚖️' },
@@ -1524,12 +1995,21 @@ const App = (() => {
       <p class="desc">Exporte o plano estratégico completo. Disponível apenas para administradores.</p>
       <div class="inline-actions"><button class="btn btn-accent" onclick="App.exportFile('excel')">⤓ Exportar Excel</button>
         <button class="btn btn-light" onclick="App.exportFile('pdf')">⤓ Exportar PDF</button></div></div>
+      <div class="card"><div class="section-head"><div><h3>Relatório trimestral de metas</h3>
+        <p class="desc" style="margin:0">Fechamento do trimestre no modelo Daexe: relatório em <b>Word</b> (papel timbrado) e apresentação em <b>PowerPoint</b> (slides editáveis). O sistema calcula resultados, status, adesão ao preenchimento e pontos de atenção; você revisa os textos antes de gerar.</p></div></div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="field" style="margin:0;min-width:110px"><label>Ano</label><select id="rel-year">${(()=>{ const y=new Date().getFullYear(); return [y-2,y-1,y,y+1].map(x=>`<option value="${x}" ${x===relDefault().year?'selected':''}>${x}</option>`).join(''); })()}</select></div>
+          <div class="field" style="margin:0;min-width:150px"><label>Trimestre</label><select id="rel-q">${[1,2,3,4].map(q=>`<option value="${q}" ${q===relDefault().quarter?'selected':''}>${q}º trimestre</option>`).join('')}</select></div>
+          <button class="btn btn-primary" onclick="App.relLoad()">Montar relatório</button>
+        </div></div>
+      <div id="rel-box"></div>
       <div class="card"><div class="section-head"><h3>Atalhos de gestão</h3></div>
       <div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.go('usuarios')">Usuários & Acessos</button>
         <button class="btn btn-light btn-sm" onclick="App.go('okr')">Metas & Responsáveis</button>
         <button class="btn btn-light btn-sm" onclick="App.go('notificacoes')">Notificações</button></div></div>`;
     const bf=document.getElementById('brand-file'); if(bf) bf.addEventListener('change',(e)=>{ const file=e.target.files[0]; if(!file) return; resizeLogo(file,(d)=>{ window.__newLogo=d; document.getElementById('brand-logo-prev').innerHTML=`<img src="${d}" style="max-height:46px;max-width:180px;object-fit:contain">`; }); });
   };
+  function relDefault(){ const d=new Date(); let q=Math.floor(d.getMonth()/3)+1, y=d.getFullYear(); const lastMonth=(q*3)-1; const endQ=new Date(y,lastMonth+1,0); if((endQ-d)/86400000>21){ q--; if(q<1){ q=4; y--; } } return {year:y, quarter:q}; }
   App_saveBranding = async () => {
     const row={ primary_color:val('brand-primary'), accent_color:val('brand-accent') };
     if(window.__newLogo) row.logo_url=window.__newLogo;
@@ -1589,18 +2069,221 @@ const App = (() => {
     const w=window.open('','_blank'); if(!w){ toast('Permita pop-ups para gerar o PDF'); return; } w.document.write(html); w.document.close();
   }
 
+  /* ---------- Relatório trimestral de metas (Word + PowerPoint) ---------- */
+  function loadScriptOnce(src, test){ return new Promise((res,rej)=>{ if(test()) return res(); const s=document.createElement('script'); s.src=src; s.onload=()=>test()?res():rej(new Error('Biblioteca não carregou')); s.onerror=()=>rej(new Error('Não foi possível carregar a biblioteca de geração de arquivos. Verifique a internet.')); document.head.appendChild(s); }); }
+  async function fetchAllRows(table, apply){
+    const out=[]; for(let from=0;;from+=1000){ let q=sb.from(table).select('*'); if(apply) q=apply(q); const { data, error } = await q.range(from, from+999); if(error) throw error; out.push(...(data||[])); if(!data || data.length<1000) break; }
+    return out;
+  }
+  function relRender(){
+    const box=document.getElementById('rel-box'); if(!box) return; const R=window.__rel; if(!R||!R.M){ box.innerHTML=''; return; }
+    const M=R.M, c=RelMetas.countSt(M.rows), ST=RelMetas.ST;
+    const opt=(v)=>['A','P','N','S'].map(k=>`<option value="${k}" ${k===v?'selected':''}>${ST[k][0]}</option>`).join('');
+    const ta=(id,label,val,rows=4,hint='')=>`<div class="field"><label>${label}</label><textarea id="${id}" rows="${rows}" style="min-height:${rows*22}px">${esc(val||'')}</textarea>${hint?`<p class="desc" style="margin:4px 0 0">${hint}</p>`:''}</div>`;
+    const pillC={A:'pill-green',P:'pill-amber',N:'pill-red',S:'pill-gray'};
+    box.innerHTML=`
+      <div class="card" style="border-left:4px solid var(--gold)">
+        <p class="desc" style="margin:0">${R.fromDraft?`<b>Rascunho salvo</b> em ${esc(R.savedAt||'')} carregado. `:''}Período: <b>T${M.quarter} ${M.year}</b> · ${esc(M.periodTxt)} · ${M.rows.length} metas · ${M.depts.length} departamentos${M.partial?' · <b>prévia</b> (há semanas ainda em aberto)':''}.
+        Revise os textos e os status abaixo — tudo o que estiver aqui vai para o Word e para o PowerPoint. Use <code>**texto**</code> para negrito; nos campos de lista, <b>uma linha = um item</b>.</p>
+      </div>
+      <div class="cards">${['A','P','N','S'].map(k=>`<div class="stat" style="border-left-color:#${ST[k][1]}"><div class="label">${ST[k][0]}</div><div class="value" id="rel-c-${k}" style="color:#${ST[k][1]}">${c[k]}</div><div class="sub">${M.rows.length?Math.round(100*c[k]/M.rows.length):0}% das metas</div></div>`).join('')}</div>
+      <div class="card"><div class="section-head"><h3>1. Resumo executivo e destaques</h3></div>
+        ${ta('rel-synth','Síntese',M.text.synth,3)}
+        <div class="grid-2">${ta('rel-pos','O que funcionou (uma linha por item)',M.text.pos,6)}${ta('rel-neg','O que não funcionou (uma linha por item)',M.text.neg,6)}</div>
+        ${ta('rel-leitura','Leitura rápida por departamento',M.text.leitura,2)}
+      </div>
+      <div class="card"><div class="section-head"><div><h3>2. Resultado por meta</h3><p class="desc" style="margin:0">Status sugerido pelo % do período (≥ 100% Atingida · 70–99% Parcial · &lt; 70% Não atingida · sem lançamentos = Sem dados). Ajuste quando o texto da meta SMART pedir outra leitura (ex.: metas de redução, metas semestrais).</p></div></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Depto</th><th style="min-width:220px">Meta</th><th style="min-width:150px">Resultado</th><th>Status</th><th style="min-width:260px">O que os reportes dizem</th></tr></thead><tbody>
+        ${M.rows.map((r,i)=>`<tr><td><b>${esc(r.dept)}</b><div class="desc" style="margin:2px 0 0;font-size:11px">${esc(r.persp)}</div></td><td style="font-size:12.5px">${esc(r.meta)}</td>
+          <td><textarea id="rel-res-${i}" rows="2" style="width:100%;font-size:12.5px;font-family:inherit;border:1px solid var(--line);border-radius:6px;padding:5px">${esc(r.res)}</textarea></td>
+          <td><select id="rel-st-${i}" onchange="App.relCount()" style="padding:6px;border:1px solid var(--line);border-radius:6px">${opt(r.st)}</select></td>
+          <td><textarea id="rel-com-${i}" rows="3" style="width:100%;font-size:12px;font-family:inherit;border:1px solid var(--line);border-radius:6px;padding:5px">${esc(r.com)}</textarea></td></tr>`).join('')}
+        </tbody></table></div></div>
+      <div class="card"><div class="section-head"><h3>3. Causas e ações por departamento</h3></div>
+        <div class="grid-2">${M.depts.map(d=>ta('rel-rep-'+d.code.replace(/[^A-Za-z0-9]/g,'_'),`${esc(d.name)} (${esc(d.code)})`,M.rep[d.code],5)).join('')}</div></div>
+      <div class="card"><div class="section-head"><h3>4. Quem preencheu o sistema</h3></div>
+        <table><thead><tr><th>Responsável</th><th>Depto</th><th>Metas</th><th>Adesão</th><th>Com justif.</th><th>Observação</th></tr></thead><tbody>
+        ${M.fill.map((f,i)=>`<tr><td><b>${esc(f.name)}</b></td><td>${esc(f.dep)}</td><td>${f.nm}</td><td><span class="pill ${f.ad>=70?'pill-green':(f.ad>=50?'pill-amber':'pill-red')}">${f.ad}%</span></td><td>${f.just}</td>
+          <td><input id="rel-obs-${i}" value="${esc(f.obs)}" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font-size:12.5px"></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Nenhuma meta do período tem responsáveis atribuídos.</td></tr>'}
+        </tbody></table>
+        ${ta('rel-fillnote','Nota sobre o preenchimento',M.text.fillNote,2)}</div>
+      <div class="card"><div class="section-head"><h3>5. Iniciativas, pontos de atenção e recomendações</h3></div>
+        ${ta('rel-ininote','Resumo das iniciativas',M.iniNote,2,'A tabela de iniciativas (status e progresso) é montada automaticamente a partir da página Iniciativas.')}
+        ${ta('rel-flags','Pontos de atenção nos dados (uma linha por item)',M.text.flags,5,'Gerado automaticamente: valores fora de escala, metas em % com fórmula Soma, lançamentos em semanas futuras, valores repetidos. Confira e corrija no sistema, se for o caso.')}
+        ${ta('rel-rec',`Recomendações para o T${M.quarter===4?1:M.quarter+1} (uma linha por item)`,M.text.rec,6)}
+      </div>
+      <div class="card" style="position:sticky;bottom:10px;z-index:4;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-light" onclick="App.relSave()">💾 Salvar rascunho</button>
+        <button class="btn btn-primary" onclick="App.relExport('docx')">⤓ Gerar Word (.docx)</button>
+        <button class="btn btn-accent" onclick="App.relExport('pptx')">⤓ Gerar PowerPoint (.pptx)</button>
+        <span class="desc" id="rel-msg" style="margin:0"></span>
+      </div>`;
+  }
+  function relCollect(){
+    const R=window.__rel; if(!R||!R.M) return null; const M=R.M; const g=(id)=>{ const e=document.getElementById(id); return e?e.value:null; };
+    M.rows.forEach((r,i)=>{ const st=g('rel-st-'+i); if(st) r.st=st; const rs=g('rel-res-'+i); if(rs!=null) r.res=rs; const cm=g('rel-com-'+i); if(cm!=null) r.com=cm; });
+    M.fill.forEach((f,i)=>{ const o=g('rel-obs-'+i); if(o!=null) f.obs=o; });
+    M.depts.forEach(d=>{ const v=g('rel-rep-'+d.code.replace(/[^A-Za-z0-9]/g,'_')); if(v!=null) M.rep[d.code]=v; });
+    const map={synth:'rel-synth',pos:'rel-pos',neg:'rel-neg',leitura:'rel-leitura',fillNote:'rel-fillnote',flags:'rel-flags',rec:'rel-rec'};
+    Object.keys(map).forEach(k=>{ const v=g(map[k]); if(v!=null) M.text[k]=v; });
+    const ini=g('rel-ininote'); if(ini!=null) M.iniNote=ini;
+    return M;
+  }
+  App_relCount = () => { const M=relCollect(); if(!M) return; const c=RelMetas.countSt(M.rows); ['A','P','N','S'].forEach(k=>{ const e=document.getElementById('rel-c-'+k); if(e) e.textContent=c[k]; }); };
+  App_relLoad = async (fresh) => {
+    const year=+val('rel-year'), quarter=+val('rel-q'); const box=document.getElementById('rel-box');
+    box.innerHTML='<div class="empty">Carregando dados do trimestre…</div>';
+    try{
+      if(!fresh){
+        const { data:dr } = await sb.from('goal_reports').select('*').eq('year',year).eq('quarter',quarter).maybeSingle();
+        if(dr && dr.data && dr.data.rows){ window.__rel={ M:dr.data, fromDraft:true, savedAt:new Date(dr.updated_at).toLocaleString('pt-BR') }; relRender();
+          box.insertAdjacentHTML('afterbegin',`<div class="card"><div class="inline-actions" style="align-items:center"><span class="desc" style="margin:0">Existe um rascunho salvo para este trimestre. Quer descartar e recalcular com os dados atuais do sistema?</span><button class="btn btn-light btn-sm" onclick="if(confirm('Descartar o rascunho e recalcular com os dados atuais?')) App.relLoad(true)">↻ Recalcular do zero</button></div></div>`); return; }
+      }
+      const [goals,objs,persp,depts,goalDepts,assignees,weekly,profiles,inis,iniAssignees,iniActions]=await Promise.all([
+        fetchAllRows('goals'), tList('objectives','ord'), tList('bsc_perspectives','ord'), tList('departments','ord'), fetchAllRows('goal_departments'), fetchAllRows('goal_assignees'),
+        fetchAllRows('goal_weekly', q=>q.eq('year',year).order('id')), tList('profiles','name'), tList('initiatives','ord'), fetchAllRows('initiative_assignees'), fetchAllRows('initiative_actions')]);
+      if(!goals.some(g=>g.year===year && g.quarter===quarter)){ box.innerHTML=`<div class="card"><div class="empty">Não há metas cadastradas para o T${quarter} de ${year}.</div></div>`; window.__rel=null; return; }
+      const M=RelMetas.compute({orgName:me.org_name||'',goals,objs,persp,depts,goalDepts,assignees,weekly,profiles,inis,iniAssignees,iniActions},year,quarter,new Date());
+      window.__rel={ M }; relRender();
+    }catch(e){ box.innerHTML=`<div class="card"><div class="empty">Erro ao montar o relatório: ${esc(e.message)}</div></div>`; }
+  };
+  App_relSave = async () => {
+    const M=relCollect(); if(!M) return;
+    try{ const { error } = await sb.from('goal_reports').upsert({ org_id:me.org_id, year:M.year, quarter:M.quarter, data:M, updated_by:me.id, updated_at:new Date().toISOString() },{ onConflict:'org_id,year,quarter' }); if(error) throw error; toast('Rascunho salvo'); }
+    catch(e){ toast('Não foi possível salvar: '+e.message); }
+  };
+  App_relExport = async (kind) => {
+    const M=relCollect(); if(!M) return; const msg=document.getElementById('rel-msg');
+    try{
+      if(msg) msg.textContent='Gerando arquivo…';
+      await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', ()=>typeof JSZip!=='undefined');
+      const tpl = kind==='docx' ? 'modelos/A4_MODELO.docx' : 'modelos/Modelo_Daexe.pptx';
+      const r=await fetch(tpl, { cache:'no-cache' }); if(!r.ok) throw new Error('Modelo não encontrado ('+tpl+'). Abra o sistema pelo endereço on-line.');
+      const buf=await r.arrayBuffer();
+      const blob = kind==='docx' ? await RelMetas.buildDocx(M, buf) : await RelMetas.buildPptx(M, buf);
+      const org=(me.org_name||'Org').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'');
+      const name = (kind==='docx'?'Relatorio_Resultados_Metas_':'Apresentacao_Resultados_Metas_')+`T${M.quarter}_${M.year}_${org}.${kind}`;
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+      if(msg) msg.textContent='Arquivo gerado: '+name; toast('Arquivo gerado');
+    }catch(e){ if(msg) msg.textContent=''; toast(e.message); }
+  };
+
+  /* ---------- Tutorial do sistema ---------- */
+  const TUT = [
+    { id:'dashboard', t:'Painel', who:'Todos (só consulta)', para:'Visão geral do planejamento: indicadores principais, gráfico de meta × realizado por mês e as 5 maiores prioridades da matriz GUT.',
+      passos:['Não há nada para preencher aqui: o Painel é montado com o que foi lançado nas outras páginas.','No gráfico "Desempenho", escolha a meta que quer acompanhar na lista.'],
+      dicas:['Se o Painel estiver vazio, comece pela Filosofia, pelo Mapa BSC e por Objetivos & Metas.'] },
+    { id:'filosofia', t:'Filosofia', who:'Gestor e Administrador', para:'Identidade da organização: nome, missão, visão, posicionamento, vigência do plano e valores.',
+      passos:['Clique em "Editar" em Dados da empresa e preencha nome, Missão (por que a empresa existe), Visão (onde quer chegar e até quando) e Posicionamento.','Informe o início, o fim e a vigência (em meses) do planejamento.','Em Valores, clique em "+ Novo valor" para cada valor: um título curto (ex.: "Transparência") e uma descrição de como ele aparece no dia a dia.'],
+      dicas:['Uma visão boa tem prazo e é mensurável. Exemplo: "Ser referência em gestão para PMEs no Centro-Oeste até 2028".','Entre 4 e 6 valores costuma ser suficiente.'] },
+    { id:'departamentos', t:'Departamentos', who:'Gestor e Administrador', para:'Estrutura da organização. Cada departamento reúne seus macroprocessos e os responsáveis.',
+      passos:['Clique em "+ Novo departamento" e informe o Nome e a Atuação (o que o departamento faz, em uma frase).','Dentro do departamento, use "+ Adicionar" em Macroprocessos (nome + descrição) e "+ responsável" para indicar o dono de cada processo.','Em Responsáveis, use "+ Adicionar" (nome e cargo). Use o campo "Reporta-se a" para montar a hierarquia que aparece no Organograma.'],
+      dicas:['O responsável não precisa ser usuário do sistema; basta o nome.','Os departamentos cadastrados aqui aparecem depois nos filtros de metas, na SWOT e no relatório trimestral.'] },
+    { id:'organograma', t:'Organograma', who:'Todos consultam · Gestor envia imagem', para:'Mostra a hierarquia montada em Departamentos, ou uma imagem de organograma já pronta.',
+      passos:['No modo "Estrutura", o organograma é gerado a partir dos responsáveis e do campo "Reporta-se a" da página Departamentos.','No modo "Imagem", o gestor pode clicar em "Enviar imagem" e subir um organograma pronto (PNG ou JPG).'],
+      dicas:['Para mudar nomes ou a hierarquia, edite na página Departamentos.'] },
+    { id:'diag', t:'Diagnóstico 360', who:'Todos respondem · Gestor vê resultados · Admin edita perguntas', para:'Mede a maturidade da gestão por área (nota de 1 a 5). Cada pessoa responde, e a média de todos forma o radar.',
+      passos:['Escolha o Período (ano) no canto superior.','Na aba "Responder", marque de 1 a 5 em cada pergunta: 1 Não fazemos · 2 Início/informal · 3 Parcial · 4 Estruturado · 5 Otimizado. Clique em "Salvar minhas respostas".','Na aba "Resultados" (gestores), veja o radar, as notas por área e as áreas mais frágeis.','Na aba "Perguntas" (administrador), carregue as perguntas padrão ou crie as suas.'],
+      dicas:['Responda com base no que acontece hoje, não no que está planejado.','As áreas com menor nota são boas candidatas a virar objetivos e iniciativas.'] },
+    { id:'swot', t:'SWOT / GUT', who:'Colaborador, Gestor e Administrador', para:'Forças, fraquezas, oportunidades e ameaças, priorizadas pela matriz GUT (Gravidade/Impacto × Urgência × Tendência).',
+      passos:['Escolha o período (ano e trimestre) e a visão: Geral da organização ou um departamento.','Clique em "+ Novo item", escolha a Classificação (Força, Fraqueza, Oportunidade ou Ameaça) e descreva o Item em uma frase.','Dê notas de 1 a 5 para Gravidade (ou Impacto), Urgência e Tendência. O sistema multiplica as três e ordena pela nota GUT.','Use "Insights" para registrar o que fazer a respeito do item.','No trimestre seguinte, use "Copiar do trimestre anterior" e só ajuste o que mudou.'],
+      dicas:['Forças e fraquezas são internas (dependem da empresa); oportunidades e ameaças são externas.','Os itens com GUT mais alto aparecem no Painel como prioridades.'] },
+    { id:'pestel', t:'Análise PESTEL', who:'Colaborador, Gestor e Administrador', para:'Fatores externos do macroambiente: Político, Econômico, Sociocultural, Tecnológico, Ambiental e Legal.',
+      passos:['Clique em "+ Novo fator" e escolha a Categoria.','Marque o Tipo de impacto (Positivo, Negativo ou Neutro).','Descreva o Fato/Fator e, em seguida, o impacto e como a empresa pode lidar com ele.'],
+      dicas:['Fatores PESTEL relevantes costumam virar Oportunidades ou Ameaças na SWOT.'] },
+    { id:'stakeholders', t:'Stakeholders', who:'Colaborador, Gestor e Administrador', para:'Partes interessadas posicionadas na matriz Poder × Interesse, com a estratégia de relacionamento de cada quadrante.',
+      passos:['Clique em "+ Stakeholder" e informe o Nome e o Grupo (ex.: cliente, fornecedor, órgão público).','Dê notas de Poder/Influência e de Interesse. O sistema posiciona o stakeholder na matriz.','Registre as expectativas e observações sobre ele.'],
+      dicas:['Alto poder e alto interesse = gerenciar de perto. Alto poder e baixo interesse = manter satisfeito.'] },
+    { id:'canvas', t:'Canvas de Negócio', who:'Colaborador, Gestor e Administrador', para:'Modelo de negócio em 9 blocos (Business Model Canvas).',
+      passos:['No modo "Editar", clique em "+ Item" no bloco desejado (ex.: Proposta de valor, Segmentos de clientes, Canais) ','Escreva o conteúdo: um item por registro, em frases curtas.','Use "Canvas completo" para ver o quadro inteiro.'],
+      dicas:['Comece por Segmentos de clientes e Proposta de valor; os outros blocos derivam desses dois.'] },
+    { id:'curva', t:'Curva de Valor', who:'Colaborador, Gestor e Administrador', para:'Compara a empresa com a concorrência nos atributos que o cliente valoriza (notas de 0 a 10).',
+      passos:['Clique em "+ Atributo" e informe o Atributo (ex.: prazo de entrega, preço, atendimento).','Dê a nota da empresa e a nota da concorrência, de 0 a 10.'],
+      dicas:['Atributos em que a empresa perde por pouco são bons alvos de iniciativa.'] },
+    { id:'bsc', t:'Mapa BSC', who:'Gestor e Administrador', para:'Mapa estratégico com as 4 perspectivas do Balanced Scorecard e os objetivos estratégicos de cada uma.',
+      passos:['Confira as perspectivas (Financeira, Clientes, Processos Internos, Inovação e Pessoas). Você pode editar o nome e a cor de cada uma.','Clique em "+ Objetivo" e escreva o objetivo estratégico começando por um verbo (ex.: "Aumentar a receita recorrente").','Escolha a perspectiva a que o objetivo pertence.'],
+      dicas:['Os objetivos criados aqui são usados em Objetivos & Metas e em Iniciativas, então vale cadastrá-los antes.','De 2 a 4 objetivos por perspectiva costuma ser o bastante.'] },
+    { id:'okr', t:'Objetivos & Metas', who:'Colaborador, Gestor e Administrador', para:'Detalhamento de cada objetivo em metas SMART, com período, unidade, fórmula, departamentos e responsáveis.',
+      passos:['Clique em "+ Meta SMART", escolha o Objetivo e escreva a meta SMART: específica, mensurável, com prazo (ex.: "Faturar R$ 300 mil no T3 com novos contratos").','Escolha o Ano e o Trimestre da meta.','Escolha a Unidade de medida: Monetário (R$), Percentual (%), Unitário (un), Horas (h) ou Outro.','Escolha a Fórmula do período: "Soma" (as semanas se somam, ex.: faturamento) ou "Média" (a média das semanas, ex.: % de tarefas concluídas, NPS).','Clique em "Departamentos" para dizer quais departamentos respondem pela meta.','Clique em "Responsáveis" para escolher quem vai lançar os resultados. Só essas pessoas conseguem preencher a meta.'],
+      dicas:['Metas em % quase sempre usam "Média". Com "Soma", o sistema soma os percentuais das semanas e o resultado fica distorcido.','Sem responsável, ninguém consegue lançar resultados e a meta aparece como "Sem dados" no relatório.'] },
+    { id:'iniciativas', t:'Iniciativas', who:'Colaborador, Gestor e Administrador', para:'Plano de ação: projetos que sustentam os objetivos, com ações no formato 3Q1C (O quê, Quem, Quando, Como).',
+      passos:['Clique em "+ Nova iniciativa", informe o Nome da iniciativa, o Objetivo estratégico, o Departamento e o porquê.','Defina os responsáveis pela iniciativa.','Em "+ Ação", cadastre cada ação: O QUÊ, QUEM (responsável), QUANDO (prazo), COMO e o Status.'],
+      dicas:['Ações pequenas e com prazo curto são mais fáceis de acompanhar semana a semana.','Mantenha os prazos atualizados: iniciativas vencidas aparecem como pontos de atenção no relatório.'] },
+    { id:'desempenho', t:'Preenchimento de Metas', who:'Responsáveis por cada meta', para:'Onde cada responsável lança, toda semana, a meta e o resultado das suas metas, com causa e ação.',
+      passos:['Use o filtro "Minhas metas" para ver só as metas atribuídas a você.','Clique na semana que quer preencher. No popup, informe a Meta da semana, o Resultado, a Causa (por que ficou acima ou abaixo) e a Ação (o que será feito).','Para ganhar tempo, use o botão "Preenchimento para RAS": ele abre, numa tela só, todas as suas metas da semana passada.','Troque entre a visão Semanal e a visão Por trimestre para ver o acumulado.'],
+      dicas:['Preencha até segunda-feira, com os números da semana anterior (segunda a domingo).','Sempre escreva a causa e a ação quando a meta não for atingida. Esses textos vão para o relatório trimestral.','Cada responsável lança a sua parte. O sistema soma automaticamente os lançamentos de todos.'] },
+    { id:'indicadores', t:'Painel de Metas', who:'Todos (só consulta)', para:'Acompanhamento das metas agrupadas por perspectiva, objetivo e departamento, com as cores de atingimento.',
+      passos:['Filtre por ano, trimestre, departamento ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
+      dicas:['Verde = 100% ou mais · Azul = 70 a 99% · Amarelo = 40 a 69% · Vermelho = abaixo de 40%.'] },
+    { id:'desini', t:'Desempenho de Iniciativas', who:'Responsáveis pelas ações', para:'Atualização semanal do status de cada ação 3Q1C das iniciativas.',
+      passos:['Escolha o ano e a semana (ou use "Anterior" e "Próxima").','Use "Minhas ações" para ver só o que é seu.','Clique na ação, escolha o Status de evolução e escreva o que avançou na semana.'],
+      dicas:['Atualize junto com o preenchimento de metas, na mesma rotina semanal.'] },
+    { id:'usuarios', t:'Usuários & Acessos', who:'Gestor consulta · Administrador edita', para:'Cadastro das pessoas, papel de cada uma e departamento.',
+      passos:['Clique em "+ Cadastrar pessoa" e informe nome, e-mail e uma senha provisória.','Clique em "Editar" para definir o Papel (Administrador, Gestor, Colaborador ou Visualizador), o Departamento e se a pessoa está Ativa.','Peça para a pessoa trocar a senha provisória em Meu Perfil no primeiro acesso.'],
+      dicas:['Administrador gerencia tudo · Gestor cria objetivos, metas e estrutura · Colaborador lança SWOT, iniciativas e resultados · Visualizador só consulta.','Quando alguém sair da empresa, marque como Inativo em vez de apagar, para manter o histórico.'] },
+    { id:'gestao', t:'Relatórios e Gestão', who:'Administrador', para:'Identidade visual, exportações e o relatório trimestral de metas em Word e PowerPoint.',
+      passos:['Em "Identidade visual", envie o logo e escolha as cores da organização.','Em "Relatórios", exporte o plano completo em Excel ou PDF.','Em "Relatório trimestral de metas", escolha o ano e o trimestre e clique em "Montar relatório". O sistema calcula resultado e status de cada meta, resume causas e ações, mede a adesão ao preenchimento e aponta inconsistências.','Revise os status e os textos (tudo é editável), clique em "Salvar rascunho" e depois em "Gerar Word" e/ou "Gerar PowerPoint".'],
+      dicas:['Monte o relatório depois que todos lançarem a última semana do trimestre. Antes disso, ele sai marcado como prévia.','Corrija no Preenchimento de Metas os lançamentos apontados em "Pontos de atenção" e clique em "Recalcular do zero".'] },
+    { id:'notificacoes', t:'Notificações', who:'Todos leem · Gestor envia', para:'Lembretes e avisos para toda a equipe ou para uma pessoa.',
+      passos:['Clique em "+ Adicionar", escreva o Título e a Mensagem.','Escolha se o aviso vai para todos ou para uma pessoa específica.'],
+      dicas:['Um lembrete fixo toda sexta ("Preencha suas metas da semana") ajuda a manter a adesão alta.'] },
+    { id:'perfil', t:'Meu Perfil', who:'Todos', para:'Seus dados pessoais, foto e senha.',
+      passos:['Atualize nome, cargo, telefone e "Sobre mim". Envie uma foto (quadrada fica melhor).','Em "Alterar senha", digite a nova senha duas vezes (mínimo de 6 caracteres).'],
+      dicas:['Esqueceu a senha? Na tela de login, digite seu e-mail e clique em "Esqueci minha senha". Você recebe um link por e-mail para criar uma nova.','O departamento só é alterado pelo administrador.'] },
+    { id:'feedback', t:'Feedback', who:'Todos', para:'Canal para sugerir melhorias ou relatar problemas no sistema.',
+      passos:['Escolha o Tipo, o Módulo/Tela e a Prioridade.','Dê um título e descreva o que acontece hoje, o que você gostaria e por que ajudaria.'],
+      dicas:['Quanto mais concreto o exemplo, mais rápido a melhoria sai.'] }
+  ];
+  const TUT_FLOW = [
+    ['1. Quem somos','Filosofia e Departamentos','filosofia'],
+    ['2. Onde estamos','Diagnóstico 360, SWOT, PESTEL, Stakeholders, Canvas e Curva de Valor','diag'],
+    ['3. Para onde vamos','Mapa BSC (objetivos) e Objetivos & Metas (metas SMART com responsáveis)','bsc'],
+    ['4. Como chegar','Iniciativas e ações 3Q1C','iniciativas'],
+    ['5. Toda semana','Preenchimento de Metas e Desempenho de Iniciativas','desempenho'],
+    ['6. Todo trimestre','Painel de Metas e Relatório trimestral (Relatórios e Gestão)','gestao']
+  ];
+  VIEWS.tutorial = async (v) => {
+    const visible=(id)=>{ const n=NAV.find(x=>x.id===id); return !n || !n.role || can(n.role); };
+    const items=TUT.filter(x=>visible(x.id));
+    const focus=window.__tutFocus; window.__tutFocus=null;
+    v.innerHTML=`<div class="card" style="background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff">
+        <h3 style="color:#fff;font-size:20px">Bem-vindo ao Sistema de Planejamento Estratégico</h3>
+        <p style="opacity:.92;margin-top:6px">Este guia explica o que preencher em cada página e em que ordem. Você é <b>${esc(ROLE_LABEL[me.role]||me.role)}</b>: aparecem aqui só as páginas que o seu perfil acessa. Em qualquer página, o botão <b>❔ Ajuda</b> no topo abre direto a explicação dela.</p>
+      </div>
+      <div class="card"><div class="section-head"><h3>Por onde começar</h3></div>
+        <div class="tut-flow">${TUT_FLOW.map(f=>`<div class="tut-step" onclick="App.tutOpen('${f[2]}')"><b>${esc(f[0])}</b><span>${esc(f[1])}</span></div>`).join('')}</div>
+        <p class="desc" style="margin:12px 0 0">A rotina que mais importa é a semanal: cada responsável lança meta, resultado, causa e ação das suas metas até segunda-feira. É isso que alimenta os painéis e o relatório trimestral.</p>
+      </div>
+      <div class="card"><div class="section-head"><h3>Páginas do sistema</h3><input id="tut-q" placeholder="Buscar (ex.: senha, meta, SWOT)…" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;min-width:240px" oninput="App.tutFilter(this.value)"></div>
+        <div id="tut-list">${items.map(x=>{ const n=NAV.find(k=>k.id===x.id)||{};
+          return `<details class="tut-item" id="tut-${x.id}" data-s="${esc((x.t+' '+x.para+' '+x.passos.join(' ')+' '+x.dicas.join(' ')).toLowerCase())}" ${focus===x.id?'open':''}>
+            <summary><span class="ico">${n.ico||'•'}</span><b>${esc(x.t)}</b><span class="tut-who">${esc(x.who)}</span></summary>
+            <div class="tut-body"><p>${esc(x.para)}</p>
+              <h4>Como preencher</h4><ol>${x.passos.map(p=>`<li>${esc(p)}</li>`).join('')}</ol>
+              ${x.dicas.length?`<h4>Dicas</h4><ul>${x.dicas.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
+              <button class="btn btn-light btn-sm" onclick="App.go('${x.id}')">Abrir ${esc(x.t)} →</button></div></details>`; }).join('')}</div>
+      </div>`;
+    if(focus){ const el=document.getElementById('tut-'+focus); if(el) setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60); }
+  };
+  App_tutOpen = (id) => { const el=document.getElementById('tut-'+id); if(el){ el.open=true; el.scrollIntoView({behavior:'smooth',block:'start'}); } };
+  App_tutFilter = (q) => { q=String(q||'').toLowerCase().trim(); document.querySelectorAll('.tut-item').forEach(d=>{ const hit=!q || d.dataset.s.indexOf(q)>=0; d.style.display=hit?'':'none'; if(q && hit) d.open=true; }); };
+  App_help = () => { window.__tutFocus = current && current!=='tutorial' ? current : null; go('tutorial'); };
+
   /* ---------- init ---------- */
   async function init(){
     document.getElementById('login-form').addEventListener('submit', async (e)=>{ e.preventDefault();
-      document.getElementById('login-error').textContent='';
+      document.getElementById('login-error').textContent=''; document.getElementById('login-error').style.color='';
       try{ await doLogin(val('login-email'), val('login-password')); }catch(err){ document.getElementById('login-error').textContent=err.message; }});
     document.getElementById('logout-btn').onclick=logout;
     document.getElementById('toggle-pass').addEventListener('click',()=>{ const p=document.getElementById('login-password'); p.type = p.type==='password'?'text':'password'; });
     document.getElementById('nav-toggle').addEventListener('click',()=>{ document.body.classList.toggle('nav-collapsed'); });
     document.getElementById('modal-backdrop').addEventListener('click',(e)=>{ if(e.target.id==='modal-backdrop') closeModal(); });
     if(!sb){ document.getElementById('boot').innerHTML='Não foi possível carregar a biblioteca de conexão (Supabase).<br>Verifique sua internet e recarregue a página (F5).'; return; }
+    sb.auth.onAuthStateChange((ev)=>{ if(ev==='PASSWORD_RECOVERY'){ window.__recovery=true; showRecovery(); } });
     try{
       const { data:{ session } } = await sb.auth.getSession();
+      if(window.__authErr){ showRecovery(window.__authErr); return; }
+      if(window.__recovery){ if(session) showRecovery(); else showRecovery('O link de redefinição é inválido ou expirou. Volte ao login e peça um novo em "Esqueci minha senha".'); return; }
       if(session) await loadMeAndBoot(); else showLogin();
     }catch(e){ showLogin(); }
   }
@@ -1611,11 +2294,27 @@ const App = (() => {
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
-   'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb']
+   'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
+   'doRecovery','backToLogin','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
   return Object.assign(pub,{ init });
 })();
+function captureAuthLink(){
+  if (window.__authCaptured) return; window.__authCaptured = true;
+  var h = (location.hash || '').replace(/^#/, ''), q = (location.search || '').replace(/^\?/, '');
+  var hp = new URLSearchParams(h), qp = new URLSearchParams(q);
+  if (hp.get('type') === 'recovery' || qp.get('type') === 'recovery') window.__recovery = true;
+  var err = hp.get('error_description') || qp.get('error_description');
+  if (err) {
+    var code = hp.get('error_code') || qp.get('error_code') || '';
+    window.__authErr = (code === 'otp_expired' || /expired|invalid/i.test(err))
+      ? 'Este link de redefinição expirou ou já foi usado. Volte ao login e peça um novo em "Esqueci minha senha" — e use sempre o e-mail mais recente.'
+      : 'Não foi possível validar o link: ' + err.replace(/\+/g, ' ');
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  }
+}
 function startApp(){
+  captureAuthLink();
   if (typeof supabase === 'undefined' || !supabase.createClient) return false;
   try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ return false; }
   App.init();
