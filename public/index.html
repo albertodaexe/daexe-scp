@@ -228,6 +228,23 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+.sector-chip{min-width:230px;max-width:360px}
+.sec-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px}
+.sec-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700;margin-right:2px}
+.staff-chip{display:inline-block;background:#f1f3f6;color:var(--text);border-radius:20px;padding:2px 9px;font-size:11.5px;margin:0 4px 4px 0}
+.legacy-chip{background:#fff7e6;color:#8a6d1f}
+.org-secs{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.org-sec{background:#f7f9fc;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:6px 9px;font-size:11.5px}
+.org-sec b{display:block;color:var(--navy);font-size:12px}.org-sec span{display:block;color:var(--muted)}
+.sec-tag{display:inline-block;background:#eef2f7;color:var(--navy);border-radius:6px;padding:1px 7px;font-size:10.5px;margin-left:6px;font-weight:600}
+.sec-tag.dep{background:#fff3d6;color:#8a6d1f}
+.sec-chip{display:inline-block;background:#fff3d6;color:#8a6d1f;border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:700;margin:0 4px 4px 0}
+.people-pick{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.people-pick .pp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border-bottom:1px solid var(--line)}
+.people-pick .pp-row:last-child{border-bottom:none}
+.people-pick select{padding:5px 8px;border:1px solid var(--line);border-radius:6px}
+.dep-block{border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.dep-block .secs{margin-left:24px}
 </style>
 </head>
 <body>
@@ -936,7 +953,9 @@ const App = (() => {
       sb.from('goal_weekly').select('*').eq('year',year).then(r=>r.data||[]), tList('profiles','name'),
       sb.from('goal_departments').select('goal_id,department_id').then(r=>r.data||[]),
       sb.from('goal_assignees').select('goal_id,profile_id').then(r=>r.data||[])]);
+    const [secs, gsec] = await Promise.all([tList('department_processes','ord'), tList('goal_sectors')]);
     const mode = window.__indMode || 'mensal'; window.__indMode=mode;
+    const secFilter = window.__indSector || '';
     const deptFilter = window.__indDept || ''; const respFilter = window.__indResp || ''; const quarterFilter = window.__indQuarter || '';
     let weeks = weeksOfYear(year);
     if(mode==='semanal' && quarterFilter){ weeks = weeks.filter(wk=> (Math.floor(wk.start.getMonth()/3)+1) === +quarterFilter); }
@@ -951,6 +970,8 @@ const App = (() => {
     let yearGoals = goals.filter(g=> g.year==year || g.year==null);
     if(deptFilter) yearGoals = yearGoals.filter(g=> (gdMap[g.id]||[]).includes(+deptFilter));
     if(respFilter) yearGoals = yearGoals.filter(g=> (gaMap[g.id]||[]).includes(respFilter));
+    if(secFilter) yearGoals = yearGoals.filter(g=> gsec.some(x=>x.goal_id===g.id && x.sector_id===+secFilter));
+    const secOpts = secs.filter(x=> !deptFilter || x.department_id===+deptFilter);
     const objWithGoals = objs.filter(o=> yearGoals.some(g=>g.objective_id===o.id));
     window.__indWeekly=weekly; window.__indGoals=yearGoals; window.__indProfs=profs;
     const yopts=[]; for(let y=year-2;y<=year+3;y++) yopts.push(y);
@@ -964,6 +985,7 @@ const App = (() => {
           <div class="toggle-group"><button class="${mode==='semanal'?'active':''}" onclick="App.indSetMode('semanal')">Semanal</button><button class="${mode==='mensal'?'active':''}" onclick="App.indSetMode('mensal')">Mensal</button><button class="${mode==='anual'?'active':''}" onclick="App.indSetMode('anual')">Anual</button></div>
           <div class="field" style="margin:0;min-width:100px"><label>Ano</label><select onchange="App.indSetYear(this.value)">${yopts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
           <div class="field" style="margin:0;min-width:140px"><label>Departamento</label><select onchange="App.indSetDept(this.value)"><option value="">Todos</option>${depts.map(d=>`<option value="${d.id}" ${String(d.id)===String(deptFilter)?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+          <div class="field" style="margin:0;min-width:150px"><label>Setor</label><select onchange="App.indSetSector(this.value)"><option value="">Todos</option>${secOpts.map(x=>`<option value="${x.id}" ${String(x.id)===String(secFilter)?'selected':''}>${deptFilter?'':esc(((depts.find(d=>d.id===x.department_id)||{}).name||'')+' › ')}${esc(x.name)}</option>`).join('')}</select></div>
           <div class="field" style="margin:0;min-width:160px"><label>Responsável</label><select onchange="App.indSetResp(this.value)"><option value="">Todos</option>${profs.map(p=>`<option value="${p.id}" ${String(p.id)===String(respFilter)?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div>
           ${mode==='semanal'?`<div class="field" style="margin:0;min-width:100px"><label>Trimestre</label><select onchange="App.indSetQuarter(this.value)">${qopts.map(q=>`<option value="${q.v}" ${q.v===quarterFilter?'selected':''}>${q.t}</option>`).join('')}</select></div>`:''}
           ${can('manager')?`<button class="btn btn-accent btn-sm" onclick="App.go('okr')">+ Nova meta</button>`:''}</div></div>
@@ -986,7 +1008,8 @@ const App = (() => {
   };
   App_indSetYear=(y)=>{ window.__indYear=+y; go('indicadores'); };
   App_indSetMode=(m)=>{ window.__indMode=m; go('indicadores'); };
-  App_indSetDept=(d)=>{ window.__indDept=d; go('indicadores'); };
+  App_indSetDept=(d)=>{ window.__indDept=d; window.__indSector=''; go('indicadores'); };
+  App_indSetSector=(s)=>{ window.__indSector=s; go('indicadores'); };
   App_indSetResp=(p)=>{ window.__indResp=p; go('indicadores'); };
   App_indSetQuarter=(q)=>{ window.__indQuarter=q; go('indicadores'); };
   App_indGoto=(gid)=>{ window.__pfGoal=gid; window.__pfYear=window.__indYear; go('desempenho'); };
@@ -1028,37 +1051,55 @@ const App = (() => {
     `<button class="btn btn-primary btn-block" onclick="App.saveCompany()">Salvar</button>`]));
   App_saveCompany = async () => { try{ const { error } = await sb.from('company').update({name:val('co-name'),mission:val('co-mission'),vision:val('co-vision'),plan_start:val('co-start')||null,plan_end:val('co-end')||null,vigencia_meses:+val('co-vig')||null,positioning:val('co-pos')}).eq('org_id', me.org_id); if(error) throw error; }catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('filosofia'); };
 
-  /* ---------- Departamentos (sem número, com macroprocessos e responsáveis) ---------- */
+  /* ---------- Departamentos (setores com responsáveis e funcionários) ---------- */
   VIEWS.departamentos = async (v) => {
-    const [depts, procs, mems, procOwners] = await Promise.all([tList('departments','ord'), tList('department_processes','ord'), tList('department_members','ord'), tList('process_owners','ord')]);
-    window.__deptMembers=mems;
+    const [depts, procs, mems, procOwners, sp, profs] = await Promise.all([tList('departments','ord'), tList('department_processes','ord'), tList('department_members','ord'), tList('process_owners','ord'), tList('sector_people'), tList('profiles','name')]);
+    window.__deptMembers=mems; window.__secPeople=sp; window.__profs=profs; window.__sectors=procs;
+    const prof=(id)=>profs.find(x=>x.id===id)||{name:'?'};
+    const chipP=(x,cls)=>{ const p=prof(x.profile_id); return `<span class="${cls}" title="${esc(p.title||'')}">${esc(p.name)}</span>`; };
     v.innerHTML = `<div class="section-head"><h3>Departamentos</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editDept()">+ Novo departamento</button>`:''}</div>
       ${depts.map(d=>{
         const ps=procs.filter(p=>p.department_id===d.id), ms=mems.filter(m=>m.department_id===d.id);
         return `<div class="card dept-card"><div class="section-head"><div><h3>${esc(d.name)}</h3><p class="desc">${esc(d.atuacao||'')}</p></div>
           ${can('manager')?`<div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editDept(${JSON.stringify(d)})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delDept(${d.id})">Excluir</button></div>`:''}</div>
-          <div class="dept-sub"><h4>Macroprocessos ${can('contributor')?`<button class="btn btn-light btn-sm" onclick="App.editProc(0,${d.id})">+ Adicionar</button>`:''}</h4>
-            <div class="chip-row">${ps.length?ps.map(p=>{ const pOwn=procOwners.filter(o=>o.process_id===p.id); return `<div class="chip"><b>${esc(p.name)}</b>${p.description?`<span>${esc(p.description)}</span>`:''}
-              <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${pOwn.length?pOwn.map(o=>`<span class="owner-chip" title="${esc(o.cargo||'')}">${esc(o.name)}${can('contributor')?` <a href="#" onclick="App.delProcOwner(${o.id});return false;" style="color:inherit">×</a>`:''}</span>`).join(''):'<span style="font-size:11px;color:var(--muted)">Nenhum responsável</span>'}</div>
-              ${can('contributor')?`<span style="margin-top:4px"><a href="#" onclick="App.editProcOwner(0,${p.id});return false;">+ responsável</a> · <a href="#" onclick='App.editProc(${JSON.stringify(p)},${d.id});return false;'>editar</a> · <a href="#" onclick="App.delProc(${p.id});return false;">excluir</a></span>`:''}</div>`; }).join(''):'<span class="empty" style="padding:8px">Nenhum macroprocesso</span>'}</div></div>
-          <div class="dept-sub"><h4>Responsáveis ${can('manager')?`<button class="btn btn-light btn-sm" onclick="App.editMember(0,${d.id})">+ Adicionar</button>`:''}</h4>
+          <div class="dept-sub"><h4>Setores ${can('contributor')?`<button class="btn btn-light btn-sm" onclick="App.editProc(0,${d.id})">+ Novo setor</button>`:''}</h4>
+            <div class="chip-row">${ps.length?ps.map(p=>{ const leads=sp.filter(x=>x.sector_id===p.id&&x.is_lead), staff=sp.filter(x=>x.sector_id===p.id&&!x.is_lead), legacy=procOwners.filter(o=>o.process_id===p.id);
+              return `<div class="chip sector-chip"><b>${esc(p.name)}</b>${p.description?`<span>${esc(p.description)}</span>`:''}
+              <div class="sec-line"><span class="sec-lbl">Responsáveis</span>${leads.map(x=>chipP(x,'owner-chip')).join('')}${legacy.map(o=>`<span class="owner-chip legacy-chip" title="Cadastrado só pelo nome (sem usuário). ${esc(o.cargo||'')}">${esc(o.name)}${can('contributor')?` <a href="#" onclick="App.delProcOwner(${o.id});return false;" style="color:inherit">×</a>`:''}</span>`).join('')}${(!leads.length&&!legacy.length)?'<span style="font-size:11px;color:var(--muted)">—</span>':''}</div>
+              <div class="sec-line"><span class="sec-lbl">Funcionários</span>${staff.map(x=>chipP(x,'staff-chip')).join('')||'<span style="font-size:11px;color:var(--muted)">—</span>'}</div>
+              ${can('contributor')?`<span style="margin-top:6px">${can('manager')?`<a href="#" onclick="App.manageSector(${p.id});return false;">pessoas</a> · `:''}<a href="#" onclick='App.editProc(${JSON.stringify(p).replace(/'/g,"&#39;")},${d.id});return false;'>editar</a> · <a href="#" onclick="App.delProc(${p.id});return false;">excluir</a></span>`:''}</div>`; }).join(''):'<span class="empty" style="padding:8px">Nenhum setor</span>'}</div></div>
+          <div class="dept-sub"><h4>Responsáveis do departamento ${can('manager')?`<button class="btn btn-light btn-sm" onclick="App.editMember(0,${d.id})">+ Adicionar</button>`:''}</h4>
             <div class="chip-row">${ms.length?ms.map(m=>`<div class="chip"><b>${esc(m.name)}</b><span>${esc(m.cargo||'')}</span>
-              ${can('manager')?`<span style="margin-top:4px"><a href="#" onclick='App.editMember(${JSON.stringify(m)},${d.id});return false;'>editar</a> · <a href="#" onclick="App.delMember(${m.id});return false;">excluir</a></span>`:''}</div>`).join(''):'<span class="empty" style="padding:8px">Nenhum responsável</span>'}</div></div>
+              ${can('manager')?`<span style="margin-top:4px"><a href="#" onclick='App.editMember(${JSON.stringify(m).replace(/'/g,"&#39;")},${d.id});return false;'>editar</a> · <a href="#" onclick="App.delMember(${m.id});return false;">excluir</a></span>`:''}</div>`).join(''):'<span class="empty" style="padding:8px">Nenhum responsável</span>'}</div></div>
         </div>`;
       }).join('')}`;
   };
   App_editDept = (d={}) => modal(d.id?'Editar departamento':'Novo departamento', form([f.text('dp-name','Nome',d.name),f.text('dp-at','Atuação',d.atuacao),`<button class="btn btn-primary btn-block" onclick="App.saveDept(${d.id||0})">Salvar</button>`]));
   App_saveDept = async (id) => { const row={name:val('dp-name'),atuacao:val('dp-at')}; try{ id?await tUpdate('departments',id,row):await tInsert('departments',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
-  App_delDept = async (id) => { if(await delRow('departments',id,'Excluir o departamento e seus macroprocessos/responsáveis?')) go('departamentos'); };
-  App_editProc = (p, deptId) => { p=p||{}; modal(p.id?'Editar macroprocesso':'Novo macroprocesso', form([f.text('pr-name','Nome',p.name),f.area('pr-desc','Descrição',p.description),`<button class="btn btn-primary btn-block" onclick="App.saveProc(${p.id||0},${deptId})">Salvar</button>`])); };
-  App_saveProc = async (id, deptId) => { const row={name:val('pr-name'),description:val('pr-desc'),department_id:deptId}; try{ id?await tUpdate('department_processes',id,row):await tInsert('department_processes',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
-  App_delProc = async (id) => { if(await delRow('department_processes',id)) go('departamentos'); };
-  App_editProcOwner = (o, procId) => { o=o||{}; modal(o.id?'Editar responsável do macroprocesso':'Novo responsável do macroprocesso', form([
-    `<p class="desc">Não precisa ser um usuário do sistema — basta informar o nome.</p>`,
-    f.text('po-name','Nome',o.name), f.text('po-cargo','Cargo (opcional)',o.cargo),
-    `<button class="btn btn-primary btn-block" onclick="App.saveProcOwner(${o.id||0},${procId})">Salvar</button>`])); };
-  App_saveProcOwner = async (id, procId) => { if(!val('po-name')){ toast('Informe o nome.'); return; } const row={name:val('po-name'),cargo:val('po-cargo'),process_id:procId}; try{ id?await tUpdate('process_owners',id,row):await tInsert('process_owners',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
+  App_delDept = async (id) => { if(await delRow('departments',id,'Excluir o departamento e seus setores/responsáveis?')) go('departamentos'); };
+  App_editProc = (p, deptId) => { p=p||{}; modal(p.id?'Editar setor':'Novo setor', form([f.text('pr-name','Nome do setor',p.name),f.area('pr-desc','Descrição (o que o setor faz)',p.description),
+    `<p class="desc">Depois de salvar, use o link <b>pessoas</b> no setor para indicar os responsáveis e os funcionários.</p>`,
+    `<button class="btn btn-primary btn-block" onclick="App.saveProc(${p.id||0},${deptId})">Salvar</button>`])); };
+  App_saveProc = async (id, deptId) => { if(!val('pr-name').trim()){ toast('Informe o nome do setor.'); return; } const row={name:val('pr-name'),description:val('pr-desc'),department_id:deptId}; try{ id?await tUpdate('department_processes',id,row):await tInsert('department_processes',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('departamentos'); };
+  App_delProc = async (id) => { if(await delRow('department_processes',id,'Excluir este setor? As pessoas e os vínculos com metas deste setor serão removidos.')) go('departamentos'); };
   App_delProcOwner = async (id) => { if(await delRow('process_owners',id)) go('departamentos'); };
+  App_manageSector = (secId) => {
+    const sec=(window.__sectors||[]).find(x=>x.id===secId)||{}; const cur=(window.__secPeople||[]).filter(x=>x.sector_id===secId);
+    const profs=(window.__profs||[]).filter(p=>p.active!==false);
+    const st=(pid)=>{ const c=cur.find(x=>x.profile_id===pid); return c?(c.is_lead?'lead':'staff'):''; };
+    modal('Pessoas do setor · '+(sec.name||''), `<p class="desc">Para cada usuário, escolha se ele é <b>Responsável</b> pelo setor, <b>Funcionário</b> do setor ou se não faz parte. Uma pessoa pode estar em mais de um setor.</p>
+      <input id="pp-q" placeholder="Buscar pessoa…" oninput="document.querySelectorAll('.pp-row').forEach(r=>r.style.display=r.dataset.n.indexOf(this.value.toLowerCase())>=0?'':'none')" style="width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px">
+      <div class="people-pick">${profs.map(p=>`<div class="pp-row" data-n="${esc((p.name||'').toLowerCase())}"><div><b style="color:var(--navy)">${esc(p.name)}</b>${p.title?`<div class="desc" style="margin:0;font-size:11.5px">${esc(p.title)}</div>`:''}</div>
+        <select data-pid="${p.id}"><option value="">—</option><option value="lead" ${st(p.id)==='lead'?'selected':''}>Responsável</option><option value="staff" ${st(p.id)==='staff'?'selected':''}>Funcionário</option></select></div>`).join('')||'<div class="empty">Nenhum usuário cadastrado</div>'}</div>
+      <button class="btn btn-primary btn-block" onclick="App.saveSector(${secId})">Salvar</button>`);
+  };
+  App_saveSector = async (secId) => {
+    const rows=[...document.querySelectorAll('.people-pick select')].filter(s=>s.value).map(s=>({sector_id:secId,profile_id:s.dataset.pid,is_lead:s.value==='lead'}));
+    try{ const { error:e1 } = await sb.from('sector_people').delete().eq('sector_id',secId); if(e1) throw e1;
+      if(rows.length){ const { error:e2 } = await sb.from('sector_people').insert(rows); if(e2) throw e2; } }
+    catch(e){ return toast(e.message); }
+    closeModal(); toast('Pessoas do setor salvas'); go(current==='organograma'?'organograma':'departamentos');
+  };
   App_editMember = (m, deptId) => { m=m||{};
     const others=(window.__deptMembers||[]).filter(x=>x.department_id===deptId && x.id!==m.id);
     const parentOpts=[{v:'',t:'— Ninguém (topo da diretoria)'}].concat(others.map(x=>({v:x.id,t:x.name+(x.cargo?(' — '+x.cargo):'')})));
@@ -1071,9 +1112,10 @@ const App = (() => {
 
   /* ---------- Organograma ---------- */
   VIEWS.organograma = async (v) => {
-    const [comp, depts, mems, procs] = await Promise.all([
+    const [comp, depts, mems, procs, sp, profs] = await Promise.all([
       sb.from('company').select('*').limit(1).single().then(r=>r.data),
-      tList('departments','ord'), tList('department_members','ord'), tList('department_processes','ord')]);
+      tList('departments','ord'), tList('department_members','ord'), tList('department_processes','ord'), tList('sector_people'), tList('profiles','name')]);
+    const pName=(id)=>{ const p=profs.find(x=>x.id===id); return p?p.name:'?'; };
     const mode = window.__orgMode || 'estrutura'; window.__orgMode=mode;
     const exp = window.__orgExp || (window.__orgExp={});
     const procOf=(id)=>procs.filter(p=>p.department_id===id);
@@ -1088,18 +1130,19 @@ const App = (() => {
         <div class="org-node org-company"><b>${esc(comp?comp.name:'Empresa')}</b><span>${esc((comp&&comp.positioning)||'')}</span></div>
         <div class="org-trunk"></div>
         <div class="org-cols">
-          ${depts.length?depts.map(d=>{ const open=!!exp[d.id]; const nMem=mems.filter(m=>m.department_id===d.id).length;
+          ${depts.length?depts.map(d=>{ const open=!!exp[d.id]; const nMem=mems.filter(m=>m.department_id===d.id).length+procOf(d.id).length;
             return `<div class="org-branch"><div class="org-node org-dept">
             <b>${esc(d.name)}</b><span>${esc(d.atuacao||'')}</span>
             <div style="margin-top:6px"><button class="btn btn-light btn-sm" onclick="App.orgToggleDept(${d.id})">${open?'▾ Recolher':'▸ Desdobrar'} (${nMem})</button></div>
             ${open?`<div style="margin-top:8px">${tree(d.id,null)||'<span class="org-person" style="color:var(--muted)">Sem responsáveis</span>'}
-              ${procOf(d.id).length?`<div class="org-procs" style="margin-top:8px">${procOf(d.id).map(p=>`<span class="org-proc">${esc(p.name)}</span>`).join('')}</div>`:''}</div>`:''}
+              ${procOf(d.id).length?`<div class="org-secs">${procOf(d.id).map(p=>{ const L=sp.filter(x=>x.sector_id===p.id&&x.is_lead).map(x=>pName(x.profile_id)), S=sp.filter(x=>x.sector_id===p.id&&!x.is_lead).map(x=>pName(x.profile_id));
+                return `<div class="org-sec"><b>${esc(p.name)}</b>${L.length?`<span>Resp.: ${esc(L.join(', '))}</span>`:''}${S.length?`<span>Equipe: ${esc(S.join(', '))}</span>`:''}</div>`; }).join('')}</div>`:''}</div>`:''}
           </div></div>`; }).join(''):'<span class="empty">Cadastre departamentos para montar o organograma.</span>'}
         </div></div>`;
     }
     v.innerHTML = `<div class="card"><div class="section-head"><div><h3>Organograma</h3><p class="desc">Estrutura, hierarquia e desdobramento por diretoria — ou uma imagem do organograma já pronto.</p></div>
       <div class="inline-actions">${toggle}${mode==='imagem'?upload:''}</div></div>${inner}</div>
-      ${can('manager')&&mode==='estrutura'?'<p class="desc">Para editar diretorias, responsáveis e a hierarquia (campo "Reporta-se a"), use a página <b>Departamentos</b>.</p>':''}`;
+      ${can('manager')&&mode==='estrutura'?'<p class="desc">Para editar diretorias, setores, pessoas de cada setor e a hierarquia (campo "Reporta-se a"), use a página <b>Departamentos</b>.</p>':''}`;
   };
   App_orgSetMode = (m) => { window.__orgMode=m; go('organograma'); };
   App_orgToggleDept = (id) => { window.__orgExp=window.__orgExp||{}; window.__orgExp[id]=!window.__orgExp[id]; go('organograma'); };
@@ -1113,59 +1156,71 @@ const App = (() => {
 
   /* ---------- SWOT ---------- */
   VIEWS.swot = async (v) => {
-    const [rows, depts] = await Promise.all([tList('swot_items'), tList('departments','ord')]);
-    window.__depts=depts;
-    const view = window.__swotView==null ? 'geral' : window.__swotView; window.__swotView=view;
+    const [rows, depts, secs] = await Promise.all([tList('swot_items'), tList('departments','ord'), tList('department_processes','ord')]);
+    window.__depts=depts; window.__sectors=secs;
+    let view = window.__swotView==null ? 'geral' : window.__swotView; if(typeof view==='number') view='d'+view; window.__swotView=view;
+    const secOf=(id)=>secs.find(x=>x.id===id)||null;
     const now=new Date();
     const yr = window.__swotYear || now.getFullYear(); window.__swotYear=yr;
     const qt = window.__swotQuarter || (Math.floor(now.getMonth()/3)+1); window.__swotQuarter=qt;
     rows.forEach(r=>r.gut=r.gravidade*r.urgencia*r.tendencia);
-    const inView=(r)=> (view==='geral' ? (r.department_id==null) : (r.department_id==Number(view))) && (r.year==yr && r.quarter==qt);
+    const inView=(r)=> swotInScope(r, view, secs) && (r.year==yr && r.quarter==qt);
+    const tagOf=(r)=> view[0]==='d' ? (r.sector_id&&secOf(r.sector_id) ? `<span class="sec-tag">${esc(secOf(r.sector_id).name)}</span>` : `<span class="sec-tag dep">Departamento</span>`) : '';
     const items=rows.filter(inView);
     const group=(cls)=>items.filter(r=>r.classification===cls).sort((a,b)=>b.gut-a.gut);
     const tbl=(cls)=>`<div class="card swot-${cls}"><div class="section-head"><h3>${cls}s</h3></div>
       <table><thead><tr><th>Item</th><th title="${(cls==='Força'||cls==='Oportunidade')?'Impacto':'Gravidade'}">${(cls==='Força'||cls==='Oportunidade')?'I':'G'}</th><th title="Urgência">U</th><th title="Tendência">T</th><th>${(cls==='Força'||cls==='Oportunidade')?'IUT':'GUT'}</th>${can('contributor')?'<th></th>':''}</tr></thead><tbody>
-      ${group(cls).length?group(cls).map(r=>`<tr><td>${esc(r.item)}</td><td>${r.gravidade}</td><td>${r.urgencia}</td><td>${r.tendencia}</td><td class="gut-num">${r.gut}</td>
+      ${group(cls).length?group(cls).map(r=>`<tr><td>${esc(r.item)}${tagOf(r)}</td><td>${r.gravidade}</td><td>${r.urgencia}</td><td>${r.tendencia}</td><td class="gut-num">${r.gut}</td>
         ${can('contributor')?`<td>${actionsCol(`App.editSwot(${JSON.stringify(r).replace(/"/g,'&quot;')})`,`App.delSwot(${r.id})`)}</td>`:''}</tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhum item</td></tr>`}
       </tbody></table></div>`;
-    const viewLabel = view==='geral'?'Geral da organização':((depts.find(d=>d.id==view)||{}).name||'');
+    const viewLabel = view==='geral' ? 'Geral da organização' : (view[0]==='d' ? (((depts.find(d=>d.id==+view.slice(1))||{}).name||'')+' — consolidado (departamento + setores)') : (()=>{ const s=secOf(+view.slice(1))||{}; const d=depts.find(x=>x.id===s.department_id)||{}; return (d.name?d.name+' › ':'')+(s.name||''); })());
+    const nSecItems = view[0]==='d' ? items.filter(r=>r.sector_id).length : 0;
     const yopts=[]; for(let y=yr-3;y<=yr+2;y++) yopts.push(y);
     v.innerHTML=`<div class="card"><div class="section-head"><div><h3>Análise SWOT — priorização GUT (Gravidade/Impacto × Urgência × Tendência)</h3>
-        <p class="desc">SWOT por período (mantém histórico) — geral da organização e/ou por departamento.</p></div>
+        <p class="desc">SWOT por período (mantém histórico) — geral da organização, por departamento ou por setor. A SWOT do departamento reúne os itens do próprio departamento e os de todos os seus setores.</p></div>
         ${can('contributor')?`<button class="btn btn-accent" onclick="App.editSwot()">+ Novo item</button>`:''}</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
         <div class="field" style="margin:0;min-width:240px"><label>Visão da SWOT</label>
-          <select onchange="App.swotSetView(this.value)"><option value="geral" ${view==='geral'?'selected':''}>Geral da organização</option>${depts.map(d=>`<option value="${d.id}" ${view==d.id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+          <select onchange="App.swotSetView(this.value)"><option value="geral" ${view==='geral'?'selected':''}>Geral da organização</option>${depts.map(d=>`<optgroup label="${esc(d.name)}"><option value="d${d.id}" ${view==='d'+d.id?'selected':''}>${esc(d.name)} (consolidado)</option>${secs.filter(s=>s.department_id===d.id).map(s=>`<option value="s${s.id}" ${view==='s'+s.id?'selected':''}>&nbsp;&nbsp;Setor: ${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
         <div class="field" style="margin:0;min-width:110px"><label>Ano</label><select onchange="App.swotSetPeriod('y',this.value)">${yopts.map(y=>`<option value="${y}" ${y==yr?'selected':''}>${y}</option>`).join('')}</select></div>
         <div class="field" style="margin:0;min-width:120px"><label>Trimestre</label><select onchange="App.swotSetPeriod('q',this.value)">${[1,2,3,4].map(q=>`<option value="${q}" ${q==qt?'selected':''}>T${q}</option>`).join('')}</select></div>
         ${can('contributor')&&!items.length?`<button class="btn btn-light btn-sm" onclick="App.swotCopyPrev()">Copiar do trimestre anterior</button>`:''}</div>
-      <p class="desc" style="margin:10px 0 0">Mostrando: <b>${esc(viewLabel)}</b> · T${qt} ${yr} · ${items.length} itens</p></div>
+      <p class="desc" style="margin:10px 0 0">Mostrando: <b>${esc(viewLabel)}</b> · T${qt} ${yr} · ${items.length} itens${view[0]==='d'?` (${items.length-nSecItems} do departamento, ${nSecItems} dos setores)`:''}</p></div>
       <div class="grid-2">${tbl('Força')}${tbl('Fraqueza')}${tbl('Oportunidade')}${tbl('Ameaça')}</div>`;
   };
-  App_swotSetView = (val) => { window.__swotView = (val==='geral'?'geral':Number(val)); go('swot'); };
+  function swotInScope(r, view, secs){
+    if(view==='geral') return r.department_id==null && r.sector_id==null;
+    if(view[0]==='d'){ const d=+view.slice(1); const s=r.sector_id?secs.find(x=>x.id===r.sector_id):null; return r.department_id==d || (s && s.department_id===d); }
+    return r.sector_id==+view.slice(1);
+  }
+  App_swotSetView = (val) => { window.__swotView = val; go('swot'); };
   App_swotSetPeriod = (k,val) => { if(k==='y') window.__swotYear=+val; else window.__swotQuarter=+val; go('swot'); };
   App_swotCopyPrev = async () => {
     const view=window.__swotView, yr=window.__swotYear, qt=window.__swotQuarter;
     let py=yr, pq=qt-1; if(pq<1){ pq=4; py=yr-1; }
     const { data:prev } = await sb.from('swot_items').select('*').eq('year',py).eq('quarter',pq);
-    const src=(prev||[]).filter(r=> view==='geral' ? r.department_id==null : r.department_id==Number(view));
+    const src=(prev||[]).filter(r=> swotInScope(r, view, window.__sectors||[]));
     if(!src.length){ toast('Nada para copiar de T'+pq+' '+py+'.'); return; }
-    try{ for(const r of src){ await tInsert('swot_items',{classification:r.classification,item:r.item,department_id:r.department_id,gravidade:r.gravidade,urgencia:r.urgencia,tendencia:r.tendencia,insights:r.insights,year:yr,quarter:qt}); } }
+    try{ for(const r of src){ await tInsert('swot_items',{classification:r.classification,item:r.item,department_id:r.department_id,sector_id:r.sector_id||null,gravidade:r.gravidade,urgencia:r.urgencia,tendencia:r.tendencia,insights:r.insights,year:yr,quarter:qt}); } }
     catch(e){ return toast(e.message); }
     toast('Copiados '+src.length+' itens'); go('swot');
   };
   App_editSwot = (s={}) => {
     const scale=[1,2,3,4,5].map(n=>({v:n,t:n}));
     const deptOpts=[{v:'',t:'— Geral da organização'}].concat((window.__depts||[]).map(d=>({v:d.id,t:d.name})));
-    const defDept = s.id ? s.department_id : ((window.__swotView && window.__swotView!=='geral') ? window.__swotView : '');
+    const vw=window.__swotView||'geral'; const secs=window.__sectors||[]; const depts=window.__depts||[];
+    const defSec = s.id ? (s.sector_id||'') : (vw[0]==='s' ? +vw.slice(1) : '');
+    const defDept = s.id ? s.department_id : (vw[0]==='d' ? +vw.slice(1) : (defSec ? ((secs.find(x=>x.id===defSec)||{}).department_id||'') : ''));
+    const secOpts=[{v:'',t:'— Nenhum (item do departamento ou geral)'}].concat(secs.map(x=>({v:x.id,t:((depts.find(d=>d.id===x.department_id)||{}).name||'')+' › '+x.name})));
     modal(s.id?'Editar item SWOT':'Novo item SWOT', form([
       f.sel('sw-c','Classificação',['Força','Fraqueza','Oportunidade','Ameaça'].map(x=>({v:x,t:x})),s.classification),
-      f.text('sw-item','Item',s.item), f.sel('sw-dep','Departamento (ou Geral)',deptOpts,defDept),
+      f.text('sw-item','Item',s.item), `<div class="field-row">${f.sel('sw-dep','Departamento (ou Geral)',deptOpts,defDept)}${f.sel('sw-sec','Setor (opcional)',secOpts,defSec)}</div>`,
+      `<p class="desc" style="margin-top:-6px">Ao escolher um setor, o item entra na SWOT do setor e também na SWOT consolidada do departamento dele.</p>`,
       `<p class="desc" style="margin-bottom:6px">Em Força e Oportunidade o 1º critério é <b>Impacto</b>; em Fraqueza e Ameaça é <b>Gravidade</b>.</p>`,
       `<div class="field-row-3">${f.sel('sw-g','Gravidade / Impacto',scale,s.gravidade||1)}${f.sel('sw-u','Urgência',scale,s.urgencia||1)}${f.sel('sw-t','Tendência',scale,s.tendencia||1)}</div>`,
       f.area('sw-ins','Insights',s.insights),`<button class="btn btn-primary btn-block" onclick="App.saveSwot(${s.id||0})">Salvar</button>`]));
   };
-  App_saveSwot = async (id) => { const row={classification:val('sw-c'),item:val('sw-item'),department_id:+val('sw-dep')||null,gravidade:+val('sw-g'),urgencia:+val('sw-u'),tendencia:+val('sw-t'),insights:val('sw-ins')}; if(!id){ row.year=window.__swotYear; row.quarter=window.__swotQuarter; } try{ id?await tUpdate('swot_items',id,row):await tInsert('swot_items',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('swot'); };
+  App_saveSwot = async (id) => { const secId=+val('sw-sec')||null; const sec=secId?(window.__sectors||[]).find(x=>x.id===secId):null; const row={classification:val('sw-c'),item:val('sw-item'),sector_id:secId,department_id:sec?sec.department_id:(+val('sw-dep')||null),gravidade:+val('sw-g'),urgencia:+val('sw-u'),tendencia:+val('sw-t'),insights:val('sw-ins')}; if(!id){ row.year=window.__swotYear; row.quarter=window.__swotQuarter; } try{ id?await tUpdate('swot_items',id,row):await tInsert('swot_items',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('swot'); };
   App_delSwot = async (id) => { if(await delRow('swot_items',id)) go('swot'); };
 
   /* ---------- Análise PESTEL ---------- */
@@ -1385,17 +1440,19 @@ const App = (() => {
     const [persp, objs, goals, profs, asg, depts, gdep] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'),
       tList('profiles','name'), sb.from('goal_assignees').select('goal_id, profile_id, profiles(name)').then(r=>r.data||[]),
       tList('departments','ord'), sb.from('goal_departments').select('goal_id, department_id, departments(name)').then(r=>r.data||[])]);
+    const [gsec, secs] = await Promise.all([tList('goal_sectors'), tList('department_processes','ord')]);
+    const goalSecs=(gid)=>gsec.filter(a=>a.goal_id===gid).map(a=>secs.find(x=>x.id===a.sector_id)).filter(Boolean);
     window.__bsc={persp,objs}; window.__profs=profs; window.__deptsAll=depts;
     const owners=(gid)=>asg.filter(a=>a.goal_id===gid);
     const goalDepts=(gid)=>gdep.filter(a=>a.goal_id===gid);
     const perLabel=(g)=> g.year? ('T'+(g.quarter||1)+' '+g.year) : (g.period||'');
     v.innerHTML=`<div class="section-head"><h3>Detalhamento OKR / BSC</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>`:''}</div>
       ${objs.map(o=>`<div class="card"><div class="section-head"><h3>${esc(o.title)}</h3>${can('manager')?`<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar objetivo</button>`:''}</div>
-        <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Departamento(s)</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
+        <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Departamento(s) / Setor(es)</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
         ${goals.filter(g=>g.objective_id===o.id).map(g=>`<tr><td>${esc(g.smart_text)}${g.unit?` <span class="pill pill-gray" style="margin-left:6px">${esc(g.unit)}</span>`:''}</td><td>${esc(perLabel(g))}</td>
-          <td>${goalDepts(g.id).map(a=>`<span class="owner-chip">${esc((a.departments&&a.departments.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
+          <td>${goalDepts(g.id).map(a=>`<span class="owner-chip">${esc((a.departments&&a.departments.name)||'')}</span>`).join('')}${goalSecs(g.id).map(x=>`<span class="sec-chip" title="Setor">${esc(x.name)}</span>`).join('')}${(!goalDepts(g.id).length&&!goalSecs(g.id).length)?'<span style="color:var(--muted)">—</span>':''}</td>
           <td>${owners(g.id).map(a=>`<span class="owner-chip">${esc((a.profiles&&a.profiles.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
-          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageDepts(${g.id})">Departamentos</button><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="5" class="empty">Sem metas</td></tr>'}
+          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageDepts(${g.id})">Deptos/Setores</button><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="5" class="empty">Sem metas</td></tr>'}
         </tbody></table></div>`).join('')}`;
   };
   function yearOptions(){ const y0=new Date().getFullYear(); let o=[]; for(let y=y0-1;y<=y0+5;y++) o.push({v:y,t:y}); return o; }
@@ -1419,20 +1476,24 @@ const App = (() => {
   App_saveGoal = async (id) => { const y=+val('gl-year'),q=+val('gl-q'); const uSel=val('gl-unit'); const unit = uSel==='outro' ? (val('gl-unit-custom').trim()||null) : (uSel||null); const row={objective_id:+val('gl-obj'),smart_text:val('gl-smart'),year:y,quarter:q,period:'T'+q+' '+y,unit,calc_type:val('gl-calc')||'soma'}; try{ id?await tUpdate('goals',id,row):await tInsert('goals',row);}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('okr'); };
   App_delGoal = async (id) => { if(await delRow('goals',id)) go('okr'); };
   App_manageDepts = async (gid) => {
-    const depts = window.__deptsAll || await tList('departments','ord'); window.__deptsAll=depts;
-    const { data:cur } = await sb.from('goal_departments').select('department_id').eq('goal_id',gid);
-    const set=new Set((cur||[]).map(x=>x.department_id));
-    modal('Departamentos responsáveis pela meta', form([
-      `<p class="desc">Selecione o(s) departamento(s) responsável(is) por esta meta.</p>`,
-      `<div class="check-list">${depts.map(d=>`<label><input type="checkbox" value="${d.id}" ${set.has(d.id)?'checked':''}> ${esc(d.name)}</label>`).join('')||'<span class="empty">Nenhum departamento cadastrado</span>'}</div>`,
+    const [depts, secs] = await Promise.all([window.__deptsAll || tList('departments','ord'), tList('department_processes','ord')]); window.__deptsAll=depts; window.__sectors=secs;
+    const [{ data:cur }, { data:curS }] = await Promise.all([sb.from('goal_departments').select('department_id').eq('goal_id',gid), sb.from('goal_sectors').select('sector_id').eq('goal_id',gid)]);
+    const set=new Set((cur||[]).map(x=>x.department_id)), setS=new Set((curS||[]).map(x=>x.sector_id));
+    modal('Departamentos e setores da meta', form([
+      `<p class="desc">Marque o(s) departamento(s) e, se quiser detalhar, o(s) setor(es) responsáveis pela meta. Ao marcar um setor, o departamento dele entra automaticamente.</p>`,
+      `<div class="check-list" style="max-height:380px">${depts.map(d=>{ const ss=secs.filter(x=>x.department_id===d.id); return `<div class="dep-block"><label><input type="checkbox" class="gd-dep" value="${d.id}" ${set.has(d.id)?'checked':''}> <b>${esc(d.name)}</b></label>
+        ${ss.length?`<div class="secs">${ss.map(x=>`<label><input type="checkbox" class="gd-sec" data-dep="${d.id}" value="${x.id}" ${setS.has(x.id)?'checked':''} onchange="if(this.checked){ const c=document.querySelector('.gd-dep[value=&quot;${d.id}&quot;]'); if(c) c.checked=true; }"> Setor: ${esc(x.name)}</label>`).join('')}</div>`:''}</div>`; }).join('')||'<span class="empty">Nenhum departamento cadastrado</span>'}</div>`,
       `<button class="btn btn-primary btn-block" onclick="App.saveDepts(${gid})">Salvar</button>`]));
   };
   App_saveDepts = async (gid) => {
-    const ids=[...document.querySelectorAll('.check-list input:checked')].map(i=>i.value);
-    try{ await sb.from('goal_departments').delete().eq('goal_id',gid);
-      if(ids.length) await sb.from('goal_departments').insert(ids.map(did=>({goal_id:gid,department_id:did}))); }
+    const secIds=[...document.querySelectorAll('.gd-sec:checked')].map(i=>+i.value);
+    const depIds=[...new Set([...document.querySelectorAll('.gd-dep:checked')].map(i=>+i.value).concat([...document.querySelectorAll('.gd-sec:checked')].map(i=>+i.dataset.dep)))];
+    try{ let r=await sb.from('goal_departments').delete().eq('goal_id',gid); if(r.error) throw r.error;
+      if(depIds.length){ r=await sb.from('goal_departments').insert(depIds.map(did=>({goal_id:gid,department_id:did}))); if(r.error) throw r.error; }
+      r=await sb.from('goal_sectors').delete().eq('goal_id',gid); if(r.error) throw r.error;
+      if(secIds.length){ r=await sb.from('goal_sectors').insert(secIds.map(sid=>({goal_id:gid,sector_id:sid}))); if(r.error) throw r.error; } }
     catch(e){ return toast(e.message); }
-    closeModal(); toast('Departamentos salvos'); go('okr');
+    closeModal(); toast('Departamentos e setores salvos'); go('okr');
   };
   App_manageOwners = async (gid) => {
     const profs = window.__profs || await tList('profiles','name');
@@ -2037,7 +2098,7 @@ const App = (() => {
     add('Empresa',[['Campo','Valor'],['Empresa',c.name],['Missão',c.mission],['Visão',c.vision],['Vigência',`${c.plan_start} a ${c.plan_end}`],['Posicionamento',c.positioning]]);
     add('Valores',[['Valor','Descrição'],...D.values.map(v=>[v.title,v.description])]);
     add('Departamentos',[['Departamento','Atuação'],...D.depts.map(d=>[d.name,d.atuacao])]);
-    add('Macroprocessos',[['Departamento','Macroprocesso','Descrição'],...D.procs.map(p=>[(D.depts.find(d=>d.id===p.department_id)||{}).name||'',p.name,p.description])]);
+    add('Setores',[['Departamento','Setor','Descrição'],...D.procs.map(p=>[(D.depts.find(d=>d.id===p.department_id)||{}).name||'',p.name,p.description])]);
     add('Responsáveis',[['Departamento','Nome','Cargo'],...D.mems.map(m=>[(D.depts.find(d=>d.id===m.department_id)||{}).name||'',m.name,m.cargo])]);
     add('SWOT (GUT)',[['Classificação','Item','Departamento','G','U','T','GUT'],...D.swot.map(s=>[s.classification,s.item,(D.depts.find(d=>d.id===s.department_id)||{}).name||'Geral',s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia])]);
     add('Curva de Valor',[['Atributo',(c.name||'Empresa'),'Concorrência'],...D.curve.map(r=>[r.attribute,r.daexe_score,r.competitor_score])]);
@@ -2176,17 +2237,17 @@ const App = (() => {
     { id:'filosofia', t:'Filosofia', who:'Gestor e Administrador', para:'Identidade da organização: nome, missão, visão, posicionamento, vigência do plano e valores.',
       passos:['Clique em "Editar" em Dados da empresa e preencha nome, Missão (por que a empresa existe), Visão (onde quer chegar e até quando) e Posicionamento.','Informe o início, o fim e a vigência (em meses) do planejamento.','Em Valores, clique em "+ Novo valor" para cada valor: um título curto (ex.: "Transparência") e uma descrição de como ele aparece no dia a dia.'],
       dicas:['Uma visão boa tem prazo e é mensurável. Exemplo: "Ser referência em gestão para PMEs no Centro-Oeste até 2028".','Entre 4 e 6 valores costuma ser suficiente.'] },
-    { id:'departamentos', t:'Departamentos', who:'Gestor e Administrador', para:'Estrutura da organização. Cada departamento reúne seus macroprocessos e os responsáveis.',
-      passos:['Clique em "+ Novo departamento" e informe o Nome e a Atuação (o que o departamento faz, em uma frase).','Dentro do departamento, use "+ Adicionar" em Macroprocessos (nome + descrição) e "+ responsável" para indicar o dono de cada processo.','Em Responsáveis, use "+ Adicionar" (nome e cargo). Use o campo "Reporta-se a" para montar a hierarquia que aparece no Organograma.'],
-      dicas:['O responsável não precisa ser usuário do sistema; basta o nome.','Os departamentos cadastrados aqui aparecem depois nos filtros de metas, na SWOT e no relatório trimestral.'] },
+    { id:'departamentos', t:'Departamentos', who:'Gestor e Administrador', para:'Estrutura da organização. Cada departamento reúne seus setores (com responsáveis e funcionários) e os responsáveis do departamento.',
+      passos:['Clique em "+ Novo departamento" e informe o Nome e a Atuação (o que o departamento faz, em uma frase).','Dentro do departamento, clique em "+ Novo setor" e informe o nome e a descrição do setor.','No setor, clique em "pessoas" e escolha, para cada usuário, se ele é Responsável ou Funcionário do setor (só gestores e administradores).','Em Responsáveis, use "+ Adicionar" (nome e cargo). Use o campo "Reporta-se a" para montar a hierarquia que aparece no Organograma.'],
+      dicas:['As pessoas dos setores são usuários do sistema: cadastre-as antes em Usuários & Acessos. Os responsáveis do departamento (para o organograma) podem ser só nomes.','Os departamentos cadastrados aqui aparecem depois nos filtros de metas, na SWOT e no relatório trimestral.'] },
     { id:'organograma', t:'Organograma', who:'Todos consultam · Gestor envia imagem', para:'Mostra a hierarquia montada em Departamentos, ou uma imagem de organograma já pronta.',
-      passos:['No modo "Estrutura", o organograma é gerado a partir dos responsáveis e do campo "Reporta-se a" da página Departamentos.','No modo "Imagem", o gestor pode clicar em "Enviar imagem" e subir um organograma pronto (PNG ou JPG).'],
+      passos:['No modo "Estrutura", o organograma é gerado a partir dos responsáveis e do campo "Reporta-se a" da página Departamentos. Clique em "Desdobrar" para ver os setores com seus responsáveis e equipe.','No modo "Imagem", o gestor pode clicar em "Enviar imagem" e subir um organograma pronto (PNG ou JPG).'],
       dicas:['Para mudar nomes ou a hierarquia, edite na página Departamentos.'] },
     { id:'diag', t:'Diagnóstico 360', who:'Todos respondem · Gestor vê resultados · Admin edita perguntas', para:'Mede a maturidade da gestão por área (nota de 1 a 5). Cada pessoa responde, e a média de todos forma o radar.',
       passos:['Escolha o Período (ano) no canto superior.','Na aba "Responder", marque de 1 a 5 em cada pergunta: 1 Não fazemos · 2 Início/informal · 3 Parcial · 4 Estruturado · 5 Otimizado. Clique em "Salvar minhas respostas".','Na aba "Resultados" (gestores), veja o radar, as notas por área e as áreas mais frágeis.','Na aba "Perguntas" (administrador), carregue as perguntas padrão ou crie as suas.'],
       dicas:['Responda com base no que acontece hoje, não no que está planejado.','As áreas com menor nota são boas candidatas a virar objetivos e iniciativas.'] },
-    { id:'swot', t:'SWOT / GUT', who:'Colaborador, Gestor e Administrador', para:'Forças, fraquezas, oportunidades e ameaças, priorizadas pela matriz GUT (Gravidade/Impacto × Urgência × Tendência).',
-      passos:['Escolha o período (ano e trimestre) e a visão: Geral da organização ou um departamento.','Clique em "+ Novo item", escolha a Classificação (Força, Fraqueza, Oportunidade ou Ameaça) e descreva o Item em uma frase.','Dê notas de 1 a 5 para Gravidade (ou Impacto), Urgência e Tendência. O sistema multiplica as três e ordena pela nota GUT.','Use "Insights" para registrar o que fazer a respeito do item.','No trimestre seguinte, use "Copiar do trimestre anterior" e só ajuste o que mudou.'],
+    { id:'swot', t:'SWOT / GUT', who:'Colaborador, Gestor e Administrador', para:'Forças, fraquezas, oportunidades e ameaças, priorizadas pela matriz GUT (Gravidade/Impacto × Urgência × Tendência). Pode ser feita para a organização, por departamento ou por setor.',
+      passos:['Escolha o período (ano e trimestre) e a visão: Geral da organização, um departamento (consolidado) ou um setor.','Na visão de um setor, cadastre os itens daquele setor. A visão do departamento mostra automaticamente os itens do departamento mais os de todos os seus setores, com uma etiqueta indicando a origem.','Clique em "+ Novo item", escolha a Classificação (Força, Fraqueza, Oportunidade ou Ameaça) e descreva o Item em uma frase.','Dê notas de 1 a 5 para Gravidade (ou Impacto), Urgência e Tendência. O sistema multiplica as três e ordena pela nota GUT.','Use "Insights" para registrar o que fazer a respeito do item.','No trimestre seguinte, use "Copiar do trimestre anterior" e só ajuste o que mudou.'],
       dicas:['Forças e fraquezas são internas (dependem da empresa); oportunidades e ameaças são externas.','Os itens com GUT mais alto aparecem no Painel como prioridades.'] },
     { id:'pestel', t:'Análise PESTEL', who:'Colaborador, Gestor e Administrador', para:'Fatores externos do macroambiente: Político, Econômico, Sociocultural, Tecnológico, Ambiental e Legal.',
       passos:['Clique em "+ Novo fator" e escolha a Categoria.','Marque o Tipo de impacto (Positivo, Negativo ou Neutro).','Descreva o Fato/Fator e, em seguida, o impacto e como a empresa pode lidar com ele.'],
@@ -2204,7 +2265,7 @@ const App = (() => {
       passos:['Confira as perspectivas (Financeira, Clientes, Processos Internos, Inovação e Pessoas). Você pode editar o nome e a cor de cada uma.','Clique em "+ Objetivo" e escreva o objetivo estratégico começando por um verbo (ex.: "Aumentar a receita recorrente").','Escolha a perspectiva a que o objetivo pertence.'],
       dicas:['Os objetivos criados aqui são usados em Objetivos & Metas e em Iniciativas, então vale cadastrá-los antes.','De 2 a 4 objetivos por perspectiva costuma ser o bastante.'] },
     { id:'okr', t:'Objetivos & Metas', who:'Colaborador, Gestor e Administrador', para:'Detalhamento de cada objetivo em metas SMART, com período, unidade, fórmula, departamentos e responsáveis.',
-      passos:['Clique em "+ Meta SMART", escolha o Objetivo e escreva a meta SMART: específica, mensurável, com prazo (ex.: "Faturar R$ 300 mil no T3 com novos contratos").','Escolha o Ano e o Trimestre da meta.','Escolha a Unidade de medida: Monetário (R$), Percentual (%), Unitário (un), Horas (h) ou Outro.','Escolha a Fórmula do período: "Soma" (as semanas se somam, ex.: faturamento) ou "Média" (a média das semanas, ex.: % de tarefas concluídas, NPS).','Clique em "Departamentos" para dizer quais departamentos respondem pela meta.','Clique em "Responsáveis" para escolher quem vai lançar os resultados. Só essas pessoas conseguem preencher a meta.'],
+      passos:['Clique em "+ Meta SMART", escolha o Objetivo e escreva a meta SMART: específica, mensurável, com prazo (ex.: "Faturar R$ 300 mil no T3 com novos contratos").','Escolha o Ano e o Trimestre da meta.','Escolha a Unidade de medida: Monetário (R$), Percentual (%), Unitário (un), Horas (h) ou Outro.','Escolha a Fórmula do período: "Soma" (as semanas se somam, ex.: faturamento) ou "Média" (a média das semanas, ex.: % de tarefas concluídas, NPS).','Clique em "Deptos/Setores" para marcar os departamentos e, se quiser detalhar, os setores que respondem pela meta (pode ser mais de um).','Clique em "Responsáveis" para escolher quem vai lançar os resultados. Só essas pessoas conseguem preencher a meta.'],
       dicas:['Metas em % quase sempre usam "Média". Com "Soma", o sistema soma os percentuais das semanas e o resultado fica distorcido.','Sem responsável, ninguém consegue lançar resultados e a meta aparece como "Sem dados" no relatório.'] },
     { id:'iniciativas', t:'Iniciativas', who:'Colaborador, Gestor e Administrador', para:'Plano de ação: projetos que sustentam os objetivos, com ações no formato 3Q1C (O quê, Quem, Quando, Como).',
       passos:['Clique em "+ Nova iniciativa", informe o Nome da iniciativa, o Objetivo estratégico, o Departamento e o porquê.','Defina os responsáveis pela iniciativa.','Em "+ Ação", cadastre cada ação: O QUÊ, QUEM (responsável), QUANDO (prazo), COMO e o Status.'],
@@ -2213,7 +2274,7 @@ const App = (() => {
       passos:['Use o filtro "Minhas metas" para ver só as metas atribuídas a você.','Clique na semana que quer preencher. No popup, informe a Meta da semana, o Resultado, a Causa (por que ficou acima ou abaixo) e a Ação (o que será feito).','Para ganhar tempo, use o botão "Preenchimento para RAS": ele abre, numa tela só, todas as suas metas da semana passada.','Troque entre a visão Semanal e a visão Por trimestre para ver o acumulado.'],
       dicas:['Preencha até segunda-feira, com os números da semana anterior (segunda a domingo).','Sempre escreva a causa e a ação quando a meta não for atingida. Esses textos vão para o relatório trimestral.','Cada responsável lança a sua parte. O sistema soma automaticamente os lançamentos de todos.'] },
     { id:'indicadores', t:'Painel de Metas', who:'Todos (só consulta)', para:'Acompanhamento das metas agrupadas por perspectiva, objetivo e departamento, com as cores de atingimento.',
-      passos:['Filtre por ano, trimestre, departamento ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
+      passos:['Filtre por ano, trimestre, departamento, setor ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
       dicas:['Verde = 100% ou mais · Azul = 70 a 99% · Amarelo = 40 a 69% · Vermelho = abaixo de 40%.'] },
     { id:'desini', t:'Desempenho de Iniciativas', who:'Responsáveis pelas ações', para:'Atualização semanal do status de cada ação 3Q1C das iniciativas.',
       passos:['Escolha o ano e a semana (ou use "Anterior" e "Próxima").','Use "Minhas ações" para ver só o que é seu.','Clique na ação, escolha o Status de evolução e escreva o que avançou na semana.'],
@@ -2295,7 +2356,7 @@ const App = (() => {
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
-   'doRecovery','backToLogin','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
+   'doRecovery','backToLogin','manageSector','saveSector','indSetSector','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
   return Object.assign(pub,{ init });
 })();

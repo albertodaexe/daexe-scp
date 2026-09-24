@@ -27,3 +27,8 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   (2) nova página "Como usar (Tutorial)" + botão "❔ Ajuda" no topo de todas as telas;
   (3) Relatórios e Gestão → "Relatório trimestral de metas": gera Word (papel timbrado) e PowerPoint (Modelo Daexe)
   no padrão aprovado do T3 2026, com revisão editável e rascunho salvo (tabela goal_reports). Modelos em public/modelos/.
+- 2026-09-24 — v26: "Macroprocessos" viram SETORES. Cada setor tem Responsáveis e Funcionários (usuários do sistema,
+  link "pessoas" em Departamentos; tabela sector_people). Organograma mostra setores com responsáveis e equipe.
+  Metas podem ser ligadas a vários departamentos e setores (botão "Deptos/Setores"; tabela goal_sectors).
+  Painel de Metas ganhou filtro por Setor. SWOT por setor (coluna swot_items.sector_id); a visão do departamento
+  é consolidada (itens do departamento + de todos os seus setores).
