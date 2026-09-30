@@ -1437,24 +1437,79 @@ const App = (() => {
 
   /* ---------- OKR ---------- */
   VIEWS.okr = async (v) => {
-    const [persp, objs, goals, profs, asg, depts, gdep] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'),
-      tList('profiles','name'), sb.from('goal_assignees').select('goal_id, profile_id, profiles(name)').then(r=>r.data||[]),
-      tList('departments','ord'), sb.from('goal_departments').select('goal_id, department_id, departments(name)').then(r=>r.data||[])]);
-    const [gsec, secs] = await Promise.all([tList('goal_sectors'), tList('department_processes','ord')]);
-    const goalSecs=(gid)=>gsec.filter(a=>a.goal_id===gid).map(a=>secs.find(x=>x.id===a.sector_id)).filter(Boolean);
+    const [persp, objs, goals, profs, asg, depts, gdep, gsec, secs] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'),
+      tList('profiles','name'), tList('goal_assignees'), tList('departments','ord'), tList('goal_departments'), tList('goal_sectors'), tList('department_processes','ord')]);
     window.__bsc={persp,objs}; window.__profs=profs; window.__deptsAll=depts;
+    window.__okrData={persp,objs,goals,profs,asg,depts,gdep,gsec,secs};
+    const F=window.__okrF=window.__okrF||{year:'',q:'',persp:'',dept:'',sec:'',resp:'',text:''};
+    const years=[...new Set(goals.map(g=>g.year).filter(Boolean))].sort();
+    const sel=(k,label,opts,minw)=>`<div class="field" style="margin:0;min-width:${minw||130}px"><label>${label}</label><select id="okrf-${k}" onchange="App.okrFilter('${k}',this.value)"><option value="">Todos</option>${opts.map(o=>`<option value="${esc(o.v)}" ${String(o.v)===String(F[k])?'selected':''}>${esc(o.t)}</option>`).join('')}</select></div>`;
+    v.innerHTML=`<div class="section-head"><h3>Detalhamento OKR / BSC</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>`:''}</div>
+      <div class="card okr-filters" style="padding:16px 18px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="margin:0;flex:1;min-width:200px"><label>Buscar meta ou objetivo</label><input id="okrf-text" value="${esc(F.text)}" placeholder="Digite uma palavra…" oninput="App.okrFilter('text',this.value)"></div>
+          ${sel('year','Ano',years.map(y=>({v:y,t:y})),95)}
+          ${sel('q','Trimestre',[1,2,3,4].map(q=>({v:q,t:'T'+q})),100)}
+          ${sel('persp','Perspectiva',persp.map(p=>({v:p.id,t:p.name})),150)}
+          ${sel('dept','Departamento',depts.map(d=>({v:d.id,t:d.name})),160)}
+          <span id="okrf-sec-wrap">${okrSecSelect()}</span>
+          ${sel('resp','Responsável',profs.map(p=>({v:p.id,t:p.name})),160)}
+          <button class="btn btn-light btn-sm" onclick="App.okrClear()" style="margin-bottom:2px">Limpar filtros</button>
+        </div>
+        <p class="desc" id="okr-count" style="margin:10px 0 0"></p>
+      </div>
+      <div id="okr-list"></div>`;
+    okrRender();
+  };
+  function okrSecSelect(){
+    const D=window.__okrData, F=window.__okrF; const secs=D.secs.filter(x=>!F.dept || x.department_id===+F.dept);
+    return `<div class="field" style="margin:0;min-width:150px;display:inline-block"><label>Setor</label><select id="okrf-sec" onchange="App.okrFilter('sec',this.value)"><option value="">Todos</option>${secs.map(x=>`<option value="${x.id}" ${String(x.id)===String(F.sec)?'selected':''}>${F.dept?'':esc(((D.depts.find(d=>d.id===x.department_id)||{}).name||'')+' › ')}${esc(x.name)}</option>`).join('')}</select></div>`;
+  }
+  function okrRender(){
+    const D=window.__okrData, F=window.__okrF; const box=document.getElementById('okr-list'); if(!D||!box) return;
+    const {persp,objs,goals,profs,asg,depts,gdep,gsec,secs}=D;
+    const pName=(id)=>(profs.find(p=>p.id===id)||{}).name||'';
+    const dName=(id)=>(depts.find(d=>d.id===id)||{}).name||'';
     const owners=(gid)=>asg.filter(a=>a.goal_id===gid);
     const goalDepts=(gid)=>gdep.filter(a=>a.goal_id===gid);
+    const goalSecs=(gid)=>gsec.filter(a=>a.goal_id===gid).map(a=>secs.find(x=>x.id===a.sector_id)).filter(Boolean);
     const perLabel=(g)=> g.year? ('T'+(g.quarter||1)+' '+g.year) : (g.period||'');
-    v.innerHTML=`<div class="section-head"><h3>Detalhamento OKR / BSC</h3>${can('manager')?`<button class="btn btn-accent" onclick="App.editGoal()">+ Meta SMART</button>`:''}</div>
-      ${objs.map(o=>`<div class="card"><div class="section-head"><h3>${esc(o.title)}</h3>${can('manager')?`<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar objetivo</button>`:''}</div>
+    const norm=(t)=>String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const q=norm(F.text).trim();
+    const active = !!(F.year||F.q||F.persp||F.dept||F.sec||F.resp||q);
+    const objOk=(o)=> !F.persp || o.perspective_id===+F.persp;
+    const goalOk=(g,o)=>{
+      if(F.year && g.year!==+F.year) return false;
+      if(F.q && g.quarter!==+F.q) return false;
+      if(F.dept && !goalDepts(g.id).some(a=>a.department_id===+F.dept)) return false;
+      if(F.sec && !gsec.some(a=>a.goal_id===g.id && a.sector_id===+F.sec)) return false;
+      if(F.resp && !owners(g.id).some(a=>a.profile_id===F.resp)) return false;
+      if(q && norm(g.smart_text).indexOf(q)<0 && norm(o.title).indexOf(q)<0) return false;
+      return true; };
+    let nGoals=0, nObjs=0;
+    const persOrd=(o)=>{ const i=persp.findIndex(p=>p.id===o.perspective_id); return i<0?99:i; };
+    const html=objs.filter(objOk).slice().sort((a,b)=>persOrd(a)-persOrd(b)||(a.ord||0)-(b.ord||0)).map(o=>{
+      const gs=goals.filter(g=>g.objective_id===o.id && goalOk(g,o));
+      if(active && !gs.length) return '';
+      nObjs++; nGoals+=gs.length;
+      const p=persp.find(x=>x.id===o.perspective_id);
+      return `<div class="card"><div class="section-head"><div>${p?`<span class="pill" style="background:${esc(p.color||'#eef2f7')}22;color:${esc(p.color||'var(--navy)')};margin-bottom:4px">${esc(p.name)}</span>`:''}<h3>${esc(o.title)}</h3></div>${can('manager')?`<button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Editar objetivo</button>`:''}</div>
         <table><thead><tr><th>Meta SMART</th><th>Período</th><th>Departamento(s) / Setor(es)</th><th>Responsáveis</th>${can('manager')?'<th></th>':''}</tr></thead><tbody>
-        ${goals.filter(g=>g.objective_id===o.id).map(g=>`<tr><td>${esc(g.smart_text)}${g.unit?` <span class="pill pill-gray" style="margin-left:6px">${esc(g.unit)}</span>`:''}</td><td>${esc(perLabel(g))}</td>
-          <td>${goalDepts(g.id).map(a=>`<span class="owner-chip">${esc((a.departments&&a.departments.name)||'')}</span>`).join('')}${goalSecs(g.id).map(x=>`<span class="sec-chip" title="Setor">${esc(x.name)}</span>`).join('')}${(!goalDepts(g.id).length&&!goalSecs(g.id).length)?'<span style="color:var(--muted)">—</span>':''}</td>
-          <td>${owners(g.id).map(a=>`<span class="owner-chip">${esc((a.profiles&&a.profiles.name)||'')}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
-          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageDepts(${g.id})">Deptos/Setores</button><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="5" class="empty">Sem metas</td></tr>'}
-        </tbody></table></div>`).join('')}`;
+        ${gs.map(g=>`<tr><td>${esc(g.smart_text)}${g.unit?` <span class="pill pill-gray" style="margin-left:6px">${esc(g.unit)}</span>`:''}</td><td style="white-space:nowrap">${esc(perLabel(g))}</td>
+          <td>${goalDepts(g.id).map(a=>`<span class="owner-chip">${esc(dName(a.department_id))}</span>`).join('')}${goalSecs(g.id).map(x=>`<span class="sec-chip" title="Setor">${esc(x.name)}</span>`).join('')}${(!goalDepts(g.id).length&&!goalSecs(g.id).length)?'<span style="color:var(--muted)">—</span>':''}</td>
+          <td>${owners(g.id).map(a=>`<span class="owner-chip">${esc(pName(a.profile_id))}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</td>
+          ${can('manager')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageDepts(${g.id})">Deptos/Setores</button><button class="btn btn-light btn-sm" onclick="App.manageOwners(${g.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editGoal(${JSON.stringify(g).replace(/"/g,'&quot;').replace(/'/g,"&#39;")})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delGoal(${g.id})">Excluir</button></div></td>`:''}</tr>`).join('')||'<tr><td colspan="5" class="empty">Sem metas</td></tr>'}
+        </tbody></table></div>`; }).join('');
+    box.innerHTML = html || '<div class="card"><div class="empty">Nenhuma meta encontrada com esses filtros.</div></div>';
+    const c=document.getElementById('okr-count');
+    if(c) c.innerHTML = active ? `<b>${nGoals}</b> meta(s) em <b>${nObjs}</b> objetivo(s) com os filtros aplicados.` : `${goals.length} metas em ${objs.length} objetivos. Use os filtros para encontrar metas por período, perspectiva, departamento, setor ou responsável.`;
+  }
+  App_okrFilter = (k, val) => {
+    const F=window.__okrF; F[k]=val;
+    if(k==='dept'){ const D=window.__okrData; const s=D.secs.find(x=>x.id===+F.sec); if(val && s && s.department_id!==+val) F.sec=''; const w=document.getElementById('okrf-sec-wrap'); if(w) w.innerHTML=okrSecSelect(); }
+    okrRender();
   };
+  App_okrClear = () => { window.__okrF={year:'',q:'',persp:'',dept:'',sec:'',resp:'',text:''}; go('okr'); };
   function yearOptions(){ const y0=new Date().getFullYear(); let o=[]; for(let y=y0-1;y<=y0+5;y++) o.push({v:y,t:y}); return o; }
   const UNIT_OPTS=[{v:'',t:'— Não definida —'},{v:'R$',t:'Monetário (R$)'},{v:'%',t:'Percentual (%)'},{v:'un',t:'Unitário (un)'},{v:'h',t:'Horas (h)'},{v:'outro',t:'Outro (personalizado)'}];
   function fmtByUnit(n, unit){ const num=Number(n)||0; if(unit==='R$') return 'R$ '+money(num); if(unit==='%') return money(num)+'%'; if(!unit) return money(num); return money(num)+' '+unit; }
@@ -2264,7 +2319,7 @@ const App = (() => {
     { id:'bsc', t:'Mapa BSC', who:'Gestor e Administrador', para:'Mapa estratégico com as 4 perspectivas do Balanced Scorecard e os objetivos estratégicos de cada uma.',
       passos:['Confira as perspectivas (Financeira, Clientes, Processos Internos, Inovação e Pessoas). Você pode editar o nome e a cor de cada uma.','Clique em "+ Objetivo" e escreva o objetivo estratégico começando por um verbo (ex.: "Aumentar a receita recorrente").','Escolha a perspectiva a que o objetivo pertence.'],
       dicas:['Os objetivos criados aqui são usados em Objetivos & Metas e em Iniciativas, então vale cadastrá-los antes.','De 2 a 4 objetivos por perspectiva costuma ser o bastante.'] },
-    { id:'okr', t:'Objetivos & Metas', who:'Colaborador, Gestor e Administrador', para:'Detalhamento de cada objetivo em metas SMART, com período, unidade, fórmula, departamentos e responsáveis.',
+    { id:'okr', t:'Objetivos & Metas', who:'Colaborador, Gestor e Administrador', para:'Detalhamento de cada objetivo em metas SMART, com período, unidade, fórmula, departamentos e responsáveis. No topo há filtros por texto, ano, trimestre, perspectiva, departamento, setor e responsável.',
       passos:['Clique em "+ Meta SMART", escolha o Objetivo e escreva a meta SMART: específica, mensurável, com prazo (ex.: "Faturar R$ 300 mil no T3 com novos contratos").','Escolha o Ano e o Trimestre da meta.','Escolha a Unidade de medida: Monetário (R$), Percentual (%), Unitário (un), Horas (h) ou Outro.','Escolha a Fórmula do período: "Soma" (as semanas se somam, ex.: faturamento) ou "Média" (a média das semanas, ex.: % de tarefas concluídas, NPS).','Clique em "Deptos/Setores" para marcar os departamentos e, se quiser detalhar, os setores que respondem pela meta (pode ser mais de um).','Clique em "Responsáveis" para escolher quem vai lançar os resultados. Só essas pessoas conseguem preencher a meta.'],
       dicas:['Metas em % quase sempre usam "Média". Com "Soma", o sistema soma os percentuais das semanas e o resultado fica distorcido.','Sem responsável, ninguém consegue lançar resultados e a meta aparece como "Sem dados" no relatório.'] },
     { id:'iniciativas', t:'Iniciativas', who:'Colaborador, Gestor e Administrador', para:'Plano de ação: projetos que sustentam os objetivos, com ações no formato 3Q1C (O quê, Quem, Quando, Como).',
@@ -2356,7 +2411,7 @@ const App = (() => {
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
-   'doRecovery','backToLogin','manageSector','saveSector','indSetSector','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
+   'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
   return Object.assign(pub,{ init });
 })();

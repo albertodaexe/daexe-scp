@@ -32,3 +32,5 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   Metas podem ser ligadas a vários departamentos e setores (botão "Deptos/Setores"; tabela goal_sectors).
   Painel de Metas ganhou filtro por Setor. SWOT por setor (coluna swot_items.sector_id); a visão do departamento
   é consolidada (itens do departamento + de todos os seus setores).
+- 2026-09-30 — v27: Objetivos & Metas ganhou filtros (busca por texto, ano, trimestre, perspectiva, departamento,
+  setor e responsável), com contador de resultados e botão "Limpar filtros". Os filtros ficam guardados ao editar metas.
