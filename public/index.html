@@ -228,6 +228,42 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+#pres{position:fixed;inset:0;z-index:80;background:#f1f4f8;display:flex;flex-direction:column}
+.pres-load{margin:auto;color:var(--muted);font-size:15px}
+.pres-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--navy);color:#fff;padding:14px 26px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.pres-bar b{font-size:20px;margin-right:10px}.pres-sub{font-size:12.5px;opacity:.75;display:block;margin-top:2px}
+.pres-tag{display:inline-block;background:var(--gold);color:#1b1b1b;font-weight:800;font-size:11px;letter-spacing:1px;border-radius:5px;padding:2px 7px;margin-right:10px;vertical-align:3px}
+.pres-ctl{display:flex;gap:8px;align-items:center}
+.pres-ctl button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer;font-size:13px}
+.pres-ctl button:hover:not(:disabled){background:rgba(255,255,255,.22)}.pres-ctl button:disabled{opacity:.35;cursor:default}
+.pres-ctl .pres-x{font-size:16px;padding:6px 12px;background:rgba(255,255,255,.18)}
+.pres-body{flex:1;overflow:auto;padding:20px 26px 40px}
+.pres-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+@media(max-width:1000px){.pres-kpis{grid-template-columns:repeat(2,1fr)}}
+.pres-kpi{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border-top:4px solid}
+.pres-kpi b{display:block;font-size:30px;line-height:1.1}.pres-kpi span{font-size:12.5px;color:var(--text);font-weight:600}.pres-kpi i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px}
+.pres-sec{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px}
+.pres-sec-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.pres-sec-h h3{color:var(--navy);font-size:17px}
+.pres-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}.pres-leg i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:4px;vertical-align:-1px}.pres-leg i.nil{border:2px solid #d5dce6;width:9px;height:9px}
+.pres-scroll{overflow-x:auto}
+.pres-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.pres-t th{background:#f7f9fc;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:8px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
+.pres-t td{padding:7px 8px;border-bottom:1px solid #eef1f5;vertical-align:middle}
+.pres-t tr:hover td{background:transparent}
+.pres-t th.pw,.pres-t td.pc{text-align:center;padding:6px 3px;width:30px}
+.pres-t th.cur{background:var(--navy);color:#fff;border-radius:6px 6px 0 0}.pres-t td.cur{background:#eef4fb}
+.pres-t .dot{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #d5dce6;background:transparent}
+.pres-t .dot[style]{border-color:transparent}.pres-t .dot.e{background:#2e9e6b;border-color:#2e9e6b}.pres-t .dot.s{background:#e6a817;border-color:#e6a817}
+.pres-name{min-width:260px;max-width:380px}.pres-name b{display:block;color:var(--navy);font-size:12.5px;line-height:1.35}.pres-name span{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+.pres-st{white-space:nowrap;min-width:120px}
+.pres-txt{min-width:240px;max-width:420px;font-size:12px;color:var(--text)}.pres-txt em{font-style:normal;color:var(--muted);font-weight:700}.pres-txt div+div{margin-top:3px}
+.pres-ini td{background:#f7f9fc!important;padding:9px 8px}
+.pres-ini-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pres-ini-h b{color:var(--navy);font-size:13.5px}.pres-ini-h span{font-size:11.5px;color:var(--muted)}
+.pres-mini{width:120px;height:7px;background:#e3e9f0;border-radius:6px;overflow:hidden}.pres-mini i{display:block;height:100%;background:var(--accent)}
+.pres-pct{margin-left:auto;font-weight:700}
+.pres-acc{display:flex;align-items:center;gap:6px;margin-top:5px}.pres-acc span{font-size:10.5px;color:var(--muted);white-space:normal;line-height:1.2;max-width:70px}
+.pres-ring{width:38px;height:38px}.pres-ring text{font-size:9px;font-weight:700;fill:var(--navy)}
+.muted{color:var(--muted)}
 .ras-top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .ras-prog{flex:1;min-width:180px;text-align:right}.ras-prog span{font-size:12px;color:var(--muted);font-weight:600}
 .ras-bar{height:6px;background:#eef2f7;border-radius:6px;overflow:hidden;margin-bottom:5px}.ras-bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
@@ -1911,7 +1947,7 @@ const App = (() => {
     const visAct=(a)=> scope==='minhas'? mine(a) : true;
     const head=`<div class="card"><div class="section-head"><div><h3>Desempenho de Iniciativas/Metas</h3>
         <p class="desc" style="margin:0">Base da <b>RAS</b> (reunião de avanço semanal): cada responsável atualiza o status das suas ações e informa a evolução das suas metas da semana.</p></div>
-        <div class="inline-actions">${can('contributor')?`<button class="btn btn-accent" onclick="App.rasOpen()">📋 Preenchimento para RAS</button>`:''}
+        <div class="inline-actions">${can('contributor')?`<button class="btn btn-accent" onclick="App.rasOpen()">📋 Preenchimento para RAS</button>`:''}<button class="btn btn-primary" onclick="App.presOpen()">🖥️ Apresentação da semana</button>
         <div class="toggle-group"><button class="${scope==='minhas'?'active':''}" onclick="App.diScope('minhas')">Minhas</button><button class="${scope==='todas'?'active':''}" onclick="App.diScope('todas')">Todas</button></div></div></div>
       <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:6px">
         <div class="field" style="margin:0;min-width:120px"><label>Ano</label><select onchange="App.diYear(this.value)">${yearOpts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
@@ -2066,6 +2102,94 @@ const App = (() => {
     }catch(e){ toast('Não foi possível salvar: '+e.message); return; }
     R.i++; rasRender();
   };
+
+  /* ---------- Apresentação da semana (RAS) ---------- */
+  const PST={ 'Concluído':['#2e9e6b','Concluído'], 'Em andamento':['#2E8BC0','Em andamento'], 'Atrasado':['#d9534f','Atrasado'], 'Não iniciado':['#9aa6b5','Não iniciado'] };
+  App_presOpen = async (year, week) => {
+    year = year || window.__diYear || new Date().getFullYear(); week = week || window.__diWeek || currentWeekOf(year);
+    const scope = window.__diScope || 'todas';
+    let ov=document.getElementById('pres'); if(!ov){ ov=document.createElement('div'); ov.id='pres'; document.body.appendChild(ov); }
+    ov.innerHTML='<div class="pres-load">Montando a apresentação…</div>'; ov.classList.remove('hidden'); document.body.style.overflow='hidden';
+    try{
+      const qW=quarterOfWeek(year,week);
+      const qWeeks=weeksOfYear(year).filter(w=>Math.floor(w.start.getMonth()/3)+1===qW);
+      const wNums=qWeeks.map(w=>w.week).filter(n=>n<=Math.max(week, qWeeks[0].week));
+      const [inis, acts, profs, goals, asg, aw, gw] = await Promise.all([
+        tList('initiatives','ord'), tList('initiative_actions','ord'), tList('profiles','name'), tList('goals'), tList('goal_assignees'),
+        fetchAllRows('action_weekly', q=>q.eq('year',year).gte('week',qWeeks[0].week).lte('week',qWeeks[qWeeks.length-1].week)),
+        fetchAllRows('goal_weekly', q=>q.eq('year',year).gte('week',qWeeks[0].week).lte('week',qWeeks[qWeeks.length-1].week))]);
+      const profN=(id)=>{ const p=profs.find(x=>x.id===id); return p?p.name.split(' ').slice(0,2).join(' '):'—'; };
+      const mine=(a)=>a.who_profile===me.id;
+      const A=acts.filter(a=> scope==='minhas'?mine(a):true);
+      const awOf=(id,w)=>aw.find(r=>r.action_id===id && r.week===w);
+      const wk=qWeeks.find(w=>w.week===week)||weeksOfYear(year).find(w=>w.week===week)||{};
+      // indicadores das ações (semana selecionada)
+      const actsOpen=A.filter(a=> a.status!=='Concluído' || awOf(a.id,week));
+      const cur=actsOpen.map(a=>awOf(a.id,week)).filter(Boolean);
+      const nUpd=cur.length, nEvo=cur.filter(r=>r.status==='Em andamento'||r.status==='Concluído').length, nDone=cur.filter(r=>r.status==='Concluído').length, nLate=cur.filter(r=>r.status==='Atrasado').length, nImp=cur.filter(r=>(r.impeditivo||'').trim()).length;
+      // metas do trimestre
+      const myG=new Set(asg.filter(a=>a.profile_id===me.id).map(a=>a.goal_id));
+      const G=goals.filter(g=>g.year===year && goalQuarters(g).includes(qW) && (scope==='minhas'?myG.has(g.id):true));
+      const gState=(gid,w)=>{ const rs=gw.filter(r=>r.goal_id===gid && r.week===w); if(!rs.length) return 'n'; if(rs.some(r=>r.evolucao===true || (r.evolucao==null && Number(r.realizado)>0))) return 'e'; return 's'; };
+      const gCur=G.map(g=>gState(g.id,week)); const gE=gCur.filter(x=>x==='e').length, gS=gCur.filter(x=>x==='s').length, gN=gCur.filter(x=>x==='n').length;
+      const gTot=(g)=>{ const ws={}; gw.filter(r=>r.goal_id===g.id && r.week<=week).forEach(r=>{ const x=(ws[r.week]=ws[r.week]||{m:0,r:0}); x.m+=Number(r.meta)||0; x.r+=Number(r.realizado)||0; }); const v=Object.values(ws).filter(x=>x.m||x.r); return periodAgg(v, g.calc_type||'soma'); };
+      const ring=(p,c)=>`<svg viewBox="0 0 36 36" class="pres-ring"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8edf3" stroke-width="3.4"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="${c}" stroke-width="3.4" stroke-dasharray="${Math.min(100,Math.max(0,p))} 100" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle">${Math.round(p)}%</text></svg>`;
+      const kpi=(n,l,c,sub)=>`<div class="pres-kpi" style="border-top-color:${c}"><b style="color:${c}">${n}</b><span>${l}</span>${sub?`<i>${sub}</i>`:''}</div>`;
+      const wh=(w)=>`<th class="pw${w===week?' cur':''}" title="S${w}">S${w}</th>`;
+      // ---- bloco de iniciativas
+      let iniHtml='';
+      inis.forEach(i=>{
+        const L=actsOpen.filter(a=>a.initiative_id===i.id).concat(A.filter(a=>a.initiative_id===i.id && a.status==='Concluído' && !awOf(a.id,week) && aw.some(r=>r.action_id===a.id)));
+        if(!L.length) return;
+        const upd=L.filter(a=>awOf(a.id,week)).length, evo=L.filter(a=>{ const r=awOf(a.id,week); return r&&(r.status==='Em andamento'||r.status==='Concluído'); }).length;
+        iniHtml+=`<tr class="pres-ini"><td colspan="${wNums.length+3}"><div class="pres-ini-h"><b>🚀 ${esc(i.name)}</b><span>${evo}/${L.length} ações com evolução na S${week}</span><div class="pres-mini"><i style="width:${L.length?Math.round(evo/L.length*100):0}%"></i></div><span class="pres-pct">${i.progress||0}% concluída</span></div></td></tr>`;
+        L.forEach(a=>{ const r=awOf(a.id,week);
+          iniHtml+=`<tr><td class="pres-name"><b>${esc(a.what)}</b><span>${esc(profN(a.who_profile))}${a.when_date?' · prazo '+esc(String(a.when_date).slice(0,10).split('-').reverse().join('/')):''}</span></td>
+            ${wNums.map(w=>{ const x=awOf(a.id,w); const c=x&&PST[x.status]?PST[x.status][0]:''; return `<td class="pc${w===week?' cur':''}"><span class="dot" ${c?`style="background:${c}"`:''} title="S${w}: ${x?esc(x.status):'sem atualização'}"></span></td>`; }).join('')}
+            <td class="pres-st">${r?statusPill(r.status):'<span class="pill pill-gray">sem atualização</span>'}</td>
+            <td class="pres-txt">${r&&(r.impeditivo||'').trim()?`<div><em>Impeditivo:</em> ${esc(r.impeditivo)}</div>`:''}${r&&(r.proximo_passo||'').trim()?`<div><em>Próxima semana:</em> ${esc(r.proximo_passo)}</div>`:''}${!r?'<span class="muted">—</span>':''}</td></tr>`; });
+      });
+      // ---- bloco de metas
+      let gHtml='';
+      const persp=await tList('bsc_perspectives','ord'); const objs=await tList('objectives','ord');
+      const oOf=(id)=>objs.find(o=>o.id===id)||{};
+      const gSorted=G.slice().sort((a,b)=>{ const pa=persp.findIndex(p=>p.id===oOf(a.objective_id).perspective_id), pb=persp.findIndex(p=>p.id===oOf(b.objective_id).perspective_id); return pa-pb || a.id-b.id; });
+      let lastP=null;
+      gSorted.forEach(g=>{
+        const p=persp.find(x=>x.id===oOf(g.objective_id).perspective_id)||{name:'—',color:'#1F3A5F'};
+        if(p.name!==lastP){ lastP=p.name; gHtml+=`<tr class="pres-ini"><td colspan="${wNums.length+3}"><div class="pres-ini-h"><b style="color:${esc(p.color||'#1F3A5F')}">● ${esc(p.name)}</b></div></td></tr>`; }
+        const st=gState(g.id,week); const rs=gw.filter(r=>r.goal_id===g.id && r.week===week);
+        const res=rs.reduce((a,b)=>a+(Number(b.realizado)||0),0); const causa=rs.map(r=>(r.causa||'').trim()).filter(Boolean).join(' · ');
+        const owners=asg.filter(a=>a.goal_id===g.id).map(a=>profN(a.profile_id)).join(', ')||'—';
+        const t=gTot(g); const pc=t.m?t.r/t.m*100:0;
+        gHtml+=`<tr><td class="pres-name"><b>${esc(g.smart_text)}</b><span>${esc(owners)} · ${esc(goalPeriodLabel(g))}</span></td>
+          ${wNums.map(w=>{ const s=gState(g.id,w); return `<td class="pc${w===week?' cur':''}"><span class="dot ${s}" title="S${w}: ${s==='e'?'evoluiu':s==='s'?'sem evolução':'não informado'}"></span></td>`; }).join('')}
+          <td class="pres-st">${st==='e'?'<span class="pill pill-green">Evoluiu</span>':st==='s'?'<span class="pill pill-amber">Sem evolução</span>':'<span class="pill pill-gray">Não informado</span>'}<div class="pres-acc">${t.m?ring(pc, pc>=100?'#2e9e6b':pc>=70?'#2E8BC0':pc>=40?'#e6a817':'#d9534f'):''}<span>${t.m?'acumulado no trimestre':''}</span></div></td>
+          <td class="pres-txt">${st==='e'?`<div><em>Resultado:</em> <b>${fmtByUnit(res,g.unit)}</b></div>`:''}${causa?`<div><em>Causa:</em> ${esc(causa)}</div>`:''}${st!=='e'&&!causa?'<span class="muted">—</span>':''}</td></tr>`;
+      });
+      const wPrev=week>1?week-1:null, wNext=week<weeksOfYear(year).length?week+1:null;
+      ov.innerHTML=`<div class="pres-bar"><div><span class="pres-tag">RAS</span><b>Apresentação da semana ${week}</b><span class="pres-sub">${wk.start?dm(wk.start)+' a '+dm(wk.end)+' · ':''}T${qW} ${year} · ${scope==='minhas'?'minhas ações e metas':'todas as ações e metas'}${me.org_name?' · '+esc(me.org_name):''}</span></div>
+          <div class="pres-ctl"><button onclick="App.presOpen(${year},${wPrev})" ${wPrev?'':'disabled'}>◂ S${wPrev||''}</button><button onclick="App.presOpen(${year},${wNext})" ${wNext?'':'disabled'}>S${wNext||''} ▸</button><button onclick="App.presScope()">${scope==='minhas'?'Ver todas':'Só minhas'}</button><button class="pres-x" onclick="App.presClose()" title="Fechar">✕</button></div></div>
+        <div class="pres-body">
+          <div class="pres-kpis">
+            ${kpi(`${nUpd}/${actsOpen.length}`,'ações atualizadas','#1F3A5F', actsOpen.length?Math.round(nUpd/actsOpen.length*100)+'% de adesão':'')}
+            ${kpi(nEvo,'ações com evolução','#2E8BC0', nDone?nDone+' concluída(s)':'')}
+            ${kpi(nLate,'ações atrasadas','#d9534f', nImp?nImp+' com impeditivo':'')}
+            ${kpi(`${gE}/${G.length}`,'metas com evolução','#2e9e6b', gS?gS+' sem evolução':'')}
+            ${kpi(gN,'metas sem informação','#9aa6b5','')}
+          </div>
+          <div class="pres-sec"><div class="pres-sec-h"><h3>Iniciativas — avanço das ações por semana</h3>
+            <div class="pres-leg">${Object.values(PST).map(x=>`<span><i style="background:${x[0]}"></i>${x[1]}</span>`).join('')}<span><i class="nil"></i>Sem atualização</span></div></div>
+            ${iniHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Ação · responsável</th>${wNums.map(wh).join('')}<th>Status S${week}</th><th>Impeditivo e próximos passos</th></tr></thead><tbody>${iniHtml}</tbody></table></div>`:'<div class="empty">Nenhuma ação em aberto.</div>'}</div>
+          <div class="pres-sec"><div class="pres-sec-h"><h3>Metas do T${qW} — evolução por semana</h3>
+            <div class="pres-leg"><span><i style="background:#2e9e6b"></i>Evoluiu</span><span><i style="background:#e6a817"></i>Sem evolução</span><span><i class="nil"></i>Não informado</span></div></div>
+            ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Resultado e causa</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>
+        </div>`;
+      window.__presArgs=[year,week];
+    }catch(e){ ov.innerHTML=`<div class="pres-load">Erro ao montar a apresentação: ${esc(e.message)} <button class="btn btn-light btn-sm" onclick="App.presClose()">Fechar</button></div>`; }
+  };
+  App_presClose = () => { const ov=document.getElementById('pres'); if(ov) ov.classList.add('hidden'); document.body.style.overflow=''; if(current==='desini') go('desini'); };
+  App_presScope = () => { window.__diScope = (window.__diScope==='minhas')?'todas':'minhas'; const a=window.__presArgs||[]; App_presOpen(a[0],a[1]); };
 
   /* ---------- Usuários ---------- */
   VIEWS.usuarios = async (v) => {
@@ -2479,7 +2603,7 @@ const App = (() => {
       passos:['Filtre por ano, trimestre, departamento, setor ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
       dicas:['Verde = 100% ou mais · Azul = 70 a 99% · Amarelo = 40 a 69% · Vermelho = abaixo de 40%.'] },
     { id:'desini', t:'Desempenho de Iniciativas/Metas', who:'Responsáveis por ações e metas', para:'Página da RAS (reunião de avanço semanal): status semanal das ações das iniciativas e evolução das metas do trimestre.',
-      passos:['Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução, o impeditivo (o que impediu de concluir) e o que será feito na próxima semana. Clique em "Salvar e continuar".','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.'],
+      passos:['Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução, o impeditivo (o que impediu de concluir) e o que será feito na próxima semana. Clique em "Salvar e continuar".','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.','Na reunião, clique em "🖥️ Apresentação da semana": abre em tela cheia um painel com indicadores, a linha do tempo semanal de cada ação das iniciativas e a evolução de cada meta do trimestre, com impeditivos, próximos passos, resultados e causas. Use ◂ ▸ para trocar de semana e o ✕ para fechar.'],
       dicas:['Faça o preenchimento antes da RAS, com os dados da semana anterior (segunda a domingo).','Ações concluídas em semanas anteriores não aparecem mais no assistente.','O campo "Meta da semana" vem preenchido com a meta da semana anterior; ele é usado para calcular o % de atingimento.'] },
     { id:'orcamento', t:'Orçamento', who:'Departamentos (planejamento e revisão) · Financeiro (realizado)', para:'Orçamento trimestral de cada departamento por categoria de gasto, numa página só com as três etapas do ciclo: Planejamento, Acompanhamento e Revisão trimestral.',
       passos:['Escolha o Ano e o Departamento. Por padrão abre o seu departamento.','Etapa "1. Planejamento": lance o valor previsto de cada categoria em T1, T2, T3 e T4. O total anual é calculado sozinho. Os valores são salvos ao sair do campo (o campo pisca verde).','Etapa "2. Acompanhamento": ao fechar cada trimestre, o Financeiro lança o realizado de cada categoria. O sistema mostra o saldo (orçado − realizado) e o % realizado; saldo negativo fica em vermelho.','Etapa "3. Revisão trimestral": depois do fechamento, o departamento lança a nova previsão dos trimestres seguintes e escreve a justificativa ou decisão. Previsão em branco mantém o orçado.'],
@@ -2724,7 +2848,6 @@ const App = (() => {
     document.getElementById('logout-btn').onclick=logout;
     document.getElementById('toggle-pass').addEventListener('click',()=>{ const p=document.getElementById('login-password'); p.type = p.type==='password'?'text':'password'; });
     document.getElementById('nav-toggle').addEventListener('click',()=>{ document.body.classList.toggle('nav-collapsed'); });
-    document.getElementById('modal-backdrop').addEventListener('click',(e)=>{ if(e.target.id==='modal-backdrop') closeModal(); });
     if(!sb){ document.getElementById('boot').innerHTML='Não foi possível carregar a biblioteca de conexão (Supabase).<br>Verifique sua internet e recarregue a página (F5).'; return; }
     sb.auth.onAuthStateChange((ev)=>{ if(ev==='PASSWORD_RECOVERY'){ window.__recovery=true; showRecovery(); } });
     try{
@@ -2740,7 +2863,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });

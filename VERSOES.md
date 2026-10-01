@@ -47,3 +47,7 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   2) "Você concluiu alguma meta do trimestre?"; 3) cada meta do trimestre (houve evolução? resultado + causa).
   Salva a cada card. Colunas novas: action_weekly.impeditivo/proximo_passo, goal_weekly.evolucao. O botão de RAS da página
   Preenchimento de Metas abre o mesmo assistente.
+- 2026-10-01 — v31: popups só fecham no X (clicar fora não fecha mais). Botão "🖥️ Apresentação da semana" em
+  Desempenho de Iniciativas/Metas: tela cheia com indicadores da semana, linha do tempo semanal (bolinhas por semana do
+  trimestre) de cada ação por iniciativa com status/impeditivo/próximos passos, e de cada meta (evoluiu / sem evolução /
+  não informado) com resultado, causa e % acumulado no trimestre. Navegação ◂ ▸ entre semanas e Minhas/Todas.
