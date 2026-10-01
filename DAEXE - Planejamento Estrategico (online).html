@@ -228,6 +228,19 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+.ras-top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.ras-prog{flex:1;min-width:180px;text-align:right}.ras-prog span{font-size:12px;color:var(--muted);font-weight:600}
+.ras-bar{height:6px;background:#eef2f7;border-radius:6px;overflow:hidden;margin-bottom:5px}.ras-bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.ras-card{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 18px;background:#fbfcfe;animation:rasIn .2s ease}
+.ras-card h4{color:var(--navy);font-size:16px;line-height:1.35}
+.ras-kicker{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-bottom:4px}
+.ras-intro{border-left-color:var(--gold);text-align:center;padding:26px 20px}
+.ras-st{display:flex;flex-wrap:wrap;gap:8px}
+.ras-opt{display:inline-flex!important;align-items:center;gap:6px;border:1px solid var(--line);border-radius:20px;padding:7px 13px;cursor:pointer;font-weight:600!important;color:var(--navy)!important;background:#fff;margin:0!important}
+.ras-opt input{width:auto!important}
+.ras-opt:has(input:checked){background:var(--accent);border-color:var(--accent);color:#fff!important}
+.ras-nav{display:flex;justify-content:space-between;margin-top:16px}
+@keyframes rasIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
 .orc-table{font-size:12.5px}
 .orc-table th{white-space:nowrap}
 .orc-table th.qh{text-align:center;background:#eef2f7;color:var(--navy);border-left:2px solid #fff}
@@ -903,7 +916,7 @@ const App = (() => {
     { sec:'Acompanhamento' },
     { id:'desempenho', label:'Preenchimento de Metas', ico:'📝' },
     { id:'indicadores', label:'Painel de Metas', ico:'📋' },
-    { id:'desini', label:'Desempenho de Iniciativas', ico:'🚦' },
+    { id:'desini', label:'Desempenho de Iniciativas/Metas', ico:'🚦' },
     { sec:'Orçamento' },
     { id:'orcamento', label:'Orçamento', ico:'💰' },
     { id:'orcvisao', label:'Visão Geral do Orçamento', ico:'📊' },
@@ -1737,7 +1750,7 @@ const App = (() => {
     const head=`
       <div class="card"><div class="section-head"><div><h3>Preenchimento de Metas</h3>
         <p class="desc">${editable?'Clique em uma semana para preencher meta, resultado, causa e ação — um lançamento por responsável.':'Você pode visualizar; o preenchimento é feito pelos responsáveis desta meta.'}</p></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-accent btn-sm" onclick="App.pfRAS()" title="Preencher todas as suas metas da semana passada">Preenchimento para RAS</button><div class="toggle-group"><button class="${mine?'active':''}" onclick="App.pfSetMine(true)">Minhas metas</button><button class="${!mine?'active':''}" onclick="App.pfSetMine(false)">Todas</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-accent btn-sm" onclick="App.rasOpen()" title="Abre o assistente da RAS: ações e metas da semana passada">Preenchimento para RAS</button><div class="toggle-group"><button class="${mine?'active':''}" onclick="App.pfSetMine(true)">Minhas metas</button><button class="${!mine?'active':''}" onclick="App.pfSetMine(false)">Todas</button></div>
         <div class="toggle-group"><button class="${mode==='semana'?'active':''}" onclick="App.pfSetMode('semana')">Semanal</button><button class="${mode==='trimestre'?'active':''}" onclick="App.pfSetMode('trimestre')">Por trimestre</button></div></div></div>
         <div class="field"><label>Selecione a meta</label>
           <select class="goal-select" onchange="App.pfSetGoal(this.value)">${visibleGoals.map(g=>`<option value="${g.id}" ${g.id==goalId?'selected':''}>${assigned.has(g.id)?'★ ':''}${esc(g.smart_text)}${g.unit?' — '+esc(g.unit):''}</option>`).join('')}</select></div>
@@ -1874,30 +1887,32 @@ const App = (() => {
     closeModal(); toast('Semana '+week+' salva'); go('desempenho');
   };
 
-  /* ---------- Desempenho de Iniciativas (status semanal das ações 3Q1C) ---------- */
+  /* ---------- Desempenho de Iniciativas/Metas (RAS — reunião de avanço semanal) ---------- */
   function currentWeekOf(year){
     const today=new Date(); const ws=weeksOfYear(year);
     const wk=ws.find(w=> today>=w.start && today<=w.end);
     return wk?wk.week:(today.getFullYear()>year?ws.length:1);
   }
+  const ACT_ST=['Não iniciado','Em andamento','Concluído','Atrasado'];
+  const quarterOfWeek=(year,week)=>{ const w=weeksOfYear(year).find(x=>x.week===week); return w?Math.floor(w.start.getMonth()/3)+1:1; };
   VIEWS.desini = async (v) => {
-    const [inis, acts, profs] = await Promise.all([
-      tList('initiatives','ord'), tList('initiative_actions','ord'), tList('profiles','name')]);
-    if(!acts.length){ v.innerHTML='<div class="empty">Cadastre iniciativas e ações (3Q1C) primeiro, em Estratégia › Iniciativas.</div>'; return; }
     const year = window.__diYear || new Date().getFullYear(); window.__diYear=year;
     const week = window.__diWeek || currentWeekOf(year); window.__diWeek=week;
     const scope = window.__diScope || (can('manager')?'todas':'minhas'); window.__diScope=scope;
+    const [inis, acts, profs, goals, asg] = await Promise.all([
+      tList('initiatives','ord'), tList('initiative_actions','ord'), tList('profiles','name'), tList('goals'), tList('goal_assignees')]);
     window.__diActs=acts; window.__diProfs=profs;
     const profN=(id)=>{ const p=profs.find(x=>x.id===id); return p?p.name:'—'; };
-    const { data:wkrows } = await sb.from('action_weekly').select('*').eq('year',year).eq('week',week);
+    const [{ data:wkrows }, { data:gw }] = await Promise.all([sb.from('action_weekly').select('*').eq('year',year).eq('week',week), sb.from('goal_weekly').select('*').eq('year',year).eq('week',week)]);
     const map={}; (wkrows||[]).forEach(r=>map[r.action_id]=r); window.__diMap=map;
-    const weeks=weeksOfYear(year);
+    const weeks=weeksOfYear(year); const wk=weeks.find(w=>w.week===week)||{};
     const yearOpts=[]; for(let y=year-2;y<=year+4;y++) yearOpts.push(y);
     const mine=(a)=>a.who_profile===me.id;
     const visAct=(a)=> scope==='minhas'? mine(a) : true;
-    const head=`<div class="card"><div class="section-head"><div><h3>Desempenho de Iniciativas</h3>
-        <p class="desc">Cada responsável atualiza, por semana, o status de evolução das suas ações (3Q1C).</p></div>
-        <div class="toggle-group"><button class="${scope==='minhas'?'active':''}" onclick="App.diScope('minhas')">Minhas ações</button><button class="${scope==='todas'?'active':''}" onclick="App.diScope('todas')">Todas</button></div></div>
+    const head=`<div class="card"><div class="section-head"><div><h3>Desempenho de Iniciativas/Metas</h3>
+        <p class="desc" style="margin:0">Base da <b>RAS</b> (reunião de avanço semanal): cada responsável atualiza o status das suas ações e informa a evolução das suas metas da semana.</p></div>
+        <div class="inline-actions">${can('contributor')?`<button class="btn btn-accent" onclick="App.rasOpen()">📋 Preenchimento para RAS</button>`:''}
+        <div class="toggle-group"><button class="${scope==='minhas'?'active':''}" onclick="App.diScope('minhas')">Minhas</button><button class="${scope==='todas'?'active':''}" onclick="App.diScope('todas')">Todas</button></div></div></div>
       <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:6px">
         <div class="field" style="margin:0;min-width:120px"><label>Ano</label><select onchange="App.diYear(this.value)">${yearOpts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
         <div class="field" style="margin:0;min-width:230px"><label>Semana</label><select onchange="App.diWeek(this.value)">${weeks.map(w=>`<option value="${w.week}" ${w.week==week?'selected':''}>S${w.week} · ${dm(w.start)}–${dm(w.end)}</option>`).join('')}</select></div>
@@ -1910,16 +1925,30 @@ const App = (() => {
       const done=list.filter(a=>(map[a.id]||{}).status==='Concluído').length;
       const upd=list.filter(a=>map[a.id]&&map[a.id].status).length;
       body+=`<div class="card" style="border-left:4px solid var(--accent)">
-        <div class="section-head"><div><h3>${esc(i.name)}</h3><p class="desc" style="margin:2px 0 0">${upd}/${list.length} ação(ões) atualizada(s) nesta semana · ${done} concluída(s)</p></div></div>
-        <div style="overflow-x:auto"><table><thead><tr><th>O quê</th><th>Quem</th><th>Prazo</th><th>Status da semana</th><th>Observação</th><th></th></tr></thead><tbody>
+        <div class="section-head"><div><h3>🚀 ${esc(i.name)}</h3><p class="desc" style="margin:2px 0 0">${upd}/${list.length} ação(ões) atualizada(s) nesta semana · ${done} concluída(s)</p></div></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>O quê</th><th>Quem</th><th>Prazo</th><th>Status da semana</th><th>Impeditivo</th><th>Próxima semana</th><th></th></tr></thead><tbody>
         ${list.map(a=>{ const r=map[a.id]||{}; const ed=can('manager')||mine(a);
-          return `<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px;color:var(--muted)">${esc((a.when_date||'').slice(0,10))}</td>
+          return `<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px;color:var(--muted);white-space:nowrap">${esc((a.when_date||'').slice(0,10))}</td>
             <td>${r.status?statusPill(r.status):'<span class="pill pill-gray">— não informado</span>'}</td>
-            <td style="font-size:12px;max-width:240px">${esc(r.note||'')}</td>
-            <td>${ed?`<button class="btn btn-light btn-sm" onclick="App.openActWeek(${a.id})">Atualizar</button>`:'<span class="pill pill-gray">só leitura</span>'}</td></tr>`; }).join('')}
+            <td style="font-size:12px;max-width:220px">${esc(r.impeditivo||'')}</td>
+            <td style="font-size:12px;max-width:220px">${esc(r.proximo_passo||r.note||'')}</td>
+            <td>${ed?`<button class="btn btn-light btn-sm" onclick="App.openActWeek(${a.id})">Atualizar</button>`:''}</td></tr>`; }).join('')}
         </tbody></table></div></div>`;
     });
-    if(!body) body=`<div class="empty">${scope==='minhas'?'Você não é responsável por nenhuma ação nesta visão. Veja "Todas" ou peça para vincularem ações a você.':'Nenhuma ação cadastrada.'}</div>`;
+    // metas da semana
+    const qW=quarterOfWeek(year,week);
+    const myG=new Set(asg.filter(a=>a.profile_id===me.id).map(a=>a.goal_id));
+    const gList=goals.filter(g=>g.year===year && goalQuarters(g).includes(qW) && (scope==='minhas'?myG.has(g.id):true));
+    if(gList.length){
+      body+=`<div class="card" style="border-left:4px solid var(--gold)"><div class="section-head"><div><h3>🎯 Metas do T${qW} — semana ${week}</h3><p class="desc" style="margin:2px 0 0">Evolução informada pelos responsáveis nesta semana.</p></div></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Meta</th><th>Responsável</th><th>Evolução</th><th>Resultado da semana</th><th>Causa</th></tr></thead><tbody>
+        ${gList.map(g=>{ const ps=asg.filter(a=>a.goal_id===g.id && (scope==='minhas'?a.profile_id===me.id:true)).map(a=>a.profile_id); if(!ps.length) ps.push(null);
+          return ps.map((pid,k)=>{ const r=(gw||[]).find(x=>x.goal_id===g.id && x.profile_id===pid)||null;
+            const ev = !r ? '<span class="pill pill-gray">não informado</span>' : (r.evolucao===false || (!Number(r.realizado) && r.evolucao!==true) ? '<span class="pill pill-amber">Sem evolução</span>' : '<span class="pill pill-green">Evoluiu</span>');
+            return `<tr>${k===0?`<td rowspan="${ps.length}" style="max-width:320px"><b style="font-size:12.5px">${esc(g.smart_text)}</b></td>`:''}<td>${pid?esc(profN(pid)):'—'}</td><td>${ev}</td><td>${r&&Number(r.realizado)?fmtByUnit(r.realizado,g.unit):'—'}</td><td style="font-size:12px;max-width:240px">${esc((r&&r.causa)||'')}</td></tr>`; }).join(''); }).join('')}
+        </tbody></table></div></div>`;
+    }
+    if(!body) body=`<div class="empty">${scope==='minhas'?'Você não tem ações nem metas nesta visão. Veja "Todas".':'Nenhuma ação ou meta cadastrada.'}</div>`;
     v.innerHTML=head+body;
   };
   App_diYear=(y)=>{ window.__diYear=+y; window.__diWeek=null; go('desini'); };
@@ -1929,22 +1958,113 @@ const App = (() => {
     const a=(window.__diActs||[]).find(x=>x.id===actId)||{};
     const ed=can('manager')|| a.who_profile===me.id; if(!ed) return;
     const r=(window.__diMap||{})[actId]||{};
-    const st=['Não iniciado','Em andamento','Concluído','Atrasado'].map(x=>({v:x,t:x}));
-    modal('Status — Semana '+window.__diWeek, form([
+    modal('Ação — Semana '+window.__diWeek, form([
       `<p class="desc" style="margin:-4px 0 10px"><b>${esc(a.what||'')}</b></p>`,
-      f.sel('aw-st','Status de evolução',st,r.status||'Em andamento'),
-      f.area('aw-note','Observação / o que evoluiu nesta semana',r.note),
+      f.sel('aw-st','Status de evolução',ACT_ST.map(x=>({v:x,t:x})),r.status||a.status||'Em andamento'),
+      f.area('aw-imp','Impeditivo (o que impediu de concluir a ação)',r.impeditivo),
+      f.area('aw-next','O que será feito na próxima semana para evoluir',r.proximo_passo),
       `<button class="btn btn-primary btn-block" onclick="App.saveActWeek(${actId})">Salvar</button>`]));
   };
-  App_saveActWeek=async(actId)=>{
-    const a=(window.__diActs||[]).find(x=>x.id===actId)||{};
-    if(!(can('manager')|| a.who_profile===me.id)) return;
-    const status=val('aw-st');
-    const row={ action_id:actId, year:window.__diYear, week:window.__diWeek, status, note:val('aw-note'), updated_by:me.id, updated_at:new Date().toISOString() };
+  async function saveActRow(actId, year, week, status, imp, next){
+    const row={ action_id:actId, year, week, status, impeditivo:imp, proximo_passo:next, updated_by:me.id, updated_at:new Date().toISOString() };
     const { error }=await sb.from('action_weekly').upsert(row,{onConflict:'action_id,year,week'});
-    if(error){ toast(error.message); return; }
+    if(error) throw error;
     try{ await tUpdate('initiative_actions',actId,{status}); }catch(e){}
+  }
+  App_saveActWeek=async(actId)=>{
+    try{ await saveActRow(actId, window.__diYear, window.__diWeek, val('aw-st'), val('aw-imp'), val('aw-next')); }catch(e){ toast(e.message); return; }
     closeModal(); toast('Status salvo'); go('desini');
+  };
+
+  /* ----- Assistente da RAS ----- */
+  App_rasOpen = async (year, week) => {
+    if(!year){ const t=lastCompletedWeek(); year=t.year; week=t.week; }
+    const qW=quarterOfWeek(year,week);
+    const [acts, inis, goals, asg] = await Promise.all([tList('initiative_actions','ord'), tList('initiatives','ord'), tList('goals'), sb.from('goal_assignees').select('goal_id').eq('profile_id',me.id).then(r=>r.data||[])]);
+    const myActs=acts.filter(a=>a.who_profile===me.id);
+    const { data:aw } = myActs.length ? await sb.from('action_weekly').select('*').eq('year',year).eq('week',week).in('action_id',myActs.map(a=>a.id)) : { data:[] };
+    const awOf=(id)=>(aw||[]).find(r=>r.action_id===id);
+    // ações abertas (concluídas em semanas anteriores não aparecem)
+    const openActs=myActs.filter(a=> a.status!=='Concluído' || awOf(a.id));
+    const myGoalIds=new Set(asg.map(a=>a.goal_id));
+    const myGoals=goals.filter(g=>myGoalIds.has(g.id) && g.year===year && goalQuarters(g).includes(qW));
+    const { data:gw } = myGoals.length ? await sb.from('goal_weekly').select('*').eq('profile_id',me.id).eq('year',year).lte('week',week).in('goal_id',myGoals.map(g=>g.id)) : { data:[] };
+    const steps=[];
+    openActs.forEach(a=>steps.push({ t:'act', a, ini:inis.find(i=>i.id===a.initiative_id)||{}, r:awOf(a.id)||{} }));
+    steps.push({ t:'intro' });
+    myGoals.forEach(g=>{ const rows=(gw||[]).filter(x=>x.goal_id===g.id); const cur=rows.find(x=>x.week===week)||null; const last=rows.filter(x=>x.week<week && Number(x.meta)).sort((a,b)=>b.week-a.week)[0]; steps.push({ t:'goal', g, r:cur, lastMeta:last?Number(last.meta):null }); });
+    steps.push({ t:'end' });
+    window.__ras={ year, week, qW, steps, i:0, nActs:openActs.length, nDoneBefore:myActs.length-openActs.length, nGoals:myGoals.length, saved:{acts:0,goals:0} };
+    rasRender();
+  };
+  function rasRender(){
+    const R=window.__ras; const s=R.steps[R.i]; const wk=weeksOfYear(R.year).find(w=>w.week===R.week)||{};
+    const total=R.steps.length-1; const pctDone=Math.round(R.i/Math.max(1,total)*100);
+    const recent=[]; { const t=lastCompletedWeek(); for(let k=0;k<6;k++){ const w=t.week-k; if(w>=1) recent.push(w); } if(!recent.includes(R.week)) recent.unshift(R.week); }
+    const top=`<div class="ras-top"><div class="field" style="margin:0;min-width:220px"><label>Semana de referência</label><select onchange="App.rasOpen(${R.year},+this.value)" ${R.i>0?'disabled title="Para trocar a semana, feche e abra o assistente de novo"':''}>${recent.map(w=>{ const x=weeksOfYear(R.year).find(y=>y.week===w)||{}; return `<option value="${w}" ${w===R.week?'selected':''}>S${w}${x.start?' · '+dm(x.start)+'–'+dm(x.end):''}</option>`; }).join('')}</select></div>
+      <div class="ras-prog"><div class="ras-bar"><i style="width:${pctDone}%"></i></div><span>${s.t==='act'?`Ação ${R.steps.filter(x=>x.t==='act').indexOf(s)+1} de ${R.nActs}`:s.t==='goal'?`Meta ${R.steps.filter(x=>x.t==='goal').indexOf(s)+1} de ${R.nGoals}`:s.t==='intro'?'Metas do trimestre':'Concluído'}</span></div></div>`;
+    let card='';
+    if(s.t==='act'){
+      const a=s.a, r=s.r;
+      card=`<div class="ras-card"><div class="ras-kicker">🚀 ${esc(s.ini.name||'Iniciativa')}</div>
+        <h4>${esc(a.what||'')}</h4>
+        <p class="desc" style="margin:2px 0 12px">${a.when_date?'Prazo: <b>'+esc(String(a.when_date).slice(0,10).split('-').reverse().join('/'))+'</b> · ':''}${a.how?'Como: '+esc(a.how):''}</p>
+        <div class="field"><label>Status de evolução na semana</label><div class="ras-st">${ACT_ST.map(x=>`<label class="ras-opt"><input type="radio" name="ras-st" value="${x}" ${(r.status||a.status||'Em andamento')===x?'checked':''}><span>${x}</span></label>`).join('')}</div></div>
+        ${f.area('ras-imp','Impeditivo — o que impediu de concluir a ação?',r.impeditivo)}
+        ${f.area('ras-next','O que será feito na próxima semana para evoluir com esta ação?',r.proximo_passo)}</div>`;
+    } else if(s.t==='intro'){
+      card=`<div class="ras-card ras-intro">${R.nActs?`<p class="desc" style="margin:0 0 10px">✅ Ações atualizadas: <b>${R.nActs}</b>${R.nDoneBefore?` · ${R.nDoneBefore} já concluída(s) em semanas anteriores (não aparecem)`:''}.</p>`:'<p class="desc" style="margin:0 0 10px">Você não tem ações em aberto nas iniciativas.</p>'}
+        <h4 style="font-size:20px">Você concluiu alguma meta do trimestre?</h4>
+        <p style="margin-top:6px">Confira a seguir as suas metas do <b>T${R.qW} ${R.year}</b> e informe se houve evolução nesta semana.</p>
+        ${R.nGoals?'':'<p class="desc" style="margin-top:10px">Você não tem metas atribuídas neste trimestre.</p>'}</div>`;
+    } else if(s.t==='goal'){
+      const g=s.g, r=s.r||{}; const ev = r.evolucao===true || (r.evolucao==null && Number(r.realizado)>0) ? 'sim' : (r.evolucao===false || (s.r && !Number(r.realizado)) ? 'nao' : '');
+      const uTxt=g.unit?(' ('+g.unit+')'):'';
+      const metaDef = (r.meta!=null && Number(r.meta)) ? r.meta : (s.lastMeta!=null ? s.lastMeta : '');
+      card=`<div class="ras-card"><div class="ras-kicker">🎯 Meta · ${esc(goalPeriodLabel(g))}</div><h4>${esc(g.smart_text||'')}</h4>
+        <div class="field" style="margin-top:12px"><label>Houve evolução nesta meta na semana?</label><div class="ras-st">
+          <label class="ras-opt"><input type="radio" name="ras-ev" value="sim" ${ev==='sim'?'checked':''} onchange="document.getElementById('ras-evbox').style.display=''"><span>Sim, houve evolução</span></label>
+          <label class="ras-opt"><input type="radio" name="ras-ev" value="nao" ${ev==='nao'?'checked':''} onchange="document.getElementById('ras-evbox').style.display='none'"><span>Não houve evolução</span></label></div></div>
+        <div id="ras-evbox" style="${ev==='sim'?'':'display:none'}">
+          <div class="field-row">${f.num('ras-real','Resultado da semana'+uTxt,r.realizado!=null&&Number(r.realizado)?r.realizado:'')}${f.num('ras-meta','Meta da semana'+uTxt+' — para o cálculo do %',metaDef)}</div>
+          ${f.area('ras-causa','Qual foi a causa de ter atingido esse resultado?',r.causa)}</div></div>`;
+    } else {
+      card=`<div class="ras-card ras-intro"><h4 style="font-size:20px">🎉 RAS preenchida!</h4>
+        <p style="margin-top:6px">Semana <b>${R.week}</b>${wk.start?` (${dm(wk.start)} a ${dm(wk.end)})`:''}: <b>${R.saved.acts}</b> ação(ões) e <b>${R.saved.goals}</b> meta(s) atualizadas.</p>
+        <p class="desc" style="margin-top:8px">Tudo já foi salvo. Você pode voltar para revisar qualquer item.</p></div>`;
+    }
+    const nav=`<div class="ras-nav"><button class="btn btn-light" onclick="App.rasPrev()" ${R.i===0?'disabled':''}>◂ Voltar</button>
+      ${s.t==='end'?`<button class="btn btn-primary" onclick="App.closeModal();App.go('desini')">Fechar</button>`:`<button class="btn btn-primary" onclick="App.rasNext()">${s.t==='intro'?(R.nGoals?'Ver minhas metas ▸':'Finalizar ▸'):'Salvar e continuar ▸'}</button>`}</div>`;
+    modal('Preenchimento para RAS — Semana '+R.week+(wk.start?' · '+dm(wk.start)+'–'+dm(wk.end):''), top+card+nav);
+    const m=document.querySelector('.modal'); if(m) m.style.width='680px';
+  }
+  App_rasPrev = () => { const R=window.__ras; if(R.i>0){ R.i--; rasRender(); } };
+  App_rasNext = async () => {
+    const R=window.__ras; const s=R.steps[R.i];
+    try{
+      if(s.t==='act'){
+        const st=(document.querySelector('input[name="ras-st"]:checked')||{}).value||'Em andamento';
+        const imp=val('ras-imp').trim(), next=val('ras-next').trim();
+        if(st!=='Concluído' && !next){ toast('Informe o que será feito na próxima semana.'); return; }
+        await saveActRow(s.a.id, R.year, R.week, st, imp, next);
+        s.r={ status:st, impeditivo:imp, proximo_passo:next }; s.a.status=st; if(!s.done){ s.done=true; R.saved.acts++; }
+      } else if(s.t==='goal'){
+        const ev=(document.querySelector('input[name="ras-ev"]:checked')||{}).value;
+        if(!ev){ toast('Marque se houve evolução nesta meta.'); return; }
+        const row={ goal_id:s.g.id, profile_id:me.id, year:R.year, week:R.week, updated_by:me.id, updated_at:new Date().toISOString() };
+        if(ev==='sim'){
+          const real=parseFloat(String(val('ras-real')).replace(',','.')), meta=parseFloat(String(val('ras-meta')).replace(',','.'));
+          if(isNaN(real)){ toast('Informe o resultado da semana.'); return; }
+          Object.assign(row,{ realizado:real, meta:isNaN(meta)?0:meta, causa:val('ras-causa').trim(), evolucao:true });
+        } else {
+          const meta = (s.r && Number(s.r.meta)) ? Number(s.r.meta) : (s.lastMeta||0);
+          Object.assign(row,{ realizado:0, meta, evolucao:false });
+        }
+        const { error } = await sb.from('goal_weekly').upsert(row,{onConflict:'goal_id,profile_id,year,week'}); if(error) throw error;
+        s.r=Object.assign({}, s.r||{}, row); if(!s.done){ s.done=true; R.saved.goals++; }
+      }
+    }catch(e){ toast('Não foi possível salvar: '+e.message); return; }
+    R.i++; rasRender();
   };
 
   /* ---------- Usuários ---------- */
@@ -2353,14 +2473,14 @@ const App = (() => {
       passos:['Clique em "+ Nova iniciativa", informe o Nome da iniciativa, o Objetivo estratégico, o Departamento e o porquê.','Defina os responsáveis pela iniciativa.','Em "+ Ação", cadastre cada ação: O QUÊ, QUEM (responsável), QUANDO (prazo), COMO e o Status.'],
       dicas:['Ações pequenas e com prazo curto são mais fáceis de acompanhar semana a semana.','Mantenha os prazos atualizados: iniciativas vencidas aparecem como pontos de atenção no relatório.'] },
     { id:'desempenho', t:'Preenchimento de Metas', who:'Responsáveis por cada meta', para:'Onde cada responsável lança, toda semana, a meta e o resultado das suas metas, com causa e ação.',
-      passos:['Use o filtro "Minhas metas" para ver só as metas atribuídas a você.','Clique na semana que quer preencher. No popup, informe a Meta da semana, o Resultado, a Causa (por que ficou acima ou abaixo) e a Ação (o que será feito).','Para ganhar tempo, use o botão "Preenchimento para RAS": ele abre, numa tela só, todas as suas metas da semana passada.','Troque entre a visão Semanal e a visão Por trimestre para ver o acumulado.'],
+      passos:['Use o filtro "Minhas metas" para ver só as metas atribuídas a você.','Clique na semana que quer preencher. No popup, informe a Meta da semana, o Resultado, a Causa (por que ficou acima ou abaixo) e a Ação (o que será feito).','Para a RAS, use o botão "Preenchimento para RAS" (também na página Desempenho de Iniciativas/Metas): ele percorre suas ações e metas da semana passada.','Troque entre a visão Semanal e a visão Por trimestre para ver o acumulado.'],
       dicas:['Preencha até segunda-feira, com os números da semana anterior (segunda a domingo).','Sempre escreva a causa e a ação quando a meta não for atingida. Esses textos vão para o relatório trimestral.','Cada responsável lança a sua parte. O sistema soma automaticamente os lançamentos de todos.'] },
     { id:'indicadores', t:'Painel de Metas', who:'Todos (só consulta)', para:'Acompanhamento das metas agrupadas por perspectiva, objetivo e departamento, com as cores de atingimento.',
       passos:['Filtre por ano, trimestre, departamento, setor ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
       dicas:['Verde = 100% ou mais · Azul = 70 a 99% · Amarelo = 40 a 69% · Vermelho = abaixo de 40%.'] },
-    { id:'desini', t:'Desempenho de Iniciativas', who:'Responsáveis pelas ações', para:'Atualização semanal do status de cada ação 3Q1C das iniciativas.',
-      passos:['Escolha o ano e a semana (ou use "Anterior" e "Próxima").','Use "Minhas ações" para ver só o que é seu.','Clique na ação, escolha o Status de evolução e escreva o que avançou na semana.'],
-      dicas:['Atualize junto com o preenchimento de metas, na mesma rotina semanal.'] },
+    { id:'desini', t:'Desempenho de Iniciativas/Metas', who:'Responsáveis por ações e metas', para:'Página da RAS (reunião de avanço semanal): status semanal das ações das iniciativas e evolução das metas do trimestre.',
+      passos:['Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução, o impeditivo (o que impediu de concluir) e o que será feito na próxima semana. Clique em "Salvar e continuar".','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.'],
+      dicas:['Faça o preenchimento antes da RAS, com os dados da semana anterior (segunda a domingo).','Ações concluídas em semanas anteriores não aparecem mais no assistente.','O campo "Meta da semana" vem preenchido com a meta da semana anterior; ele é usado para calcular o % de atingimento.'] },
     { id:'orcamento', t:'Orçamento', who:'Departamentos (planejamento e revisão) · Financeiro (realizado)', para:'Orçamento trimestral de cada departamento por categoria de gasto, numa página só com as três etapas do ciclo: Planejamento, Acompanhamento e Revisão trimestral.',
       passos:['Escolha o Ano e o Departamento. Por padrão abre o seu departamento.','Etapa "1. Planejamento": lance o valor previsto de cada categoria em T1, T2, T3 e T4. O total anual é calculado sozinho. Os valores são salvos ao sair do campo (o campo pisca verde).','Etapa "2. Acompanhamento": ao fechar cada trimestre, o Financeiro lança o realizado de cada categoria. O sistema mostra o saldo (orçado − realizado) e o % realizado; saldo negativo fica em vermelho.','Etapa "3. Revisão trimestral": depois do fechamento, o departamento lança a nova previsão dos trimestres seguintes e escreve a justificativa ou decisão. Previsão em branco mantém o orçado.'],
       dicas:['Use vírgula para centavos, ex.: 1.500,00.','Cada departamento edita o próprio orçamento; gestores e administradores editam todos. O realizado é lançado pelo departamento financeiro (definido pelo administrador) ou pelo administrador.','Gestores podem ajustar as categorias no botão "Categorias".','A ferramenta é de gestão das áreas: não substitui o controle detalhado de entradas e saídas do Financeiro.'] },
@@ -2388,7 +2508,7 @@ const App = (() => {
     ['2. Onde estamos','Diagnóstico 360, SWOT, PESTEL, Stakeholders, Canvas e Curva de Valor','diag'],
     ['3. Para onde vamos','Mapa BSC (objetivos) e Objetivos & Metas (metas SMART com responsáveis)','bsc'],
     ['4. Como chegar','Iniciativas e ações 3Q1C','iniciativas'],
-    ['5. Toda semana','Preenchimento de Metas e Desempenho de Iniciativas','desempenho'],
+    ['5. Toda semana','Preenchimento para RAS em Desempenho de Iniciativas/Metas','desini'],
     ['6. Todo trimestre','Painel de Metas e Relatório trimestral (Relatórios e Gestão)','gestao'],
     ['7. Orçamento','Planejamento do orçamento, realizado do Financeiro e revisão trimestral','orcamento']
   ];
@@ -2620,7 +2740,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });

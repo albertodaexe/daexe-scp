@@ -42,3 +42,8 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   2. Acompanhamento (Financeiro lança o realizado; saldo e % automáticos), 3. Revisão trimestral (nova previsão + justificativa).
   Página "Visão Geral do Orçamento": indicadores anuais, tabela departamento × trimestre, gráficos, totais por categoria e Excel.
   Tabelas novas: budget_categories (8 categorias padrão por empresa), budget_lines; organizations.budget_finance_dept_id.
+- 2026-10-01 — v30: nova RAS. "Desempenho de Iniciativas" passa a "Desempenho de Iniciativas/Metas", com botão
+  "Preenchimento para RAS": assistente em cards — 1) cada ação em aberto do usuário (status, impeditivo, próxima semana);
+  2) "Você concluiu alguma meta do trimestre?"; 3) cada meta do trimestre (houve evolução? resultado + causa).
+  Salva a cada card. Colunas novas: action_weekly.impeditivo/proximo_passo, goal_weekly.evolucao. O botão de RAS da página
+  Preenchimento de Metas abre o mesmo assistente.
