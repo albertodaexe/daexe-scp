@@ -228,6 +228,24 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+.orc-table{font-size:12.5px}
+.orc-table th{white-space:nowrap}
+.orc-table th.qh{text-align:center;background:#eef2f7;color:var(--navy);border-left:2px solid #fff}
+.orc-table td.num,.orc-table th.num{text-align:right;white-space:nowrap}
+.orc-table td.muted{color:var(--muted)}
+.orc-table .orc-cat{min-width:200px;max-width:290px;position:sticky;left:0;background:#fff;z-index:1;box-shadow:1px 0 0 var(--line)}
+.orc-table th.orc-cat{background:#f7f9fc}
+.orc-table tr.orc-tot td.orc-cat{background:#f2f4f7}
+.grid-2>.card{min-width:0}
+.orc-table .orc-cat span{display:block;font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+.orc-table tr.orc-tot td{background:#f2f4f7;font-weight:700;border-top:2px solid var(--line)}
+.orc-in{width:104px;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;font-family:inherit;transition:background .3s}
+.orc-in:focus{outline:none;border-color:var(--accent);background:#f7fbff}
+.orc-ok{background:#e3f3ec!important;border-color:var(--green)!important}
+.orc-err{background:#fbeaea!important;border-color:var(--red)!important}
+.orc-neg{color:var(--red);font-weight:700}
+.orc-just{width:100%;min-width:200px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;resize:vertical}
+.orc-stages button{font-size:12px}
 .sector-chip{min-width:230px;max-width:360px}
 .sec-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px}
 .sec-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700;margin-right:2px}
@@ -886,6 +904,9 @@ const App = (() => {
     { id:'desempenho', label:'Preenchimento de Metas', ico:'📝' },
     { id:'indicadores', label:'Painel de Metas', ico:'📋' },
     { id:'desini', label:'Desempenho de Iniciativas', ico:'🚦' },
+    { sec:'Orçamento' },
+    { id:'orcamento', label:'Orçamento', ico:'💰' },
+    { id:'orcvisao', label:'Visão Geral do Orçamento', ico:'📊' },
     { sec:'Administração', role:'manager' },
     { id:'usuarios', label:'Usuários & Acessos', ico:'👥', role:'manager' },
     { id:'gestao', label:'Relatórios e Gestão', ico:'📤', role:'admin' },
@@ -2340,6 +2361,12 @@ const App = (() => {
     { id:'desini', t:'Desempenho de Iniciativas', who:'Responsáveis pelas ações', para:'Atualização semanal do status de cada ação 3Q1C das iniciativas.',
       passos:['Escolha o ano e a semana (ou use "Anterior" e "Próxima").','Use "Minhas ações" para ver só o que é seu.','Clique na ação, escolha o Status de evolução e escreva o que avançou na semana.'],
       dicas:['Atualize junto com o preenchimento de metas, na mesma rotina semanal.'] },
+    { id:'orcamento', t:'Orçamento', who:'Departamentos (planejamento e revisão) · Financeiro (realizado)', para:'Orçamento trimestral de cada departamento por categoria de gasto, numa página só com as três etapas do ciclo: Planejamento, Acompanhamento e Revisão trimestral.',
+      passos:['Escolha o Ano e o Departamento. Por padrão abre o seu departamento.','Etapa "1. Planejamento": lance o valor previsto de cada categoria em T1, T2, T3 e T4. O total anual é calculado sozinho. Os valores são salvos ao sair do campo (o campo pisca verde).','Etapa "2. Acompanhamento": ao fechar cada trimestre, o Financeiro lança o realizado de cada categoria. O sistema mostra o saldo (orçado − realizado) e o % realizado; saldo negativo fica em vermelho.','Etapa "3. Revisão trimestral": depois do fechamento, o departamento lança a nova previsão dos trimestres seguintes e escreve a justificativa ou decisão. Previsão em branco mantém o orçado.'],
+      dicas:['Use vírgula para centavos, ex.: 1.500,00.','Cada departamento edita o próprio orçamento; gestores e administradores editam todos. O realizado é lançado pelo departamento financeiro (definido pelo administrador) ou pelo administrador.','Gestores podem ajustar as categorias no botão "Categorias".','A ferramenta é de gestão das áreas: não substitui o controle detalhado de entradas e saídas do Financeiro.'] },
+    { id:'orcvisao', t:'Visão Geral do Orçamento', who:'Todos (só consulta)', para:'Consolidado do orçamento da organização: orçado, realizado e saldo por departamento e trimestre, indicadores anuais, gráficos e totais por categoria.',
+      passos:['Escolha o ano.','Confira os indicadores (orçamento anual, realizado, saldo e % realizado) e a tabela por departamento.','Clique no nome de um departamento para abrir os lançamentos dele.','Administradores podem exportar tudo para Excel (Planejamento, Acompanhamento e Revisão Trimestral).'],
+      dicas:['A barra amarela do gráfico por trimestre mostra a previsão revisada.'] },
     { id:'usuarios', t:'Usuários & Acessos', who:'Gestor consulta · Administrador edita', para:'Cadastro das pessoas, papel de cada uma e departamento.',
       passos:['Clique em "+ Cadastrar pessoa" e informe nome, e-mail e uma senha provisória.','Clique em "Editar" para definir o Papel (Administrador, Gestor, Colaborador ou Visualizador), o Departamento e se a pessoa está Ativa.','Peça para a pessoa trocar a senha provisória em Meu Perfil no primeiro acesso.'],
       dicas:['Administrador gerencia tudo · Gestor cria objetivos, metas e estrutura · Colaborador lança SWOT, iniciativas e resultados · Visualizador só consulta.','Quando alguém sair da empresa, marque como Inativo em vez de apagar, para manter o histórico.'] },
@@ -2362,7 +2389,8 @@ const App = (() => {
     ['3. Para onde vamos','Mapa BSC (objetivos) e Objetivos & Metas (metas SMART com responsáveis)','bsc'],
     ['4. Como chegar','Iniciativas e ações 3Q1C','iniciativas'],
     ['5. Toda semana','Preenchimento de Metas e Desempenho de Iniciativas','desempenho'],
-    ['6. Todo trimestre','Painel de Metas e Relatório trimestral (Relatórios e Gestão)','gestao']
+    ['6. Todo trimestre','Painel de Metas e Relatório trimestral (Relatórios e Gestão)','gestao'],
+    ['7. Orçamento','Planejamento do orçamento, realizado do Financeiro e revisão trimestral','orcamento']
   ];
   VIEWS.tutorial = async (v) => {
     const visible=(id)=>{ const n=NAV.find(x=>x.id===id); return !n || !n.role || can(n.role); };
@@ -2391,6 +2419,183 @@ const App = (() => {
   App_tutFilter = (q) => { q=String(q||'').toLowerCase().trim(); document.querySelectorAll('.tut-item').forEach(d=>{ const hit=!q || d.dataset.s.indexOf(q)>=0; d.style.display=hit?'':'none'; if(q && hit) d.open=true; }); };
   App_help = () => { window.__tutFocus = current && current!=='tutorial' ? current : null; go('tutorial'); };
 
+  /* ---------- Orçamento (planejamento, acompanhamento e revisão trimestral) ---------- */
+  const brl=(n)=>(Number(n)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const brl0=(n)=>'R$ '+(Number(n)||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
+  function parseBR(s){ s=String(s==null?'':s).trim().replace(/[R$\s]/g,''); if(!s) return 0; if(s.indexOf(',')>=0) s=s.replace(/\./g,'').replace(',','.'); const n=Number(s); return isFinite(n)?n:NaN; }
+  async function orcLoad(year){
+    const [depts, cats, lines, org] = await Promise.all([tList('departments','ord'), tList('budget_categories','ord'),
+      fetchAllRows('budget_lines', q=>q.eq('year',year)), sb.from('organizations').select('budget_finance_dept_id').eq('id',me.org_id).single().then(r=>r.data||{})]);
+    return { depts, cats:cats.filter(c=>c.active!==false), allCats:cats, lines, finDept:org.budget_finance_dept_id||null };
+  }
+  const orcLine=(D,dep,cat)=>D.lines.find(l=>l.department_id===dep && l.category_id===cat)||{};
+  const orcCanPlan=(D,dep)=> can('manager') || (can('contributor') && me.department_id===dep);
+  const orcCanReal=(D)=> can('admin') || (can('contributor') && D.finDept && me.department_id===D.finDept);
+  VIEWS.orcamento = async (v) => {
+    const year = window.__orcYear || new Date().getFullYear(); window.__orcYear=year;
+    const D = await orcLoad(year); window.__orcD=D;
+    const stage = window.__orcStage || 'plan'; window.__orcStage=stage;
+    let dep = window.__orcDept; if(dep==null || !D.depts.some(d=>d.id===dep)) dep = (me.department_id && D.depts.some(d=>d.id===me.department_id)) ? me.department_id : (D.depts[0]||{}).id; window.__orcDept=dep;
+    const yopts=[]; for(let y=year-2;y<=year+2;y++) yopts.push(y);
+    const finName=(D.depts.find(d=>d.id===D.finDept)||{}).name||'—';
+    const stages=[['plan','1. Planejamento','Cada departamento lança o orçamento previsto por categoria e trimestre.'],['real','2. Acompanhamento','O Financeiro lança o realizado consolidado de cada trimestre; o saldo é calculado automaticamente.'],['rev','3. Revisão trimestral','Depois do fechamento, o departamento revisa a previsão dos próximos trimestres e justifica as decisões.']];
+    const st=stages.find(s=>s[0]===stage);
+    v.innerHTML = `<div class="card"><div class="section-head"><div><h3>Orçamento ${year}</h3>
+        <p class="desc" style="margin:0">Ciclo trimestral: Planejamento → Execução → Fechamento → Atualização do realizado (Financeiro) → Revisão da área → Nova previsão. Ferramenta de gestão das áreas: não substitui o controle detalhado de entradas e saídas do Financeiro.</p></div>
+        <div class="inline-actions">${can('manager')?`<button class="btn btn-light btn-sm" onclick="App.orcCats()">Categorias</button>`:''}${can('admin')?`<button class="btn btn-light btn-sm" onclick="App.orcFin()">Financeiro: ${esc(finName)}</button>`:''}<button class="btn btn-light btn-sm" onclick="App.go('orcvisao')">Visão geral →</button></div></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="margin:0;min-width:100px"><label>Ano</label><select onchange="App.orcSet('year',this.value)">${yopts.map(y=>`<option value="${y}" ${y===year?'selected':''}>${y}</option>`).join('')}</select></div>
+          <div class="field" style="margin:0;min-width:240px"><label>Departamento</label><select onchange="App.orcSet('dept',this.value)">${D.depts.map(d=>`<option value="${d.id}" ${d.id===dep?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+          ${stage!=='plan'?`<div class="field" style="margin:0;min-width:120px"><label>Trimestre</label><select onchange="App.orcSet('q',this.value)"><option value="">Todos</option>${[1,2,3,4].map(q=>`<option value="${q}" ${+(window.__orcQ||0)===q?'selected':''}>T${q}</option>`).join('')}</select></div>`:''}
+          <div class="toggle-group orc-stages">${stages.map(s=>`<button class="${s[0]===stage?'active':''}" onclick="App.orcSet('stage','${s[0]}')">${s[1]}</button>`).join('')}</div>
+        </div>
+        <p class="desc" style="margin:12px 0 0"><b>${esc(st[1])}:</b> ${esc(st[2])} ${orcPermMsg(D,dep,stage)}</p>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto" id="orc-table">${orcTable(D,dep,stage)}</div></div>`;
+  };
+  function orcPermMsg(D,dep,stage){
+    const ok = stage==='real' ? orcCanReal(D) : orcCanPlan(D,dep);
+    if(ok) return '<span class="pill pill-green" style="margin-left:4px">Você pode editar</span>';
+    if(stage==='real') return '<span class="pill pill-gray" style="margin-left:4px">Somente leitura — o realizado é lançado pelo Financeiro ou pelo administrador</span>';
+    return '<span class="pill pill-gray" style="margin-left:4px">Somente leitura — editam o próprio departamento, gestores e administradores</span>';
+  }
+  function orcTable(D,dep,stage){
+    const cats=D.cats; const qf=+(window.__orcQ||0); const Q=(stage!=='plan'&&qf)?[qf]:[1,2,3,4];
+    const edit = stage==='real' ? orcCanReal(D) : orcCanPlan(D,dep);
+    const inp=(cat,field,val)=> edit ? `<input class="orc-in" value="${val==null||val===''?'':brl(val)}" data-cat="${cat}" data-f="${field}" onfocus="this.select()" onchange="App.orcSave(this)" inputmode="decimal">` : `<span>${val==null||val===''?'—':brl(val)}</span>`;
+    const neg=(n)=> n<0?' orc-neg':'';
+    const tot={}; const add=(k,n)=>{ tot[k]=(tot[k]||0)+(Number(n)||0); };
+    let head, rows;
+    if(stage==='plan'){
+      head=`<tr><th class="orc-cat">Categoria</th>${Q.map(q=>`<th class="num">T${q} Orçado</th>`).join('')}<th class="num">Orçamento anual</th></tr>`;
+      rows=cats.map(c=>{ const l=orcLine(D,dep,c.id); const an=Q.reduce((a,q)=>a+(Number(l['o'+q])||0),0); Q.forEach(q=>add('o'+q,l['o'+q])); add('an',an);
+        return `<tr><td class="orc-cat"><b>${esc(c.name)}</b><span>${esc(c.description||'')}</span></td>${Q.map(q=>`<td class="num">${inp(c.id,'o'+q,l['o'+q]||0)}</td>`).join('')}<td class="num"><b>${brl(an)}</b></td></tr>`; }).join('');
+      rows+=`<tr class="orc-tot"><td class="orc-cat"><b>Total do departamento</b></td>${Q.map(q=>`<td class="num">${brl(tot['o'+q])}</td>`).join('')}<td class="num">${brl(tot.an)}</td></tr>`;
+    } else if(stage==='real'){
+      head=`<tr><th class="orc-cat" rowspan="2">Categoria</th>${Q.map(q=>`<th colspan="3" class="qh">T${q}</th>`).join('')}<th colspan="4" class="qh">${Q.length===1?'Trimestre selecionado':'Ano'}</th></tr>
+        <tr>${Q.map(()=>`<th class="num">Orçado</th><th class="num">Realizado</th><th class="num">Saldo</th>`).join('')}<th class="num">Orçado</th><th class="num">Realizado</th><th class="num">Saldo</th><th class="num">%</th></tr>`;
+      rows=cats.map(c=>{ const l=orcLine(D,dep,c.id); let ao=0, ar=0;
+        const cells=Q.map(q=>{ const o=Number(l['o'+q])||0, r=Number(l['r'+q])||0; ao+=o; ar+=r; add('o'+q,o); add('r'+q,r); return `<td class="num muted">${brl(o)}</td><td class="num">${inp(c.id,'r'+q,r)}</td><td class="num${neg(o-r)}">${brl(o-r)}</td>`; }).join('');
+        add('ao',ao); add('ar',ar);
+        return `<tr><td class="orc-cat"><b>${esc(c.name)}</b></td>${cells}<td class="num">${brl(ao)}</td><td class="num">${brl(ar)}</td><td class="num${neg(ao-ar)}"><b>${brl(ao-ar)}</b></td><td class="num">${ao?Math.round(ar/ao*100)+'%':'—'}</td></tr>`; }).join('');
+      rows+=`<tr class="orc-tot"><td class="orc-cat"><b>Total do departamento</b></td>${Q.map(q=>`<td class="num">${brl(tot['o'+q])}</td><td class="num">${brl(tot['r'+q])}</td><td class="num${neg((tot['o'+q]||0)-(tot['r'+q]||0))}">${brl((tot['o'+q]||0)-(tot['r'+q]||0))}</td>`).join('')}<td class="num">${brl(tot.ao)}</td><td class="num">${brl(tot.ar)}</td><td class="num${neg((tot.ao||0)-(tot.ar||0))}">${brl((tot.ao||0)-(tot.ar||0))}</td><td class="num">${tot.ao?Math.round((tot.ar||0)/tot.ao*100)+'%':'—'}</td></tr>`;
+    } else {
+      head=`<tr><th class="orc-cat" rowspan="2">Categoria</th>${Q.map(q=>`<th colspan="3" class="qh">T${q}</th>`).join('')}<th rowspan="2" style="min-width:220px">Justificativa / decisão</th></tr>
+        <tr>${Q.map(()=>`<th class="num">Orçado</th><th class="num">Realizado</th><th class="num">Nova previsão</th>`).join('')}</tr>`;
+      rows=cats.map(c=>{ const l=orcLine(D,dep,c.id);
+        const cells=Q.map(q=>{ const o=Number(l['o'+q])||0, r=Number(l['r'+q])||0, p=l['p'+q]; add('o'+q,o); add('r'+q,r); add('p'+q,(p==null?o:p));
+          return `<td class="num muted">${brl(o)}</td><td class="num muted">${brl(r)}</td><td class="num">${inp(c.id,'p'+q,p==null?'':p)}</td>`; }).join('');
+        const just = edit ? `<textarea class="orc-just" data-cat="${c.id}" data-f="justificativa" rows="2" onchange="App.orcSave(this)">${esc(l.justificativa||'')}</textarea>` : esc(l.justificativa||'—');
+        return `<tr><td class="orc-cat"><b>${esc(c.name)}</b></td>${cells}<td>${just}</td></tr>`; }).join('');
+      rows+=`<tr class="orc-tot"><td class="orc-cat"><b>Total do departamento</b></td>${Q.map(q=>`<td class="num">${brl(tot['o'+q])}</td><td class="num">${brl(tot['r'+q])}</td><td class="num">${brl(tot['p'+q])}</td>`).join('')}<td class="desc" style="font-size:11px">Nova previsão em branco = mantém o orçado.</td></tr>`;
+    }
+    return `<table class="orc-table"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
+  }
+  App_orcSet = (k,val) => { if(k==='year') window.__orcYear=+val; if(k==='dept') window.__orcDept=+val; if(k==='stage') window.__orcStage=val; if(k==='q') window.__orcQ=+val||0; go(current==='orcvisao'?'orcvisao':'orcamento'); };
+  App_orcSave = async (el) => {
+    const D=window.__orcD, dep=window.__orcDept, year=window.__orcYear, cat=+el.dataset.cat, f=el.dataset.f;
+    let value;
+    if(f==='justificativa') value=el.value;
+    else { const raw=el.value.trim(); if(f[0]==='p' && raw===''){ value=null; } else { value=parseBR(raw); if(isNaN(value)){ toast('Valor inválido. Use números, ex.: 1.500,00'); el.classList.add('orc-err'); return; } } }
+    el.classList.remove('orc-err');
+    const cur=orcLine(D,dep,cat);
+    const row={ org_id:me.org_id, year, department_id:dep, category_id:cat, updated_by:me.id, updated_at:new Date().toISOString() }; row[f]=value;
+    try{
+      let r;
+      if(cur.id) r=await sb.from('budget_lines').update(row).eq('id',cur.id).select();
+      else r=await sb.from('budget_lines').upsert(row,{ onConflict:'org_id,year,department_id,category_id' }).select();
+      if(r.error) throw r.error;
+      const saved=(r.data&&r.data[0])||Object.assign({},cur,row);
+      const i=D.lines.findIndex(l=>l.department_id===dep && l.category_id===cat); if(i>=0) D.lines[i]=Object.assign(D.lines[i],saved); else D.lines.push(saved);
+      if(f!=='justificativa' && value!=null) el.value=brl(value);
+      el.classList.add('orc-ok'); setTimeout(()=>el.classList.remove('orc-ok'),900);
+      const box=document.getElementById('orc-table');
+      if(box && f!=='justificativa'){ const tmp=document.createElement('div'); tmp.innerHTML=orcTable(D,dep,window.__orcStage);
+        const a=box.querySelectorAll('tbody td:not(:has(input)):not(:has(textarea))'), b=tmp.querySelectorAll('tbody td:not(:has(input)):not(:has(textarea))');
+        if(a.length===b.length) a.forEach((td,i)=>{ td.innerHTML=b[i].innerHTML; td.className=b[i].className; }); }
+    }catch(e){ toast('Não foi possível salvar: '+e.message); el.classList.add('orc-err'); }
+  };
+  App_orcCats = () => {
+    const D=window.__orcD; const cats=D.allCats;
+    modal('Categorias de orçamento', `<p class="desc">As categorias valem para todos os departamentos. Desativar esconde a categoria sem apagar os valores já lançados.</p>
+      <table><thead><tr><th>Categoria</th><th>Descrição</th><th>Ativa</th><th></th></tr></thead><tbody>
+      ${cats.map(c=>`<tr><td><input id="bc-n-${c.id}" value="${esc(c.name)}" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px"></td><td><input id="bc-d-${c.id}" value="${esc(c.description||'')}" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px"></td><td><input type="checkbox" id="bc-a-${c.id}" ${c.active!==false?'checked':''} style="width:auto"></td><td><button class="btn btn-light btn-sm" onclick="App.orcCatSave(${c.id})">Salvar</button></td></tr>`).join('')}
+      <tr><td><input id="bc-n-0" placeholder="Nova categoria" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px"></td><td><input id="bc-d-0" placeholder="Descrição" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px"></td><td></td><td><button class="btn btn-accent btn-sm" onclick="App.orcCatSave(0)">Adicionar</button></td></tr>
+      </tbody></table>`);
+    const m=document.querySelector('.modal'); if(m) m.style.width='760px';
+  };
+  App_orcCatSave = async (id) => {
+    const name=val('bc-n-'+id).trim(); if(!name){ toast('Informe o nome da categoria.'); return; }
+    const row={ name, description:val('bc-d-'+id).trim()||null };
+    try{ if(id){ row.active=document.getElementById('bc-a-'+id).checked; await tUpdate('budget_categories',id,row); }
+      else { row.ord=(window.__orcD.allCats.reduce((a,c)=>Math.max(a,c.ord||0),0))+1; await tInsert('budget_categories',row); } }
+    catch(e){ return toast(e.message); }
+    toast('Categoria salva'); closeModal(); go('orcamento');
+  };
+  App_orcFin = () => {
+    const D=window.__orcD;
+    modal('Departamento financeiro', form([`<p class="desc">Os usuários deste departamento podem lançar o <b>realizado</b> de todos os departamentos (etapa Acompanhamento). Administradores sempre podem.</p>`,
+      f.sel('orc-fin','Departamento responsável pelo realizado',[{v:'',t:'— Somente administradores'}].concat(D.depts.map(d=>({v:d.id,t:d.name}))),D.finDept||''),
+      `<button class="btn btn-primary btn-block" onclick="App.orcFinSave()">Salvar</button>`]));
+  };
+  App_orcFinSave = async () => {
+    try{ const { error } = await sb.from('organizations').update({ budget_finance_dept_id:+val('orc-fin')||null }).eq('id',me.org_id); if(error) throw error; }catch(e){ return toast(e.message); }
+    closeModal(); toast('Salvo'); go('orcamento');
+  };
+
+  /* ---------- Orçamento: visão geral ---------- */
+  VIEWS.orcvisao = async (v) => {
+    const year = window.__orcYear || new Date().getFullYear(); window.__orcYear=year;
+    const D = await orcLoad(year); window.__orcD=D;
+    const Q=[1,2,3,4]; const yopts=[]; for(let y=year-2;y<=year+2;y++) yopts.push(y);
+    const sum=(ls,f)=>ls.reduce((a,l)=>a+(Number(l[f])||0),0);
+    const prev=(ls,q)=>ls.reduce((a,l)=>a+(l['p'+q]==null?(Number(l['o'+q])||0):(Number(l['p'+q])||0)),0);
+    const L=D.lines.filter(l=>D.cats.some(c=>c.id===l.category_id));
+    const byDep=D.depts.map(d=>{ const ls=L.filter(l=>l.department_id===d.id); const o={}; Q.forEach(q=>{ o['o'+q]=sum(ls,'o'+q); o['r'+q]=sum(ls,'r'+q); o['p'+q]=prev(ls,q); }); o.ao=Q.reduce((a,q)=>a+o['o'+q],0); o.ar=Q.reduce((a,q)=>a+o['r'+q],0); o.ap=Q.reduce((a,q)=>a+o['p'+q],0); return {d,o}; });
+    const T={}; ['ao','ar','ap'].concat(...Q.map(q=>['o'+q,'r'+q,'p'+q])).forEach(k=>T[k]=byDep.reduce((a,x)=>a+x.o[k],0));
+    const pctR=T.ao?Math.round(T.ar/T.ao*1000)/10:0;
+    const neg=(n)=> n<0?' orc-neg':'';
+    const byCat=D.cats.map(c=>{ const ls=L.filter(l=>l.category_id===c.id); return {c, ao:Q.reduce((a,q)=>a+sum(ls,'o'+q),0), ar:Q.reduce((a,q)=>a+sum(ls,'r'+q),0)}; });
+    v.innerHTML = `<div class="card"><div class="section-head"><div><h3>Visão geral do orçamento ${year}</h3><p class="desc" style="margin:0">Consolidado de todos os departamentos: orçado (planejamento), realizado (Financeiro) e saldo por trimestre.</p></div>
+        <div class="inline-actions"><div class="field" style="margin:0;min-width:100px"><select onchange="App.orcSet('year',this.value)">${yopts.map(y=>`<option value="${y}" ${y===year?'selected':''}>${y}</option>`).join('')}</select></div>
+        <button class="btn btn-light btn-sm" onclick="App.go('orcamento')">← Lançamentos</button>${can('admin')?`<button class="btn btn-accent btn-sm" onclick="App.orcExport()">⤓ Excel</button>`:''}</div></div></div>
+      <div class="cards">
+        <div class="stat"><div class="label">Orçamento anual</div><div class="value" style="font-size:22px">${brl0(T.ao)}</div><div class="sub">soma do planejamento</div></div>
+        <div class="stat" style="border-left-color:var(--green)"><div class="label">Realizado anual</div><div class="value" style="font-size:22px">${brl0(T.ar)}</div><div class="sub">lançado pelo Financeiro</div></div>
+        <div class="stat" style="border-left-color:${T.ao-T.ar<0?'var(--red)':'var(--gold)'}"><div class="label">Saldo anual</div><div class="value" style="font-size:22px;${T.ao-T.ar<0?'color:var(--red)':''}">${brl0(T.ao-T.ar)}</div><div class="sub">orçado − realizado</div></div>
+        <div class="stat" style="border-left-color:var(--navy)"><div class="label">% realizado</div><div class="value" style="font-size:22px">${pctR.toLocaleString('pt-BR')}%</div><div class="sub">previsão revisada: ${brl0(T.ap)}</div></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="orc-table">
+        <thead><tr><th class="orc-cat" rowspan="2">Departamento</th>${Q.map(q=>`<th colspan="3" class="qh">T${q}</th>`).join('')}<th colspan="3" class="qh">Ano</th></tr>
+        <tr>${Q.concat(['A']).map(()=>`<th class="num">Orçado</th><th class="num">Realizado</th><th class="num">Saldo</th>`).join('')}</tr></thead>
+        <tbody>${byDep.map(({d,o})=>`<tr><td class="orc-cat"><a href="#" onclick="window.__orcDept=${d.id};window.__orcStage='real';App.go('orcamento');return false;"><b>${esc(d.name)}</b></a></td>${Q.map(q=>`<td class="num">${brl(o['o'+q])}</td><td class="num">${brl(o['r'+q])}</td><td class="num${neg(o['o'+q]-o['r'+q])}">${brl(o['o'+q]-o['r'+q])}</td>`).join('')}<td class="num"><b>${brl(o.ao)}</b></td><td class="num"><b>${brl(o.ar)}</b></td><td class="num${neg(o.ao-o.ar)}"><b>${brl(o.ao-o.ar)}</b></td></tr>`).join('')}
+        <tr class="orc-tot"><td class="orc-cat"><b>Totais ${esc(me.org_name||'')}</b></td>${Q.map(q=>`<td class="num">${brl(T['o'+q])}</td><td class="num">${brl(T['r'+q])}</td><td class="num${neg(T['o'+q]-T['r'+q])}">${brl(T['o'+q]-T['r'+q])}</td>`).join('')}<td class="num">${brl(T.ao)}</td><td class="num">${brl(T.ar)}</td><td class="num${neg(T.ao-T.ar)}">${brl(T.ao-T.ar)}</td></tr>
+        </tbody></table></div></div>
+      <div class="grid-2">
+        <div class="card"><h3>Orçado × realizado por trimestre</h3><p class="desc">Inclui a previsão revisada.</p><div style="position:relative;height:280px"><canvas id="orc-ch-q"></canvas></div></div>
+        <div class="card"><h3>Orçado × realizado por departamento</h3><p class="desc">Valores do ano.</p><div style="position:relative;height:280px"><canvas id="orc-ch-d"></canvas></div></div>
+      </div>
+      <div class="card"><h3>Por categoria</h3><table><thead><tr><th>Categoria</th><th class="num">Orçado anual</th><th class="num">Realizado anual</th><th class="num">Saldo</th><th class="num">% realizado</th></tr></thead><tbody>
+        ${byCat.map(x=>`<tr><td><b>${esc(x.c.name)}</b></td><td class="num">${brl(x.ao)}</td><td class="num">${brl(x.ar)}</td><td class="num${neg(x.ao-x.ar)}">${brl(x.ao-x.ar)}</td><td class="num">${x.ao?Math.round(x.ar/x.ao*100)+'%':'—'}</td></tr>`).join('')}
+      </tbody></table></div>`;
+    if(typeof Chart!=='undefined'){
+      const money=(c)=>'R$ '+Number(c).toLocaleString('pt-BR',{maximumFractionDigits:0});
+      const opts={maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+money(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:(x)=>money(x)}}}};
+      mkChart('orc-ch-q','bar',{labels:Q.map(q=>'T'+q),datasets:[{label:'Orçado',data:Q.map(q=>T['o'+q]),backgroundColor:'#1F3A5F'},{label:'Realizado',data:Q.map(q=>T['r'+q]),backgroundColor:'#2e9e6b'},{label:'Previsão revisada',data:Q.map(q=>T['p'+q]),backgroundColor:'#E6A817'}]},opts);
+      mkChart('orc-ch-d','bar',{labels:byDep.map(x=>x.d.name.length>22?x.d.name.slice(0,21)+'…':x.d.name),datasets:[{label:'Orçado',data:byDep.map(x=>x.o.ao),backgroundColor:'#1F3A5F'},{label:'Realizado',data:byDep.map(x=>x.o.ar),backgroundColor:'#2e9e6b'}]},opts);
+    }
+  };
+  App_orcExport = () => {
+    const D=window.__orcD, year=window.__orcYear; if(typeof XLSX==='undefined'){ toast('Biblioteca de Excel ainda carregando. Tente de novo.'); return; }
+    const Q=[1,2,3,4]; const dn=(id)=>(D.depts.find(d=>d.id===id)||{}).name||''; const cn=(id)=>(D.allCats.find(c=>c.id===id)||{}).name||'';
+    const wb=XLSX.utils.book_new(); const add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n);
+    const rows=[]; D.depts.forEach(d=>D.cats.forEach(c=>{ const l=orcLine(D,d.id,c.id); rows.push({d:d.name,c:c.name,l}); }));
+    add('Planejamento',[['Departamento','Categoria',...Q.map(q=>'T'+q+' Orçado'),'Orçamento Anual'],...rows.map(x=>[x.d,x.c,...Q.map(q=>Number(x.l['o'+q])||0),Q.reduce((a,q)=>a+(Number(x.l['o'+q])||0),0)])]);
+    add('Acompanhamento',[['Departamento','Categoria',...[].concat(...Q.map(q=>['T'+q+' Orçado','T'+q+' Realizado','T'+q+' Saldo'])),'Orçado Anual','Realizado Anual','Saldo Anual'],...rows.map(x=>{ const o=Q.map(q=>Number(x.l['o'+q])||0), r=Q.map(q=>Number(x.l['r'+q])||0); const ao=o.reduce((a,b)=>a+b,0), ar=r.reduce((a,b)=>a+b,0); return [x.d,x.c,...[].concat(...Q.map((q,i)=>[o[i],r[i],o[i]-r[i]])),ao,ar,ao-ar]; })]);
+    add('Revisão Trimestral',[['Departamento','Categoria',...Q.map(q=>'T'+q+' Realizado'),...Q.map(q=>'Próxima Previsão T'+q),'Justificativa / decisão'],...rows.map(x=>[x.d,x.c,...Q.map(q=>Number(x.l['r'+q])||0),...Q.map(q=>x.l['p'+q]==null?'':Number(x.l['p'+q])),x.l.justificativa||''])]);
+    XLSX.writeFile(wb,`Orcamento_${year}_${(me.org_name||'Org').replace(/[^A-Za-z0-9]+/g,'_')}.xlsx`);
+  };
+
   /* ---------- init ---------- */
   async function init(){
     document.getElementById('login-form').addEventListener('submit', async (e)=>{ e.preventDefault();
@@ -2417,7 +2622,7 @@ const App = (() => {
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
    'diYear','diWeek','diScope','openActWeek','saveActWeek',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
-   'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
+   'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
   return Object.assign(pub,{ init });
 })();

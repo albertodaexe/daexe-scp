@@ -37,3 +37,8 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - 2026-09-30 — v28: uma meta pode valer para mais de um trimestre do mesmo ano (checkboxes T1–T4 no cadastro;
   coluna goals.quarters). Período exibido como "T3–T4 2026"; filtro de trimestre e relatório trimestral consideram
   todos os trimestres da meta (no relatório, o resultado é só das semanas do trimestre escolhido).
+- 2026-10-01 — v29: novo módulo ORÇAMENTO (menu "Orçamento"), baseado na planilha Orcamento_DAEXE_Modelo.xlsx.
+  Página "Orçamento": uma página com as 3 etapas — 1. Planejamento (departamento lança orçado T1–T4 por categoria),
+  2. Acompanhamento (Financeiro lança o realizado; saldo e % automáticos), 3. Revisão trimestral (nova previsão + justificativa).
+  Página "Visão Geral do Orçamento": indicadores anuais, tabela departamento × trimestre, gráficos, totais por categoria e Excel.
+  Tabelas novas: budget_categories (8 categorias padrão por empresa), budget_lines; organizations.budget_finance_dept_id.
