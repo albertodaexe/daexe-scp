@@ -51,3 +51,7 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   Desempenho de Iniciativas/Metas: tela cheia com indicadores da semana, linha do tempo semanal (bolinhas por semana do
   trimestre) de cada ação por iniciativa com status/impeditivo/próximos passos, e de cada meta (evoluiu / sem evolução /
   não informado) com resultado, causa e % acumulado no trimestre. Navegação ◂ ▸ entre semanas e Minhas/Todas.
+- 2026-10-05 — v32: RAS — ação Em andamento ou Atrasada exige impeditivo/motivo do atraso e o que será feito na
+  próxima semana; o prazo da ação define o atraso (vencida e não concluída = Atrasada; só permite Atrasado/Concluído).
+  Campo "Responsável pelo impeditivo" (usuário, que recebe notificação, ou nome externo). Iniciativas ganharam início e
+  prazo de conclusão e vínculo OBRIGATÓRIO com pelo menos uma meta (tabela initiative_goals). Prazos vencidos em vermelho.

@@ -228,6 +228,9 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+.ras-warn{background:#fdecea;border:1px solid #f5c2bd;color:#9b2c24;border-radius:8px;padding:8px 11px;font-size:13px;margin-bottom:10px}
+.ras-opt.dis{opacity:.4;cursor:not-allowed}
+.ras-req{color:var(--red)}
 #pres{position:fixed;inset:0;z-index:80;background:#f1f4f8;display:flex;flex-direction:column}
 .pres-load{margin:auto;color:var(--muted);font-size:15px}
 .pres-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--navy);color:#fff;padding:14px 26px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
@@ -1649,7 +1652,9 @@ const App = (() => {
       tList('initiatives','ord'), tList('objectives','ord'), tList('departments','ord'),
       tList('profiles','name'), tList('initiative_actions','ord'),
       sb.from('initiative_assignees').select('initiative_id, profile_id, profiles(name)').then(r=>r.data||[])]);
-    window.__bsc={objs}; window.__depts=depts; window.__profs=profs;
+    const [igoals, goalsAll] = await Promise.all([tList('initiative_goals'), tList('goals')]);
+    window.__bsc={objs}; window.__depts=depts; window.__profs=profs; window.__iniGoals=igoals; window.__goalsAll=goalsAll;
+    const goalsOf=(id)=>igoals.filter(x=>x.initiative_id===id).map(x=>goalsAll.find(g=>g.id===x.goal_id)).filter(Boolean);
     const objTitle=(id)=>{ const o=objs.find(x=>x.id===id); return o?o.title:null; };
     const deptN=(id)=>{ const d=depts.find(x=>x.id===id); return d?d.name:null; };
     const profN=(id)=>{ const p=profs.find(x=>x.id===id); return p?p.name:'—'; };
@@ -1659,13 +1664,14 @@ const App = (() => {
     v.innerHTML=`<div class="section-head"><h3>Plano de Ação — Iniciativas</h3>${can('contributor')?`<button class="btn btn-accent" onclick="App.editIni()">+ Nova iniciativa</button>`:''}</div>
       ${rows.length?rows.map(i=>{ const l=actsOf(i.id); const p=prog(i); const owns=ownersOf(i.id); return `<div class="card" style="border-left:4px solid var(--accent)">
         <div class="section-head"><div><h3>${esc(i.name)}</h3>
-          <p class="desc" style="margin:2px 0 0">${objTitle(i.objective_id)?`🎯 ${esc(objTitle(i.objective_id))}`:'<span style="color:var(--red)">sem objetivo</span>'}${deptN(i.department_id)?` · 🏢 ${esc(deptN(i.department_id))}`:''}</p></div>
+          <p class="desc" style="margin:2px 0 0">${objTitle(i.objective_id)?`🎯 ${esc(objTitle(i.objective_id))}`:'<span style="color:var(--red)">sem objetivo</span>'}${deptN(i.department_id)?` · 🏢 ${esc(deptN(i.department_id))}`:''}${i.date_start||i.date_end?` · 📅 ${i.date_start?esc(i.date_start.split('-').reverse().join('/'))+' a ':'até '}<b style="${i.date_end&&new Date(i.date_end+'T23:59')<new Date()&&p<100?'color:var(--red)':''}">${esc((i.date_end||'').split('-').reverse().join('/'))}</b>${i.date_end&&new Date(i.date_end+'T23:59')<new Date()&&p<100?' ⚠️ vencida':''}`:''}</p>
+          <p class="desc" style="margin:4px 0 0">${goalsOf(i.id).length?'Metas: '+goalsOf(i.id).map(g=>`<span class="sec-chip" title="${esc(g.smart_text)}">${esc(g.smart_text.length>60?g.smart_text.slice(0,59)+'…':g.smart_text)} · ${esc(goalPeriodLabel(g))}</span>`).join(''):'<span style="color:var(--red);font-weight:600">⚠️ Nenhuma meta vinculada — edite a iniciativa e vincule pelo menos uma meta.</span>'}</p></div>
           ${can('contributor')?`<div class="inline-actions"><button class="btn btn-light btn-sm" onclick="App.manageIniOwners(${i.id})">Responsáveis</button><button class="btn btn-light btn-sm" onclick='App.editIni(${JSON.stringify(i).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delIni(${i.id})">Excluir</button></div>`:''}</div>
         <div style="margin:2px 0 10px">${owns.length?owns.map(a=>`<span class="owner-chip">${esc((a.profiles&&a.profiles.name)||'')}</span>`).join(''):'<span class="desc">Nenhum responsável definido</span>'}</div>
         <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px">${bar(p)}<small>${p}% · ${l.filter(x=>x.status==='Concluído').length}/${l.length} ações concluídas</small></div>
         <div class="dept-sub"><h4>Ações (3Q1C) ${can('contributor')?`<button class="btn btn-light btn-sm" onclick="App.editAction(${i.id},0)">+ Ação</button>`:''}</h4>
           <table><thead><tr><th>O quê</th><th>Quem</th><th>Quando</th><th>Como</th><th>Status</th>${can('contributor')?'<th></th>':''}</tr></thead><tbody>
-          ${l.length?l.map(a=>`<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px">${esc((a.when_date||'').slice(0,10))}</td><td style="font-size:12px">${esc(a.how||'')}</td><td>${statusPill(a.status)}</td>
+          ${l.length?l.map(a=>`<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px;white-space:nowrap;${a.when_date&&a.status!=='Concluído'&&new Date(String(a.when_date).slice(0,10)+'T23:59:59')<new Date()?'color:var(--red);font-weight:700':''}">${esc(brDate(a.when_date))}${a.when_date&&a.status!=='Concluído'&&new Date(String(a.when_date).slice(0,10)+'T23:59:59')<new Date()?' ⚠️':''}</td><td style="font-size:12px">${esc(a.how||'')}</td><td>${statusPill(a.status)}</td>
             ${can('contributor')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editAction(${i.id},${JSON.stringify(a).replace(/"/g,'&quot;')})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delAction(${a.id})">Excluir</button></div></td>`:''}</tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhuma ação ainda. Cadastre as ações (Quem, Quando, O quê, Como).</td></tr>`}
           </tbody></table></div>
       </div>`; }).join(''):'<div class="empty">Nenhuma iniciativa. Crie a primeira.</div>'}`;
@@ -1676,14 +1682,29 @@ const App = (() => {
     modal(i.id?'Editar iniciativa':'Nova iniciativa', form([
       f.text('in-name','Nome da iniciativa *',i.name),
       `<div class="field-row">${f.sel('in-obj','Objetivo estratégico *',objs,i.objective_id)}${f.sel('in-dep','Departamento *',depts,i.department_id)}</div>`,
+      `<div class="field-row">${f.date('in-start','Início',i.date_start)}${f.date('in-end','Prazo de conclusão',i.date_end)}</div>`,
       f.area('in-why','Objetivo / Porquê desta iniciativa',i.why),
+      `<div class="field"><label>Metas vinculadas * <span class="desc" style="font-weight:400">(a iniciativa precisa sustentar pelo menos uma meta)</span></label>
+        <input placeholder="Buscar meta…" oninput="document.querySelectorAll('#in-goals label').forEach(l=>l.style.display=l.dataset.s.indexOf(this.value.toLowerCase())>=0?'':'none')" style="width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px">
+        <div class="check-list" id="in-goals" style="max-height:240px">${iniGoalOpts(i)}</div></div>`,
       `<p class="desc" style="margin:-4px 0 8px">* obrigatórios. As ações (Quem/Quando/O quê/Como) são cadastradas dentro da iniciativa.</p>`,
       `<button class="btn btn-primary btn-block" onclick="App.saveIni(${i.id||0})">Salvar</button>`]));
   };
+  function iniGoalOpts(i){
+    const goals=(window.__goalsAll||[]).slice().sort((a,b)=>(b.year||0)-(a.year||0)||(a.quarter||0)-(b.quarter||0)||a.id-b.id);
+    const sel=new Set((window.__iniGoals||[]).filter(x=>x.initiative_id===i.id).map(x=>x.goal_id));
+    const objT=(id)=>((window.__bsc.objs||[]).find(o=>o.id===id)||{}).title||'';
+    return goals.map(g=>`<label data-s="${esc((g.smart_text+' '+objT(g.objective_id)).toLowerCase())}" style="align-items:flex-start"><input type="checkbox" class="in-goal" value="${g.id}" ${sel.has(g.id)?'checked':''} style="margin-top:3px"> <span><b style="font-weight:600">${esc(g.smart_text)}</b><br><small style="color:var(--muted)">${esc(goalPeriodLabel(g))}${objT(g.objective_id)?' · '+esc(objT(g.objective_id)):''}</small></span></label>`).join('')||'<span class="empty">Nenhuma meta cadastrada. Cadastre em Objetivos & Metas.</span>';
+  }
   App_saveIni = async (id) => {
     if(!val('in-name')||!val('in-obj')||!val('in-dep')){ toast('Preencha: Nome, Objetivo e Departamento.'); return; }
-    const row={ name:val('in-name'), objective_id:+val('in-obj')||null, department_id:+val('in-dep')||null, why:val('in-why') };
-    try{ id?await tUpdate('initiatives',id,row):await tInsert('initiatives',row);}catch(e){return toast(e.message);}
+    const gids=[...document.querySelectorAll('.in-goal:checked')].map(x=>+x.value);
+    if(!gids.length){ toast('Vincule pelo menos uma meta à iniciativa.'); return; }
+    const ds=val('in-start')||null, de=val('in-end')||null;
+    if(ds && de && de<ds){ toast('O prazo de conclusão não pode ser antes do início.'); return; }
+    const row={ name:val('in-name'), objective_id:+val('in-obj')||null, department_id:+val('in-dep')||null, why:val('in-why'), date_start:ds, date_end:de };
+    try{ let iid=id; if(id) await tUpdate('initiatives',id,row); else { const d=await tInsert('initiatives',row); iid=d&&d[0]&&d[0].id; }
+      if(iid){ let r=await sb.from('initiative_goals').delete().eq('initiative_id',iid); if(r.error) throw r.error; r=await sb.from('initiative_goals').insert(gids.map(g=>({initiative_id:iid,goal_id:g}))); if(r.error) throw r.error; } }catch(e){return toast(e.message);}
     closeModal(); toast('Salvo'); go('iniciativas');
   };
   App_delIni = async (id) => { if(await delRow('initiatives',id,'Excluir esta iniciativa e suas ações?')) go('iniciativas'); };
@@ -1964,9 +1985,10 @@ const App = (() => {
         <div class="section-head"><div><h3>🚀 ${esc(i.name)}</h3><p class="desc" style="margin:2px 0 0">${upd}/${list.length} ação(ões) atualizada(s) nesta semana · ${done} concluída(s)</p></div></div>
         <div style="overflow-x:auto"><table><thead><tr><th>O quê</th><th>Quem</th><th>Prazo</th><th>Status da semana</th><th>Impeditivo</th><th>Próxima semana</th><th></th></tr></thead><tbody>
         ${list.map(a=>{ const r=map[a.id]||{}; const ed=can('manager')||mine(a);
-          return `<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px;color:var(--muted);white-space:nowrap">${esc((a.when_date||'').slice(0,10))}</td>
+          const od=actOverdue(a,year,week) && (r.status||a.status)!=='Concluído';
+          return `<tr><td><b>${esc(a.what)}</b></td><td>${esc(profN(a.who_profile))}</td><td style="font-size:12px;white-space:nowrap;${od?'color:var(--red);font-weight:700':'color:var(--muted)'}">${esc(brDate(a.when_date))}${od?' ⚠️':''}</td>
             <td>${r.status?statusPill(r.status):'<span class="pill pill-gray">— não informado</span>'}</td>
-            <td style="font-size:12px;max-width:220px">${esc(r.impeditivo||'')}</td>
+            <td style="font-size:12px;max-width:220px">${esc(r.impeditivo||'')}${respName(r,profs)?`<div style="margin-top:3px"><span class="owner-chip" title="Responsável pelo impeditivo">👤 ${esc(respName(r,profs))}</span></div>`:''}</td>
             <td style="font-size:12px;max-width:220px">${esc(r.proximo_passo||r.note||'')}</td>
             <td>${ed?`<button class="btn btn-light btn-sm" onclick="App.openActWeek(${a.id})">Atualizar</button>`:''}</td></tr>`; }).join('')}
         </tbody></table></div></div>`;
@@ -1994,21 +2016,55 @@ const App = (() => {
     const a=(window.__diActs||[]).find(x=>x.id===actId)||{};
     const ed=can('manager')|| a.who_profile===me.id; if(!ed) return;
     const r=(window.__diMap||{})[actId]||{};
+    const od=actOverdue(a, window.__diYear, window.__diWeek);
+    const stOpts=(od?ACT_ST.filter(x=>x==='Concluído'||x==='Atrasado'):ACT_ST).map(x=>({v:x,t:x}));
+    const stDef=od ? ((r.status||a.status)==='Concluído'?'Concluído':'Atrasado') : (r.status||a.status||'Em andamento');
     modal('Ação — Semana '+window.__diWeek, form([
-      `<p class="desc" style="margin:-4px 0 10px"><b>${esc(a.what||'')}</b></p>`,
-      f.sel('aw-st','Status de evolução',ACT_ST.map(x=>({v:x,t:x})),r.status||a.status||'Em andamento'),
-      f.area('aw-imp','Impeditivo (o que impediu de concluir a ação)',r.impeditivo),
-      f.area('aw-next','O que será feito na próxima semana para evoluir',r.proximo_passo),
+      `<p class="desc" style="margin:-4px 0 10px"><b>${esc(a.what||'')}</b>${a.when_date?` · prazo ${brDate(a.when_date)}`:''}</p>`,
+      od?`<div class="ras-warn">⚠️ Prazo vencido em ${brDate(a.when_date)}: a ação conta como <b>Atrasada</b> até ser concluída.</div>`:'',
+      f.sel('aw-st','Status de evolução',stOpts,stDef),
+      f.area('aw-imp','Impeditivo / motivo do atraso (obrigatório se Em andamento ou Atrasado)',r.impeditivo),
+      respSelect('aw', r, (window.__diProfs||[]).filter(p=>p.active!==false)),
+      f.area('aw-next','O que será feito na próxima semana para concluir a ação (obrigatório se Em andamento ou Atrasado)',r.proximo_passo),
       `<button class="btn btn-primary btn-block" onclick="App.saveActWeek(${actId})">Salvar</button>`]));
   };
-  async function saveActRow(actId, year, week, status, imp, next){
-    const row={ action_id:actId, year, week, status, impeditivo:imp, proximo_passo:next, updated_by:me.id, updated_at:new Date().toISOString() };
+  const brDate=(d)=>d?String(d).slice(0,10).split('-').reverse().join('/'):'';
+  function actOverdue(a, year, week){
+    if(!a || !a.when_date) return false;
+    const w=weeksOfYear(year).find(x=>x.week===week); const ref=w?new Date(w.end.getFullYear(),w.end.getMonth(),w.end.getDate(),23,59,59):new Date();
+    return new Date(String(a.when_date).slice(0,10)+'T23:59:59') < ref;
+  }
+  function respSelect(prefix, r, profs){
+    const cur = r.impeditivo_resp || (r.impeditivo_resp_txt ? '__ext' : '');
+    return `<div class="field"><label>Responsável pelo impeditivo <span class="desc" style="font-weight:400">(quem precisa agir para destravar — será notificado)</span></label>
+      <div class="field-row" style="grid-template-columns:1fr 1fr"><select id="${prefix}-resp" onchange="document.getElementById('${prefix}-resp-txt').style.display=this.value==='__ext'?'':'none'">
+        <option value="">— Ninguém / não se aplica</option>${profs.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}<option value="__ext" ${cur==='__ext'?'selected':''}>Outro (externo à equipe)…</option></select>
+        <input id="${prefix}-resp-txt" placeholder="Nome / empresa (ex.: cliente, fornecedor)" value="${esc(r.impeditivo_resp_txt||'')}" style="${cur==='__ext'?'':'display:none'}"></div></div>`;
+  }
+  function readResp(prefix){ const v=val(prefix+'-resp'); return v==='__ext' ? { impeditivo_resp:null, impeditivo_resp_txt:(val(prefix+'-resp-txt')||'').trim()||null } : { impeditivo_resp:v||null, impeditivo_resp_txt:null }; }
+  function respName(r, profs){ if(!r) return ''; if(r.impeditivo_resp){ const p=(profs||[]).find(x=>x.id===r.impeditivo_resp); return p?p.name:''; } return r.impeditivo_resp_txt||''; }
+  function actValidate(st, imp, next){
+    if(st==='Em andamento' || st==='Atrasado'){
+      if(!imp) return st==='Atrasado' ? 'Ação atrasada: informe o impeditivo / motivo do atraso.' : 'Ação em andamento: informe o impeditivo (o que está impedindo de concluir).';
+      if(!next) return 'Informe o que será feito na próxima semana para concluir a ação.';
+    }
+    return '';
+  }
+  async function saveActRow(actId, year, week, status, imp, next, resp){
+    const row=Object.assign({ action_id:actId, year, week, status, impeditivo:imp, proximo_passo:next, updated_by:me.id, updated_at:new Date().toISOString() }, resp||{});
     const { error }=await sb.from('action_weekly').upsert(row,{onConflict:'action_id,year,week'});
     if(error) throw error;
     try{ await tUpdate('initiative_actions',actId,{status}); }catch(e){}
   }
+  async function notifyImpResp(prevResp, resp, a, week, imp){
+    if(!resp || !resp.impeditivo_resp || resp.impeditivo_resp===me.id || resp.impeditivo_resp===prevResp) return;
+    try{ await tInsert('notifications',{ user_id:resp.impeditivo_resp, title:'Você foi indicado em um impeditivo', body:`${me.name||'Um colega'} indicou você como responsável pelo impeditivo da ação "${a.what||''}" (semana ${week}): ${imp}` }); }catch(e){}
+  }
   App_saveActWeek=async(actId)=>{
-    try{ await saveActRow(actId, window.__diYear, window.__diWeek, val('aw-st'), val('aw-imp'), val('aw-next')); }catch(e){ toast(e.message); return; }
+    const a=(window.__diActs||[]).find(x=>x.id===actId)||{}; const prev=((window.__diMap||{})[actId]||{}).impeditivo_resp||null;
+    const st=val('aw-st'), imp=val('aw-imp').trim(), next=val('aw-next').trim(); const err=actValidate(st,imp,next); if(err){ toast(err); return; }
+    const resp=readResp('aw');
+    try{ await saveActRow(actId, window.__diYear, window.__diWeek, st, imp, next, resp); await notifyImpResp(prev, resp, a, window.__diWeek, imp); }catch(e){ toast(e.message); return; }
     closeModal(); toast('Status salvo'); go('desini');
   };
 
@@ -2016,7 +2072,8 @@ const App = (() => {
   App_rasOpen = async (year, week) => {
     if(!year){ const t=lastCompletedWeek(); year=t.year; week=t.week; }
     const qW=quarterOfWeek(year,week);
-    const [acts, inis, goals, asg] = await Promise.all([tList('initiative_actions','ord'), tList('initiatives','ord'), tList('goals'), sb.from('goal_assignees').select('goal_id').eq('profile_id',me.id).then(r=>r.data||[])]);
+    const [acts, inis, goals, asg, rprofs] = await Promise.all([tList('initiative_actions','ord'), tList('initiatives','ord'), tList('goals'), sb.from('goal_assignees').select('goal_id').eq('profile_id',me.id).then(r=>r.data||[]), tList('profiles','name')]);
+    window.__rasProfs=rprofs.filter(p=>p.active!==false);
     const myActs=acts.filter(a=>a.who_profile===me.id);
     const { data:aw } = myActs.length ? await sb.from('action_weekly').select('*').eq('year',year).eq('week',week).in('action_id',myActs.map(a=>a.id)) : { data:[] };
     const awOf=(id)=>(aw||[]).find(r=>r.action_id===id);
@@ -2026,7 +2083,7 @@ const App = (() => {
     const myGoals=goals.filter(g=>myGoalIds.has(g.id) && g.year===year && goalQuarters(g).includes(qW));
     const { data:gw } = myGoals.length ? await sb.from('goal_weekly').select('*').eq('profile_id',me.id).eq('year',year).lte('week',week).in('goal_id',myGoals.map(g=>g.id)) : { data:[] };
     const steps=[];
-    openActs.forEach(a=>steps.push({ t:'act', a, ini:inis.find(i=>i.id===a.initiative_id)||{}, r:awOf(a.id)||{} }));
+    openActs.forEach(a=>steps.push({ t:'act', a, ini:inis.find(i=>i.id===a.initiative_id)||{}, r:awOf(a.id)||{}, od:actOverdue(a,year,week) }));
     steps.push({ t:'intro' });
     myGoals.forEach(g=>{ const rows=(gw||[]).filter(x=>x.goal_id===g.id); const cur=rows.find(x=>x.week===week)||null; const last=rows.filter(x=>x.week<week && Number(x.meta)).sort((a,b)=>b.week-a.week)[0]; steps.push({ t:'goal', g, r:cur, lastMeta:last?Number(last.meta):null }); });
     steps.push({ t:'end' });
@@ -2044,10 +2101,14 @@ const App = (() => {
       const a=s.a, r=s.r;
       card=`<div class="ras-card"><div class="ras-kicker">🚀 ${esc(s.ini.name||'Iniciativa')}</div>
         <h4>${esc(a.what||'')}</h4>
-        <p class="desc" style="margin:2px 0 12px">${a.when_date?'Prazo: <b>'+esc(String(a.when_date).slice(0,10).split('-').reverse().join('/'))+'</b> · ':''}${a.how?'Como: '+esc(a.how):''}</p>
-        <div class="field"><label>Status de evolução na semana</label><div class="ras-st">${ACT_ST.map(x=>`<label class="ras-opt"><input type="radio" name="ras-st" value="${x}" ${(r.status||a.status||'Em andamento')===x?'checked':''}><span>${x}</span></label>`).join('')}</div></div>
-        ${f.area('ras-imp','Impeditivo — o que impediu de concluir a ação?',r.impeditivo)}
-        ${f.area('ras-next','O que será feito na próxima semana para evoluir com esta ação?',r.proximo_passo)}</div>`;
+        <p class="desc" style="margin:2px 0 12px">${a.when_date?'Prazo: <b>'+esc(brDate(a.when_date))+'</b> · ':''}${a.how?'Como: '+esc(a.how):''}</p>
+        ${s.od?`<div class="ras-warn">⚠️ O prazo desta ação venceu em <b>${brDate(a.when_date)}</b>. Ela conta como <b>Atrasada</b> até ser concluída.</div>`:''}
+        <div class="field"><label>Status de evolução na semana</label><div class="ras-st">${ACT_ST.map(x=>{ const dis=s.od&&(x==='Não iniciado'||x==='Em andamento'); const def=s.od?(((r.status||a.status)==='Concluído')?'Concluído':'Atrasado'):(r.status||a.status||'Em andamento'); return `<label class="ras-opt${dis?' dis':''}"><input type="radio" name="ras-st" value="${x}" ${def===x?'checked':''} ${dis?'disabled':''} onchange="App.rasReq()"><span>${x}</span></label>`; }).join('')}</div></div>
+        <div id="ras-reqbox">
+        ${f.area('ras-imp','Impeditivo / motivo do atraso — o que está impedindo de concluir a ação? <b class="ras-req">*</b>',r.impeditivo)}
+        ${respSelect('ras', r, window.__rasProfs||[])}
+        ${f.area('ras-next','O que será feito na próxima semana para concluir a ação? <b class="ras-req">*</b>',r.proximo_passo)}</div>
+        <p class="desc ras-reqnote" style="margin:0">* obrigatório quando a ação está Em andamento ou Atrasada.</p></div>`;
     } else if(s.t==='intro'){
       card=`<div class="ras-card ras-intro">${R.nActs?`<p class="desc" style="margin:0 0 10px">✅ Ações atualizadas: <b>${R.nActs}</b>${R.nDoneBefore?` · ${R.nDoneBefore} já concluída(s) em semanas anteriores (não aparecem)`:''}.</p>`:'<p class="desc" style="margin:0 0 10px">Você não tem ações em aberto nas iniciativas.</p>'}
         <h4 style="font-size:20px">Você concluiu alguma meta do trimestre?</h4>
@@ -2072,8 +2133,10 @@ const App = (() => {
     const nav=`<div class="ras-nav"><button class="btn btn-light" onclick="App.rasPrev()" ${R.i===0?'disabled':''}>◂ Voltar</button>
       ${s.t==='end'?`<button class="btn btn-primary" onclick="App.closeModal();App.go('desini')">Fechar</button>`:`<button class="btn btn-primary" onclick="App.rasNext()">${s.t==='intro'?(R.nGoals?'Ver minhas metas ▸':'Finalizar ▸'):'Salvar e continuar ▸'}</button>`}</div>`;
     modal('Preenchimento para RAS — Semana '+R.week+(wk.start?' · '+dm(wk.start)+'–'+dm(wk.end):''), top+card+nav);
+    if(s.t==='act') App_rasReq();
     const m=document.querySelector('.modal'); if(m) m.style.width='680px';
   }
+  App_rasReq = () => { const st=(document.querySelector('input[name="ras-st"]:checked')||{}).value; const on=(st==='Em andamento'||st==='Atrasado'); document.querySelectorAll('.ras-req').forEach(e=>e.style.display=on?'':'none'); const n=document.querySelector('.ras-reqnote'); if(n) n.style.display=on?'':'none'; };
   App_rasPrev = () => { const R=window.__ras; if(R.i>0){ R.i--; rasRender(); } };
   App_rasNext = async () => {
     const R=window.__ras; const s=R.steps[R.i];
@@ -2081,9 +2144,11 @@ const App = (() => {
       if(s.t==='act'){
         const st=(document.querySelector('input[name="ras-st"]:checked')||{}).value||'Em andamento';
         const imp=val('ras-imp').trim(), next=val('ras-next').trim();
-        if(st!=='Concluído' && !next){ toast('Informe o que será feito na próxima semana.'); return; }
-        await saveActRow(s.a.id, R.year, R.week, st, imp, next);
-        s.r={ status:st, impeditivo:imp, proximo_passo:next }; s.a.status=st; if(!s.done){ s.done=true; R.saved.acts++; }
+        const err=actValidate(st, imp, next); if(err){ toast(err); return; }
+        const resp=readResp('ras'); const prev=(s.r||{}).impeditivo_resp||null;
+        await saveActRow(s.a.id, R.year, R.week, st, imp, next, resp);
+        await notifyImpResp(prev, resp, s.a, R.week, imp);
+        s.r=Object.assign({ status:st, impeditivo:imp, proximo_passo:next }, resp); s.a.status=st; if(!s.done){ s.done=true; R.saved.acts++; }
       } else if(s.t==='goal'){
         const ev=(document.querySelector('input[name="ras-ev"]:checked')||{}).value;
         if(!ev){ toast('Marque se houve evolução nesta meta.'); return; }
@@ -2142,12 +2207,13 @@ const App = (() => {
         const L=actsOpen.filter(a=>a.initiative_id===i.id).concat(A.filter(a=>a.initiative_id===i.id && a.status==='Concluído' && !awOf(a.id,week) && aw.some(r=>r.action_id===a.id)));
         if(!L.length) return;
         const upd=L.filter(a=>awOf(a.id,week)).length, evo=L.filter(a=>{ const r=awOf(a.id,week); return r&&(r.status==='Em andamento'||r.status==='Concluído'); }).length;
-        iniHtml+=`<tr class="pres-ini"><td colspan="${wNums.length+3}"><div class="pres-ini-h"><b>🚀 ${esc(i.name)}</b><span>${evo}/${L.length} ações com evolução na S${week}</span><div class="pres-mini"><i style="width:${L.length?Math.round(evo/L.length*100):0}%"></i></div><span class="pres-pct">${i.progress||0}% concluída</span></div></td></tr>`;
+        iniHtml+=`<tr class="pres-ini"><td colspan="${wNums.length+3}"><div class="pres-ini-h"><b>🚀 ${esc(i.name)}</b>${i.date_end?`<span style="${new Date(i.date_end+'T23:59')<new Date()&&i.status!=='Concluído'?'color:#d9534f;font-weight:700':''}">📅 até ${esc(brDate(i.date_end))}</span>`:''}<span>${evo}/${L.length} ações com evolução na S${week}</span><div class="pres-mini"><i style="width:${L.length?Math.round(evo/L.length*100):0}%"></i></div><span class="pres-pct">${i.progress||0}% concluída</span></div></td></tr>`;
         L.forEach(a=>{ const r=awOf(a.id,week);
-          iniHtml+=`<tr><td class="pres-name"><b>${esc(a.what)}</b><span>${esc(profN(a.who_profile))}${a.when_date?' · prazo '+esc(String(a.when_date).slice(0,10).split('-').reverse().join('/')):''}</span></td>
+          const odA=actOverdue(a,year,week) && (r?r.status:a.status)!=='Concluído';
+          iniHtml+=`<tr><td class="pres-name"><b>${esc(a.what)}</b><span>${esc(profN(a.who_profile))}${a.when_date?` · <span style="${odA?'color:#d9534f;font-weight:700':''}">prazo ${esc(brDate(a.when_date))}${odA?' ⚠️ vencido':''}</span>`:''}</span></td>
             ${wNums.map(w=>{ const x=awOf(a.id,w); const c=x&&PST[x.status]?PST[x.status][0]:''; return `<td class="pc${w===week?' cur':''}"><span class="dot" ${c?`style="background:${c}"`:''} title="S${w}: ${x?esc(x.status):'sem atualização'}"></span></td>`; }).join('')}
             <td class="pres-st">${r?statusPill(r.status):'<span class="pill pill-gray">sem atualização</span>'}</td>
-            <td class="pres-txt">${r&&(r.impeditivo||'').trim()?`<div><em>Impeditivo:</em> ${esc(r.impeditivo)}</div>`:''}${r&&(r.proximo_passo||'').trim()?`<div><em>Próxima semana:</em> ${esc(r.proximo_passo)}</div>`:''}${!r?'<span class="muted">—</span>':''}</td></tr>`; });
+            <td class="pres-txt">${r&&(r.impeditivo||'').trim()?`<div><em>Impeditivo:</em> ${esc(r.impeditivo)}${respName(r,profs)?` <span class="owner-chip" style="margin:0 0 0 4px">👤 ${esc(respName(r,profs))}</span>`:''}</div>`:''}${r&&(r.proximo_passo||'').trim()?`<div><em>Próxima semana:</em> ${esc(r.proximo_passo)}</div>`:''}${!r?'<span class="muted">—</span>':''}</td></tr>`; });
       });
       // ---- bloco de metas
       let gHtml='';
@@ -2594,7 +2660,7 @@ const App = (() => {
       passos:['Clique em "+ Meta SMART", escolha o Objetivo e escreva a meta SMART: específica, mensurável, com prazo (ex.: "Faturar R$ 300 mil no T3 com novos contratos").','Escolha o Ano e marque o(s) Trimestre(s) da meta. Uma meta pode valer para mais de um trimestre (ex.: T3 e T4).','Escolha a Unidade de medida: Monetário (R$), Percentual (%), Unitário (un), Horas (h) ou Outro.','Escolha a Fórmula do período: "Soma" (as semanas se somam, ex.: faturamento) ou "Média" (a média das semanas, ex.: % de tarefas concluídas, NPS).','Clique em "Deptos/Setores" para marcar os departamentos e, se quiser detalhar, os setores que respondem pela meta (pode ser mais de um).','Clique em "Responsáveis" para escolher quem vai lançar os resultados. Só essas pessoas conseguem preencher a meta.'],
       dicas:['Metas em % quase sempre usam "Média". Com "Soma", o sistema soma os percentuais das semanas e o resultado fica distorcido.','Sem responsável, ninguém consegue lançar resultados e a meta aparece como "Sem dados" no relatório.'] },
     { id:'iniciativas', t:'Iniciativas', who:'Colaborador, Gestor e Administrador', para:'Plano de ação: projetos que sustentam os objetivos, com ações no formato 3Q1C (O quê, Quem, Quando, Como).',
-      passos:['Clique em "+ Nova iniciativa", informe o Nome da iniciativa, o Objetivo estratégico, o Departamento e o porquê.','Defina os responsáveis pela iniciativa.','Em "+ Ação", cadastre cada ação: O QUÊ, QUEM (responsável), QUANDO (prazo), COMO e o Status.'],
+      passos:['Clique em "+ Nova iniciativa", informe o Nome da iniciativa, o Objetivo estratégico, o Departamento, o início e o prazo de conclusão e o porquê.','Vincule pelo menos uma meta (obrigatório): a iniciativa existe para sustentar metas. Use a busca para encontrar a meta.','Defina os responsáveis pela iniciativa.','Em "+ Ação", cadastre cada ação: O QUÊ, QUEM (responsável), QUANDO (prazo), COMO e o Status.'],
       dicas:['Ações pequenas e com prazo curto são mais fáceis de acompanhar semana a semana.','Mantenha os prazos atualizados: iniciativas vencidas aparecem como pontos de atenção no relatório.'] },
     { id:'desempenho', t:'Preenchimento de Metas', who:'Responsáveis por cada meta', para:'Onde cada responsável lança, toda semana, a meta e o resultado das suas metas, com causa e ação.',
       passos:['Use o filtro "Minhas metas" para ver só as metas atribuídas a você.','Clique na semana que quer preencher. No popup, informe a Meta da semana, o Resultado, a Causa (por que ficou acima ou abaixo) e a Ação (o que será feito).','Para a RAS, use o botão "Preenchimento para RAS" (também na página Desempenho de Iniciativas/Metas): ele percorre suas ações e metas da semana passada.','Troque entre a visão Semanal e a visão Por trimestre para ver o acumulado.'],
@@ -2603,7 +2669,7 @@ const App = (() => {
       passos:['Filtre por ano, trimestre, departamento, setor ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
       dicas:['Verde = 100% ou mais · Azul = 70 a 99% · Amarelo = 40 a 69% · Vermelho = abaixo de 40%.'] },
     { id:'desini', t:'Desempenho de Iniciativas/Metas', who:'Responsáveis por ações e metas', para:'Página da RAS (reunião de avanço semanal): status semanal das ações das iniciativas e evolução das metas do trimestre.',
-      passos:['Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução, o impeditivo (o que impediu de concluir) e o que será feito na próxima semana. Clique em "Salvar e continuar".','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.','Na reunião, clique em "🖥️ Apresentação da semana": abre em tela cheia um painel com indicadores, a linha do tempo semanal de cada ação das iniciativas e a evolução de cada meta do trimestre, com impeditivos, próximos passos, resultados e causas. Use ◂ ▸ para trocar de semana e o ✕ para fechar.'],
+      passos:['Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução. Se a ação estiver Em andamento ou Atrasada, é obrigatório informar o impeditivo / motivo do atraso e o que será feito na próxima semana para concluí-la. Você também pode indicar o responsável pelo impeditivo (um colega, que recebe uma notificação, ou alguém externo). Clique em "Salvar e continuar".','O sistema usa o prazo da ação: se a data venceu e a ação não foi concluída, ela aparece como Atrasada (só dá para marcar Atrasado ou Concluído).','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.','Na reunião, clique em "🖥️ Apresentação da semana": abre em tela cheia um painel com indicadores, a linha do tempo semanal de cada ação das iniciativas e a evolução de cada meta do trimestre, com impeditivos, próximos passos, resultados e causas. Use ◂ ▸ para trocar de semana e o ✕ para fechar.'],
       dicas:['Faça o preenchimento antes da RAS, com os dados da semana anterior (segunda a domingo).','Ações concluídas em semanas anteriores não aparecem mais no assistente.','O campo "Meta da semana" vem preenchido com a meta da semana anterior; ele é usado para calcular o % de atingimento.'] },
     { id:'orcamento', t:'Orçamento', who:'Departamentos (planejamento e revisão) · Financeiro (realizado)', para:'Orçamento trimestral de cada departamento por categoria de gasto, numa página só com as três etapas do ciclo: Planejamento, Acompanhamento e Revisão trimestral.',
       passos:['Escolha o Ano e o Departamento. Por padrão abre o seu departamento.','Etapa "1. Planejamento": lance o valor previsto de cada categoria em T1, T2, T3 e T4. O total anual é calculado sozinho. Os valores são salvos ao sair do campo (o campo pisca verde).','Etapa "2. Acompanhamento": ao fechar cada trimestre, o Financeiro lança o realizado de cada categoria. O sistema mostra o saldo (orçado − realizado) e o % realizado; saldo negativo fica em vermelho.','Etapa "3. Revisão trimestral": depois do fechamento, o departamento lança a nova previsão dos trimestres seguintes e escreve a justificativa ou decisão. Previsão em branco mantém o orçado.'],
@@ -2863,7 +2929,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
