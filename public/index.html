@@ -228,6 +228,122 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+.dk-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:10px 14px;margin-bottom:12px}
+.dk-bar-l,.dk-bar-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.dk-bar-l b{color:var(--navy);margin-right:6px}
+.dk-bar select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.dk-bar button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:13px}.dk-bar button:hover{background:#eef2f7}
+#dk-count{font-size:12.5px;color:var(--muted);min-width:44px;text-align:center}
+.dk-wrap{display:grid;grid-template-columns:1fr 170px;gap:12px;align-items:start}
+@media(max-width:1100px){.dk-wrap{grid-template-columns:1fr}.dk-nav{display:none!important}}
+.dk-stage{position:relative;width:100%;aspect-ratio:16/9;container-type:inline-size;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(20,40,70,.14);overflow:hidden}
+.dk-slide{position:absolute;inset:0;padding:2.6cqw 3.4cqw 3.4cqw;font-size:1.22cqw;display:flex;flex-direction:column;overflow:hidden;color:var(--text);animation:dkIn .25s ease}
+@keyframes dkIn{from{opacity:0;transform:translateY(.6cqw)}to{opacity:1;transform:none}}
+.dk-arrow{position:absolute;top:50%;transform:translateY(-50%);width:2.6cqw;height:5cqw;border:none;background:rgba(31,58,95,.08);color:var(--navy);font-size:2.6cqw;border-radius:.6cqw;cursor:pointer;opacity:0;transition:.2s;z-index:3}
+.dk-stage:hover .dk-arrow{opacity:1}.dk-arrow.l{left:.4cqw}.dk-arrow.r{right:.4cqw}
+.dk-exit{display:none;position:absolute;top:1cqw;right:1cqw;z-index:4;border:none;background:rgba(0,0,0,.35);color:#fff;border-radius:50%;width:2.6cqw;height:2.6cqw;font-size:1.3cqw;cursor:pointer}
+.dk-nav{display:flex;flex-direction:column;gap:4px;background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:8px}
+.dk-nav button{display:flex;gap:8px;align-items:center;text-align:left;border:none;background:none;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--text)}
+.dk-nav button i{font-style:normal;font-weight:800;color:var(--muted);font-size:11px}.dk-nav button:hover{background:#f2f5f9}
+.dk-nav button.on{background:var(--navy);color:#fff}.dk-nav button.on i{color:var(--gold)}
+.dk-wrap:fullscreen{background:#0e1a2b;display:flex;align-items:center;justify-content:center}
+.dk-wrap:fullscreen .dk-nav{display:none}.dk-wrap:fullscreen .dk-stage{width:min(100vw,177.7vh);border-radius:0;box-shadow:none}.dk-wrap:fullscreen .dk-exit{display:block}
+.dk-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1.5cqw;margin-bottom:1.4cqw;padding-bottom:1cqw;border-bottom:.2cqw solid #eef1f5}
+.dk-top h2{font-size:2.3cqw;color:var(--navy);line-height:1.15}.dk-top h2::before{content:'';display:inline-block;width:.45cqw;height:2cqw;background:var(--gold);border-radius:.2cqw;margin-right:.8cqw;vertical-align:-.25cqw}
+.dk-top p{font-size:1.05cqw;color:var(--muted);margin-top:.3cqw}
+.dk-filters{display:flex;flex-wrap:wrap;gap:.6cqw;justify-content:flex-end;align-items:center;max-width:62%}
+.dk-chips{display:flex;flex-wrap:wrap;gap:.3cqw;background:#f2f5f9;border-radius:2cqw;padding:.25cqw}
+.dk-chip{border:none;background:none;border-radius:2cqw;padding:.35cqw .9cqw;font-size:.95cqw;font-weight:700;color:var(--muted);cursor:pointer}.dk-chip:hover{color:var(--navy)}
+.dk-chip.on{background:var(--navy);color:#fff}
+.dk-sel{display:flex;align-items:center;gap:.4cqw;font-size:.9cqw;color:var(--muted);font-weight:700}.dk-sel select{font-size:.95cqw;padding:.35cqw .6cqw;border:1px solid var(--line);border-radius:.6cqw;max-width:22cqw}
+.dk-foot{position:absolute;left:3.4cqw;right:3.4cqw;bottom:1cqw;display:flex;justify-content:space-between;font-size:.85cqw;color:#9aa6b5;border-top:1px solid #eef1f5;padding-top:.5cqw}
+.dk-slide .muted{color:var(--muted)}.dk-slide .empty{padding:3cqw;font-size:1.2cqw}
+/* capa */
+.dks-capa{padding:0;background:linear-gradient(135deg,#14294a 0%,var(--navy) 45%,var(--accent) 120%);color:#fff}
+.dks-capa .dk-foot{color:rgba(255,255,255,.6);border-top-color:rgba(255,255,255,.15)}
+.dk-cover{flex:1;display:flex;align-items:center;padding:4cqw 6cqw}.dk-cover-in{width:100%}
+.dk-kicker{display:inline-block;background:var(--gold);color:#1b1b1b;font-weight:800;letter-spacing:.25cqw;font-size:1cqw;padding:.35cqw .9cqw;border-radius:.4cqw}
+.dk-cover h1{font-size:5.2cqw;margin:1.4cqw 0 .4cqw;letter-spacing:.1cqw}.dk-pos{font-size:1.6cqw;opacity:.85}
+.dk-cover-meta{display:flex;gap:2.4cqw;margin-top:1.6cqw;font-size:1.15cqw;opacity:.9;flex-wrap:wrap}
+.dk-agenda{display:grid;grid-template-columns:repeat(3,1fr);gap:.7cqw;margin-top:3cqw;max-width:62cqw}
+.dk-agenda button{display:flex;gap:.8cqw;align-items:center;text-align:left;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:.7cqw;padding:.7cqw 1cqw;font-size:1.1cqw;cursor:pointer}
+.dk-agenda button:hover{background:rgba(255,255,255,.18)}.dk-agenda b{color:var(--gold)}
+/* visão geral */
+.dk-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2cqw;flex:1;align-content:start}
+.dk-tile{text-align:left;border:1px solid var(--line);border-top:.45cqw solid var(--c);background:#fff;border-radius:1cqw;padding:1.3cqw 1.4cqw;cursor:pointer;transition:.15s}
+.dk-tile:hover{transform:translateY(-.25cqw);box-shadow:0 .6cqw 1.6cqw rgba(20,40,70,.12)}
+.dk-tile b{display:block;font-size:3cqw;color:var(--c);line-height:1.1}.dk-tile span{display:block;font-size:1.15cqw;font-weight:700;margin-top:.3cqw}.dk-tile i{display:block;font-style:normal;font-size:.95cqw;color:var(--muted);margin-top:.3cqw}
+/* identidade */
+.dk-id{flex:1;display:flex;flex-direction:column;gap:1.4cqw;min-height:0}
+.dk-mv{display:grid;grid-template-columns:1fr 1fr;gap:1.4cqw}
+.dk-m,.dk-v{border-radius:1.2cqw;padding:2cqw;color:#fff}.dk-m{background:var(--navy)}.dk-v{background:var(--accent)}
+.dk-m span,.dk-v span{font-size:1cqw;letter-spacing:.2cqw;text-transform:uppercase;opacity:.8;font-weight:800}.dk-m p,.dk-v p{font-size:1.9cqw;margin-top:.6cqw;line-height:1.3}
+.dk-vals{display:grid;grid-template-columns:repeat(auto-fill,minmax(19cqw,1fr));gap:1cqw;overflow:auto}
+.dk-val{border:1px solid var(--line);border-left:.45cqw solid var(--gold);border-radius:.8cqw;padding:1cqw 1.2cqw;cursor:pointer}
+.dk-val b{color:var(--navy);font-size:1.35cqw}.dk-val b i{font-style:normal;color:var(--gold);margin-right:.6cqw}.dk-val p{font-size:1.05cqw;color:var(--muted);margin-top:.3cqw}
+/* estrutura */
+.dk-struct{display:grid;grid-template-columns:repeat(3,1fr);gap:1cqw;overflow:auto;flex:1;min-height:0;align-content:start;padding-bottom:2cqw}
+.dk-dep{border:1px solid var(--line);border-top:.4cqw solid var(--accent);border-radius:.9cqw;padding:1.1cqw 1.2cqw}.dk-dep h4{color:var(--navy);font-size:1.35cqw}.dk-dep>p{font-size:.95cqw;margin-top:.2cqw}
+.dk-dep-n{display:flex;gap:1.2cqw;margin-top:.6cqw;font-size:1cqw}.dk-dep-n b{color:var(--navy);font-size:1.4cqw}
+.dk-secs,.dk-people{display:flex;flex-wrap:wrap;gap:.35cqw;margin-top:.7cqw}.dk-secs span{background:#fff3d6;color:#8a6d1f;border-radius:1cqw;padding:.2cqw .7cqw;font-size:.9cqw;font-weight:700}
+.dk-people span{background:#eef2f7;border-radius:1cqw;padding:.2cqw .7cqw;font-size:.9cqw}.dk-people i{font-style:normal;color:var(--muted)}
+/* SWOT */
+.dk-swot{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:.9cqw;padding:0 0 1.6cqw 2.2cqw}
+.dk-axis{position:absolute;left:0;writing-mode:vertical-rl;transform:rotate(180deg);font-size:.9cqw;font-weight:800;letter-spacing:.2cqw;color:#9aa6b5;text-transform:uppercase;text-align:center}
+.dk-ax-in{top:0;height:48%}.dk-ax-ex{bottom:1.6cqw;height:48%}
+.dk-q{border:1px solid var(--line);border-top:.45cqw solid var(--c);border-radius:.9cqw;display:flex;flex-direction:column;min-height:0;background:#fff}
+.dk-qh{display:flex;align-items:baseline;gap:.8cqw;padding:.7cqw 1cqw;border-bottom:1px solid #f0f2f6}.dk-qh b{color:var(--c);font-size:1.4cqw}.dk-qh span{font-size:.95cqw;color:var(--muted)}.dk-qh em{margin-left:auto;font-style:normal;font-size:.85cqw;font-weight:800;color:var(--muted)}
+.dk-ql{list-style:none;overflow:auto;flex:1;padding:.3cqw .6cqw;counter-reset:sw;margin:0}
+.dk-ql li{display:grid;grid-template-columns:1fr 9cqw;gap:.8cqw;align-items:center;padding:.45cqw .4cqw;border-bottom:1px solid #f4f6f9;font-size:1.02cqw;counter-increment:sw}
+.dk-ql li>div:first-child::before{content:counter(sw);display:inline-block;min-width:1.4cqw;font-weight:800;color:var(--c)}
+.dk-ql li small{display:block;color:var(--muted);font-size:.82cqw;margin-left:1.4cqw}
+.dk-gut{display:flex;align-items:center;gap:.4cqw}.dk-gut i{display:block;height:.6cqw;background:var(--c);border-radius:.3cqw;opacity:.75}.dk-gut b{font-size:.95cqw;color:var(--navy)}
+/* PESTEL */
+.dk-pestel{display:grid;grid-template-columns:repeat(3,1fr);gap:1cqw;overflow:auto;flex:1;min-height:0;align-content:start;padding-bottom:2cqw}
+.dk-pc{border:1px solid var(--line);border-radius:.9cqw;padding:.9cqw 1cqw}.dk-pc h4{color:var(--navy);font-size:1.3cqw;display:flex;justify-content:space-between}.dk-pc h4 span{color:var(--muted);font-size:1cqw}
+.dk-pi{border-left:.35cqw solid;padding:.4cqw .7cqw;margin-top:.6cqw;background:#fafbfd;border-radius:.4cqw}.dk-pi b{font-size:1.05cqw}.dk-pi p{font-size:.92cqw;color:var(--muted);margin-top:.2cqw}
+/* BSC */
+.dk-bsc{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:.8cqw;padding-bottom:2cqw}
+.dk-bp{display:grid;grid-template-columns:12cqw 1fr;gap:.8cqw}
+.dk-bph{color:#fff;border-radius:.8cqw;padding:1cqw;font-weight:800;font-size:1.25cqw;display:flex;align-items:center}
+.dk-bo{display:grid;grid-template-columns:repeat(auto-fill,minmax(26cqw,1fr));gap:.7cqw}
+.dk-ob{border:1px solid var(--line);border-top:.35cqw solid var(--c);border-radius:.8cqw;padding:.8cqw 1cqw}.dk-ob>b{color:var(--navy);font-size:1.15cqw}
+.dk-g{display:grid;grid-template-columns:1fr 6cqw 4cqw;gap:.6cqw;align-items:center;margin-top:.5cqw;font-size:.92cqw}
+.dk-g span{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.dk-gbar{height:.6cqw;background:#eef2f7;border-radius:.3cqw;overflow:hidden}.dk-gbar i{display:block;height:100%}
+.dk-g em{font-style:normal;font-weight:800;text-align:center;border-radius:1cqw;padding:.1cqw .3cqw;font-size:.88cqw}
+/* metas */
+.dk-metas{flex:1;min-height:0;display:grid;grid-template-columns:22cqw 1fr 1fr;gap:1.6cqw}
+.dk-donut{position:relative;height:22cqw;align-self:center}.dk-dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}.dk-dc b{font-size:3.4cqw;color:var(--navy)}.dk-dc span{font-size:1.05cqw;color:var(--muted)}
+.dk-mcol{overflow:auto;min-height:0}.dk-mcol h4{color:var(--navy);font-size:1.25cqw;margin-bottom:.5cqw}
+.dk-mrow{display:grid;grid-template-columns:11cqw 1fr;gap:.6cqw;align-items:center;margin-bottom:.45cqw;font-size:.95cqw}
+.dk-stack{display:flex;height:1.5cqw;border-radius:.4cqw;overflow:hidden;background:#eef2f7}.dk-stack i{display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:.8cqw;font-weight:800}
+.dk-rank{list-style:none;margin:0}.dk-rank li{display:flex;justify-content:space-between;gap:.8cqw;padding:.4cqw 0;border-bottom:1px solid #f0f2f6;font-size:.95cqw}.dk-rank li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dk-leg{display:flex;gap:1.6cqw;font-size:1cqw;margin:.6cqw 0 1.4cqw}.dk-leg i{display:inline-block;width:1cqw;height:1cqw;border-radius:50%;margin-right:.4cqw;vertical-align:-.1cqw}
+/* iniciativas */
+.dk-inis{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:.8cqw;align-content:start;padding-bottom:2cqw}
+.dk-ini{display:grid;grid-template-columns:5.2cqw 1fr;gap:1cqw;align-items:center;border:1px solid var(--line);border-radius:.9cqw;padding:.8cqw 1cqw}.dk-ini.late{border-color:#f5c2bd;background:#fffafa}
+.dk-ini b{color:var(--navy);font-size:1.15cqw}.dk-ini span{display:block;font-size:.92cqw;color:var(--muted)}.dk-ini span em{font-style:normal;font-weight:700}
+.dk-ring{width:5.2cqw;height:5.2cqw}.dk-ring text{font-size:8px;font-weight:800;fill:var(--navy)}
+.dk-imetas{display:flex;flex-wrap:wrap;gap:.3cqw;margin-top:.4cqw}.dk-imetas i{font-style:normal;background:#fff3d6;color:#8a6d1f;border-radius:1cqw;padding:.1cqw .6cqw;font-size:.82cqw}
+/* orçamento */
+.dk-bk{display:grid;grid-template-columns:repeat(4,1fr);gap:1cqw;margin-bottom:1cqw}.dk-bk div{border-left:.45cqw solid var(--c);background:#f7f9fc;border-radius:.7cqw;padding:.8cqw 1.1cqw}.dk-bk span{font-size:.95cqw;color:var(--muted)}.dk-bk b{display:block;font-size:2cqw;color:var(--c)}
+.dk-orc{flex:1;min-height:0;display:grid;grid-template-columns:1.2fr 1fr;gap:1.6cqw;padding-bottom:2.4cqw;overflow:hidden}.dk-chart{position:relative;min-height:0;height:100%;overflow:hidden}
+.dk-cat{overflow:auto}.dk-cat h4{color:var(--navy);font-size:1.25cqw;margin-bottom:.5cqw}
+.dk-crow{display:grid;grid-template-columns:12cqw 1fr 13cqw;gap:.6cqw;align-items:center;font-size:.92cqw;margin-bottom:.45cqw}.dk-crow b{text-align:right;font-size:.88cqw;color:var(--navy)}
+/* impressão dos slides */
+.dk-print{display:none}
+@media print{
+  body.dk-printing .app>*:not(.content),body.dk-printing .topbar,body.dk-printing .view>*:not(.dk-print){display:none!important}
+  body.dk-printing .dk-print{display:block}
+  .dk-pslide{width:100%;aspect-ratio:16/9;container-type:inline-size;position:relative;page-break-after:always;break-after:page;overflow:hidden;border:1px solid #e4e8ee}
+  .dk-pslide .dk-slide{animation:none}
+  .dk-pslide .dk-slide,.dk-pslide .dk-slide *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .dk-pslide .dk-filters{display:none}
+  .dk-pslide .dk-chart{height:24cqw}
+  .dk-pslide canvas{max-width:100%!important;max-height:100%!important}
+  .dk-pslide .dk-donut canvas{width:22cqw!important;height:22cqw!important}
+  .dk-pslide .dk-ql,.dk-pslide .dk-bsc,.dk-pslide .dk-inis,.dk-pslide .dk-struct,.dk-pslide .dk-pestel{overflow:hidden}
+}
 .co-doc{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:0 0 18px;overflow:hidden}
 .co-cover{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;padding:26px 30px}
 .co-cover h1{font-size:28px;margin:6px 0 4px;letter-spacing:.5px}.co-cover p{opacity:.9;font-size:13.5px}
@@ -264,7 +380,7 @@ body.nav-collapsed .content{margin-left:0}
 .co-budget{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}.co-bk{background:#f7f9fc;border-radius:10px;padding:10px 14px}.co-bk span{font-size:11.5px;color:var(--muted);display:block}.co-bk b{font-size:20px;color:var(--navy)}
 .co-foot{padding:14px 30px 0;font-size:11px;color:var(--muted)}
 @media print{
-  @page{size:A4;margin:12mm}
+  @page{size:A4 landscape;margin:7mm}
   body{background:#fff}
   .sidebar,.topbar,.no-print,#toast,#modal-backdrop{display:none!important}
   .content{margin-left:0!important}.view{padding:0;max-width:none}
@@ -2741,9 +2857,9 @@ const App = (() => {
     { id:'orcvisao', t:'Visão Geral do Orçamento', who:'Todos (só consulta)', para:'Consolidado do orçamento da organização: orçado, realizado e saldo por departamento e trimestre, indicadores anuais, gráficos e totais por categoria.',
       passos:['Escolha o ano.','Confira os indicadores (orçamento anual, realizado, saldo e % realizado) e a tabela por departamento.','Clique no nome de um departamento para abrir os lançamentos dele.','Administradores podem exportar tudo para Excel (Planejamento, Acompanhamento e Revisão Trimestral).'],
       dicas:['A barra amarela do gráfico por trimestre mostra a previsão revisada.'] },
-    { id:'consolidado', t:'Plano Estratégico (consolidado)', who:'Todos (só consulta)', para:'Documento único com o planejamento estratégico definitivo: identidade (missão, visão, valores), estrutura, SWOT, mapa BSC com as metas e seu atingimento, iniciativas e orçamento.',
-      passos:['Escolha o ano e o período (ano inteiro ou um trimestre).','Confira os indicadores do topo e cada bloco numerado.','Clique em "🖨️ Imprimir / PDF" para gerar o documento (na janela de impressão, escolha "Salvar como PDF").'],
-      dicas:['Tudo é montado com o que já está cadastrado nas outras páginas: para corrigir algo, edite na página de origem.','A SWOT mostrada é a consolidada da organização (itens gerais + departamentos e setores) do trimestre escolhido (ou o trimestre mais recente com itens, quando o período é o ano inteiro).'] },
+    { id:'consolidado', t:'Plano Estratégico (consolidado)', who:'Todos (só consulta)', para:'Apresentação interativa do planejamento estratégico em slides: capa, visão geral, identidade, estrutura, SWOT completa, PESTEL, mapa BSC com metas, desempenho das metas, iniciativas e orçamento.',
+      passos:['Escolha o ano e o período (ano inteiro ou um trimestre) na barra superior.','Navegue pelos slides com ◂ ▸, pelas setas do teclado, pelo índice à direita ou clicando na agenda da capa e nos indicadores da visão geral.','Cada slide tem os seus filtros: visão e trimestre na SWOT, categoria e impacto no PESTEL, perspectiva, departamento e status no BSC, situação e departamento nas iniciativas, trimestre e departamento no orçamento.','Clique em "⛶ Apresentar" para tela cheia (Esc ou ✕ para sair) e em "🖨️ PDF" para gerar um PDF com todos os slides (na janela de impressão, escolha "Salvar como PDF").'],
+      dicas:['Os filtros escolhidos em cada slide também valem para o PDF.','Tudo é montado com o que já está cadastrado nas outras páginas: para corrigir algo, edite na página de origem.'] },
     { id:'usuarios', t:'Usuários & Acessos', who:'Gestor consulta · Administrador edita', para:'Cadastro das pessoas, papel de cada uma e departamento.',
       passos:['Clique em "+ Cadastrar pessoa" e informe nome, e-mail e uma senha provisória.','Clique em "Editar" para definir o Papel (Administrador, Gestor, Colaborador ou Visualizador), o Departamento e se a pessoa está Ativa.','Peça para a pessoa trocar a senha provisória em Meu Perfil no primeiro acesso.'],
       dicas:['Administrador gerencia tudo · Gestor cria objetivos, metas e estrutura · Colaborador lança SWOT, iniciativas e resultados · Visualizador só consulta.','Quando alguém sair da empresa, marque como Inativo em vez de apagar, para manter o histórico.'] },
@@ -2985,85 +3101,155 @@ const App = (() => {
     return { m:t.m, r:t.r, p, st };
   }
   const STC={ A:['Atingida','#1E7B3C','#E3F2E6'], P:['Parcial','#9A6B00','#FFF3D6'], N:['Não atingida','#B3261E','#FBE4E2'], S:['Sem dados','#5F6368','#ECEDEF'] };
-  VIEWS.consolidado = async (v) => {
-    const year = window.__coYear || new Date().getFullYear(); window.__coYear=year;
-    const q = window.__coQ!=null ? window.__coQ : 0; window.__coQ=q;
+  /* ---------- Plano Estratégico — apresentação interativa (slides) ---------- */
+  const DK_SLIDES=[
+    ['capa','Capa'],['visao','Visão geral'],['identidade','Identidade'],['estrutura','Estrutura'],['swot','SWOT'],['pestel','PESTEL'],
+    ['bsc','Mapa BSC e metas'],['metas','Desempenho das metas'],['iniciativas','Iniciativas'],['orcamento','Orçamento']];
+  const SW_C={'Força':'#2e9e6b','Fraqueza':'#d9534f','Oportunidade':'#2E8BC0','Ameaça':'#E6A817'};
+  const dkBrl=(n)=>'R$ '+(Number(n)||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
+  const dkChip=(slide,key,val,label,cur)=>`<button class="dk-chip${String(cur)===String(val)?' on':''}" onclick="App.dkF('${slide}','${key}','${val}')">${label}</button>`;
+  const dkSel=(slide,key,opts,cur,label)=>`<label class="dk-sel">${label?`<span>${label}</span>`:''}<select onchange="App.dkF('${slide}','${key}',this.value)">${opts.map(o=>`<option value="${esc(o.v)}" ${String(o.v)===String(cur)?'selected':''}>${esc(o.t)}</option>`).join('')}</select></label>`;
+  async function dkLoad(year){
     const [comp, values, depts, secs, profs, persp, objs, goals, gdep, inis, acts, igoals, swot, pestel, stk, cats, blines, weekly] = await Promise.all([
       sb.from('company').select('*').limit(1).single().then(r=>r.data||{}), tList('company_values','ord'), tList('departments','ord'), tList('department_processes','ord'), tList('profiles','name'),
       tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'), tList('goal_departments'), tList('initiatives','ord'), tList('initiative_actions','ord'), tList('initiative_goals'),
       tList('swot_items'), tList('pestel_items','ord'), tList('stakeholders','ord'), tList('budget_categories','ord'), fetchAllRows('budget_lines', x=>x.eq('year',year)), fetchAllRows('goal_weekly', x=>x.eq('year',year))]);
+    return {comp, values, depts, secs, profs, persp, objs, goals, gdep, inis, acts, igoals, swot, pestel, stk, cats, blines, weekly};
+  }
+  function dkCtx(){
+    const S=window.__dk; const D=S.D; const year=S.year, q=S.q;
+    if(!S.cache || S.cache.key!==year+'_'+q){
+      const G=D.goals.filter(g=>g.year===year && (!q || goalQuarters(g).includes(q)));
+      const st={}; G.forEach(g=>st[g.id]=goalPeriodStatus(g, D.weekly, year, q));
+      S.cache={ key:year+'_'+q, G, st };
+    }
+    return Object.assign({ D, year, q, per: q?`T${q} ${year}`:String(year), dName:(id)=>(D.depts.find(d=>d.id===id)||{}).name||'' }, S.cache);
+  }
+  const iniProgOf=(D,i)=>{ const l=D.acts.filter(a=>a.initiative_id===i.id); return l.length?Math.round(l.filter(a=>a.status==='Concluído').length/l.length*100):(i.progress||0); };
+  function dkHead(title, sub, filters){ return `<div class="dk-top"><div><h2>${title}</h2>${sub?`<p>${sub}</p>`:''}</div>${filters?`<div class="dk-filters">${filters}</div>`:''}</div>`; }
+  const DK={
+    capa(C){ const c=C.D.comp; return `<div class="dk-cover"><div class="dk-cover-in"><span class="dk-kicker">PLANEJAMENTO ESTRATÉGICO</span><h1>${esc(c.name||me.org_name||'')}</h1>
+      <p class="dk-pos">${esc(c.positioning||'')}</p><div class="dk-cover-meta"><span>Período <b>${C.per}</b></span>${c.plan_start?`<span>Vigência <b>${esc(String(c.plan_start).split('-').reverse().join('/'))} a ${esc(String(c.plan_end||'').split('-').reverse().join('/'))}</b></span>`:''}<span>Emitido em <b>${new Date().toLocaleDateString('pt-BR')}</b></span></div>
+      <div class="dk-agenda">${DK_SLIDES.slice(1).map((s,i)=>`<button onclick="App.dkGo(${i+1})"><b>${String(i+1).padStart(2,'0')}</b>${s[1]}</button>`).join('')}</div></div></div>`; },
+    visao(C){ const {D,G,st}=C; const cnt={A:0,P:0,N:0,S:0}; G.forEach(g=>cnt[st[g.id].st]++);
+      const Qs=C.q?[C.q]:[1,2,3,4]; const act=new Set(D.cats.filter(c=>c.active!==false).map(c=>c.id)); const BL=D.blines.filter(l=>act.has(l.category_id));
+      const bo=BL.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0), br=BL.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0);
+      const swq=D.swot.filter(s=>s.year===C.year && (!C.q||s.quarter===C.q));
+      const tile=(go,n,l,c,sub)=>`<button class="dk-tile" style="--c:${c}" onclick="App.dkGo(${go})"><b>${n}</b><span>${l}</span>${sub?`<i>${sub}</i>`:''}</button>`;
+      return dkHead('Visão geral', `Resumo do planejamento · ${C.per} — clique em um indicador para abrir o slide`)+`<div class="dk-tiles">
+        ${tile(6,D.objs.length,'objetivos estratégicos','#1F3A5F',D.persp.length+' perspectivas')}
+        ${tile(7,G.length,'metas no período','#2E8BC0',`${cnt.A} atingidas · ${cnt.P} parciais · ${cnt.N} não atingidas`)}
+        ${tile(7,G.length?Math.round(cnt.A/G.length*100)+'%':'—','de metas atingidas','#2e9e6b',cnt.S?cnt.S+' sem dados':'')}
+        ${tile(8,D.inis.length,'iniciativas',  '#7a5ab8', `${D.inis.filter(i=>iniProgOf(D,i)>=100).length} concluídas · ${D.inis.filter(i=>i.date_end&&new Date(i.date_end+'T23:59')<new Date()&&iniProgOf(D,i)<100).length} vencidas`)}
+        ${tile(4,swq.length,'itens de SWOT','#E6A817',['Força','Fraqueza','Oportunidade','Ameaça'].map(c=>swq.filter(s=>s.classification===c).length+' '+c.toLowerCase().slice(0,4)+'.').join(' · '))}
+        ${tile(9,bo?dkBrl(bo):'—','orçamento '+(C.q?'do trimestre':'do ano'),'#B8923F',bo?`realizado ${dkBrl(br)} (${Math.round(br/bo*100)}%)`:'sem lançamentos')}
+        ${tile(3,D.depts.length,'departamentos','#5b6b82',`${D.secs.length} setores · ${D.profs.filter(p=>p.active!==false).length} pessoas`)}
+        ${tile(5,D.pestel.length,'fatores PESTEL','#3c8d8a',D.stk.length+' stakeholders')}
+      </div>`; },
+    identidade(C){ const c=C.D.comp; return dkHead('Identidade organizacional','Quem somos e onde queremos chegar')+`<div class="dk-id"><div class="dk-mv"><div class="dk-m"><span>Missão</span><p>${esc(c.mission||'—')}</p></div><div class="dk-v"><span>Visão</span><p>${esc(c.vision||'—')}</p></div></div>
+      <div class="dk-vals">${C.D.values.map((x,i)=>`<div class="dk-val" onclick="this.classList.toggle('open')"><b><i>${i+1}</i>${esc(x.title)}</b><p>${esc(x.description||'')}</p></div>`).join('')||'<p class="muted">Sem valores cadastrados.</p>'}</div></div>`; },
+    estrutura(C,F){ const {D}=C; const dep=F.dep||'';
+      const list=D.depts.filter(d=>!dep||d.id===+dep);
+      return dkHead('Estrutura organizacional',`${D.depts.length} departamentos · ${D.secs.length} setores`, dkSel('estrutura','dep',[{v:'',t:'Todos os departamentos'}].concat(D.depts.map(d=>({v:d.id,t:d.name}))),dep))+
+      `<div class="dk-struct">${list.map(d=>{ const ss=D.secs.filter(s=>s.department_id===d.id); const ps=D.profs.filter(p=>p.department_id===d.id&&p.active!==false);
+        return `<div class="dk-dep"><h4>${esc(d.name)}</h4><p class="muted">${esc(d.atuacao||'')}</p><div class="dk-dep-n"><span><b>${ps.length}</b> pessoas</span><span><b>${ss.length}</b> setores</span></div>
+          ${ss.length?`<div class="dk-secs">${ss.map(s=>`<span>${esc(s.name)}</span>`).join('')}</div>`:''}${dep&&ps.length?`<div class="dk-people">${ps.map(p=>`<span>👤 ${esc(p.name)}${p.title?` <i>${esc(p.title)}</i>`:''}</span>`).join('')}</div>`:''}</div>`; }).join('')}</div>`; },
+    swot(C,F){ const {D}=C; const vw=F.vw||'geral'; const qq=F.q!=null?+F.q:(C.q||0); const ord=F.ord||'gut';
+      let Q=qq; if(!Q){ const qs=[...new Set(D.swot.filter(s=>s.year===C.year).map(s=>s.quarter))].sort(); Q=qs.length?qs[qs.length-1]:0; }
+      const items=D.swot.filter(s=>s.year===C.year && s.quarter===Q && swotInScope(s, vw, D.secs)).map(s=>Object.assign({gut:s.gravidade*s.urgencia*s.tendencia},s));
+      const secOf=(id)=>D.secs.find(x=>x.id===id); const origin=(s)=> s.sector_id&&secOf(s.sector_id) ? C.dName(secOf(s.sector_id).department_id)+' › '+secOf(s.sector_id).name : (s.department_id ? C.dName(s.department_id) : 'Geral');
+      const vOpts=[{v:'geral',t:'Geral da organização (consolidado)'}].concat(...D.depts.map(d=>[{v:'d'+d.id,t:d.name+' (consolidado)'}].concat(D.secs.filter(s=>s.department_id===d.id).map(s=>({v:'s'+s.id,t:'   Setor: '+s.name})))));
+      const filters=dkSel('swot','vw',vOpts,vw,'Visão')+`<div class="dk-chips">${[1,2,3,4].map(k=>dkChip('swot','q',k,'T'+k,Q)).join('')}</div><div class="dk-chips">${dkChip('swot','ord','gut','Por GUT',ord)}${dkChip('swot','ord','orig','Por origem',ord)}</div>`;
+      const quad=(c)=>{ let L=items.filter(s=>s.classification===c); L.sort(ord==='orig'?((a,b)=>origin(a).localeCompare(origin(b))||b.gut-a.gut):((a,b)=>b.gut-a.gut));
+        const mx=Math.max(1,...L.map(s=>s.gut));
+        return `<div class="dk-q" style="--c:${SW_C[c]}"><div class="dk-qh"><b>${c}s</b><span>${L.length} itens</span><em>${c==='Força'||c==='Oportunidade'?'IUT':'GUT'}</em></div><ol class="dk-ql">${L.map(s=>`<li title="${esc(s.insights||'')}"><div><span>${esc(s.item)}</span><small>${esc(origin(s))}</small></div><div class="dk-gut"><i style="width:${Math.round(s.gut/mx*100)}%"></i><b>${s.gut}</b></div></li>`).join('')||'<li class="muted">Nenhum item</li>'}</ol></div>`; };
+      return dkHead('Análise SWOT',`${items.length} itens · T${Q} ${C.year} · todos os itens, priorizados pela matriz GUT/IUT`, filters)+`<div class="dk-swot"><div class="dk-axis dk-ax-in">Interno</div><div class="dk-axis dk-ax-ex">Externo</div>${quad('Força')}${quad('Fraqueza')}${quad('Oportunidade')}${quad('Ameaça')}</div>`; },
+    pestel(C,F){ const {D}=C; const cat=F.cat||''; const imp=F.imp||''; const cats=['Político','Econômico','Sociocultural','Tecnológico','Ambiental','Legal'];
+      const L=D.pestel.filter(x=>(!cat||x.category===cat)&&(!imp||x.impact_type===imp));
+      const ic={'Positivo':'#2e9e6b','Negativo':'#d9534f','Neutro':'#8a96a8'};
+      return dkHead('Análise PESTEL',`${L.length} de ${D.pestel.length} fatores do macroambiente`, `<div class="dk-chips">${dkChip('pestel','cat','','Todas',cat)}${cats.map(c=>dkChip('pestel','cat',c,c,cat)).join('')}</div><div class="dk-chips">${dkChip('pestel','imp','','Todos',imp)}${['Positivo','Negativo','Neutro'].map(c=>dkChip('pestel','imp',c,c,imp)).join('')}</div>`)+
+      `<div class="dk-pestel">${cats.filter(c=>!cat||c===cat).map(c=>{ const it=L.filter(x=>x.category===c); return `<div class="dk-pc"><h4>${c}<span>${it.length}</span></h4>${it.map(x=>`<div class="dk-pi" style="border-left-color:${ic[x.impact_type]||'#8a96a8'}"><b>${esc(x.fact||'')}</b>${x.description?`<p>${esc(x.description)}</p>`:''}</div>`).join('')||'<p class="muted">—</p>'}</div>`; }).join('')}</div>`; },
+    bsc(C,F){ const {D,G,st}=C; const p=F.p||''; const dep=F.dep||''; const s=F.st||'';
+      const gOk=(g)=> (!dep || D.gdep.some(x=>x.goal_id===g.id && x.department_id===+dep)) && (!s || st[g.id].st===s);
+      const filters=`<div class="dk-chips">${dkChip('bsc','p','','Todas',p)}${D.persp.map(x=>dkChip('bsc','p',x.id,esc(x.name),p)).join('')}</div>`+dkSel('bsc','dep',[{v:'',t:'Todos os departamentos'}].concat(D.depts.map(d=>({v:d.id,t:d.name}))),dep)+
+        `<div class="dk-chips">${dkChip('bsc','st','','Todos',s)}${Object.keys(STC).map(k=>dkChip('bsc','st',k,STC[k][0],s)).join('')}</div>`;
+      const rows=D.persp.filter(x=>!p||x.id===+p).map(x=>{ const os=D.objs.filter(o=>o.perspective_id===x.id).map(o=>({o,gs:G.filter(g=>g.objective_id===o.id&&gOk(g))})).filter(r=>r.gs.length||(!dep&&!s));
+        if(!os.length) return '';
+        return `<div class="dk-bp"><div class="dk-bph" style="background:${esc(x.color||'#1F3A5F')}">${esc(x.name)}</div><div class="dk-bo">${os.map(({o,gs})=>`<div class="dk-ob" style="--c:${esc(x.color||'#1F3A5F')}"><b>${esc(o.title)}</b>${gs.map(g=>{ const r=st[g.id], c=STC[r.st];
+          return `<div class="dk-g" title="${esc(g.smart_text)}"><span>${esc(g.smart_text)}</span><div class="dk-gbar"><i style="width:${Math.min(100,r.p||0)}%;background:${c[1]}"></i></div><em style="color:${c[1]};background:${c[2]}">${r.p!=null?Math.round(r.p)+'%':'—'}</em></div>`; }).join('')||'<p class="muted" style="margin:4px 0 0">Sem metas no período</p>'}</div>`).join('')}</div></div>`; }).join('');
+      return dkHead('Mapa estratégico (BSC) e metas',`${C.per} · % = atingimento acumulado até a última semana fechada`,filters)+`<div class="dk-bsc">${rows||'<div class="empty">Nada para mostrar com esses filtros.</div>'}</div>`; },
+    metas(C,F){ const {D,G,st}=C; const dep=F.dep||''; const GG=G.filter(g=>!dep||D.gdep.some(x=>x.goal_id===g.id&&x.department_id===+dep));
+      const cnt={A:0,P:0,N:0,S:0}; GG.forEach(g=>cnt[st[g.id].st]++);
+      const byP=D.persp.map(p=>{ const gs=GG.filter(g=>(D.objs.find(o=>o.id===g.objective_id)||{}).perspective_id===p.id); const c={A:0,P:0,N:0,S:0}; gs.forEach(g=>c[st[g.id].st]++); return {p,c,n:gs.length}; }).filter(x=>x.n);
+      const byD=D.depts.map(d=>{ const gs=GG.filter(g=>D.gdep.some(x=>x.goal_id===g.id&&x.department_id===d.id)); const c={A:0,P:0,N:0,S:0}; gs.forEach(g=>c[st[g.id].st]++); return {d,c,n:gs.length}; }).filter(x=>x.n);
+      const bar=(c,n)=>`<div class="dk-stack">${['A','P','N','S'].map(k=>c[k]?`<i style="width:${c[k]/n*100}%;background:${STC[k][1]}" title="${STC[k][0]}: ${c[k]}">${c[k]}</i>`:'').join('')}</div>`;
+      const worst=GG.filter(g=>st[g.id].p!=null).sort((a,b)=>st[a.id].p-st[b.id].p).slice(0,5), best=GG.filter(g=>st[g.id].p!=null).sort((a,b)=>st[b.id].p-st[a.id].p).slice(0,5);
+      const li=(g)=>`<li><span>${esc(g.smart_text)}</span><b style="color:${STC[st[g.id].st][1]}">${Math.round(st[g.id].p)}%</b></li>`;
+      return dkHead('Desempenho das metas',`${GG.length} metas · ${C.per}`, dkSel('metas','dep',[{v:'',t:'Todos os departamentos'}].concat(D.depts.map(d=>({v:d.id,t:d.name}))),dep))+
+      `<div class="dk-metas"><div class="dk-donut"><canvas id="dk-ch-donut"></canvas><div class="dk-dc"><b>${GG.length?Math.round(cnt.A/GG.length*100):0}%</b><span>atingidas</span></div></div>
+        <div class="dk-mcol"><h4>Por perspectiva</h4>${byP.map(x=>`<div class="dk-mrow"><span>${esc(x.p.name)}</span>${bar(x.c,x.n)}</div>`).join('')}<h4 style="margin-top:12px">Por departamento</h4>${byD.map(x=>`<div class="dk-mrow"><span>${esc(x.d.name)}</span>${bar(x.c,x.n)}</div>`).join('')}</div>
+        <div class="dk-mcol"><h4>🏆 Melhores resultados</h4><ul class="dk-rank">${best.map(li).join('')}</ul><h4 style="margin-top:12px">⚠️ Pontos de atenção</h4><ul class="dk-rank">${worst.map(li).join('')}</ul></div></div>
+        <div class="dk-leg">${Object.keys(STC).map(k=>`<span><i style="background:${STC[k][1]}"></i>${STC[k][0]} <b>${cnt[k]}</b></span>`).join('')}</div>`; },
+    iniciativas(C,F){ const {D}=C; const f=F.f||''; const dep=F.dep||''; const today=new Date();
+      const L=D.inis.map(i=>{ const p=iniProgOf(D,i); const late=i.date_end&&new Date(i.date_end+'T23:59')<today&&p<100; return {i,p,late,stt:p>=100?'done':(late?'late':'ok')}; }).filter(x=>(!f||x.stt===f)&&(!dep||x.i.department_id===+dep));
+      const ring=(p,c)=>`<svg viewBox="0 0 36 36" class="dk-ring"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8edf3" stroke-width="3.6"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="${c}" stroke-width="3.6" stroke-dasharray="${p} 100" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="21.5" text-anchor="middle">${p}%</text></svg>`;
+      return dkHead('Iniciativas estratégicas',`${L.length} de ${D.inis.length} iniciativas`, `<div class="dk-chips">${dkChip('iniciativas','f','','Todas',f)}${dkChip('iniciativas','f','ok','Em dia',f)}${dkChip('iniciativas','f','late','Vencidas',f)}${dkChip('iniciativas','f','done','Concluídas',f)}</div>`+dkSel('iniciativas','dep',[{v:'',t:'Todos os departamentos'}].concat(D.depts.map(d=>({v:d.id,t:d.name}))),dep))+
+      `<div class="dk-inis">${L.map(({i,p,late})=>{ const ms=D.igoals.filter(x=>x.initiative_id===i.id).map(x=>D.goals.find(g=>g.id===x.goal_id)).filter(Boolean); const ac=D.acts.filter(a=>a.initiative_id===i.id);
+        return `<div class="dk-ini${late?' late':''}">${ring(p,p>=100?'#2e9e6b':late?'#d9534f':'#2E8BC0')}<div><b>${esc(i.name)}</b><span>${esc(C.dName(i.department_id))}${i.date_end?` · prazo <em>${esc(i.date_end.split('-').reverse().join('/'))}${late?' ⚠️':''}</em>`:''} · ${ac.filter(a=>a.status==='Concluído').length}/${ac.length} ações</span>
+          ${ms.length?`<div class="dk-imetas">${ms.map(g=>`<i title="${esc(g.smart_text)}">🎯 ${esc(g.smart_text.length>48?g.smart_text.slice(0,47)+'…':g.smart_text)}</i>`).join('')}</div>`:'<div class="dk-imetas"><i style="background:#fdecea;color:#b3261e">sem meta vinculada</i></div>'}</div></div>`; }).join('')||'<div class="empty">Nenhuma iniciativa com esses filtros.</div>'}</div>`; },
+    orcamento(C,F){ const {D}=C; const qq=F.q!=null?+F.q:(C.q||0); const dep=F.dep||''; const Qs=qq?[qq]:[1,2,3,4];
+      const act=new Set(D.cats.filter(c=>c.active!==false).map(c=>c.id)); const BL=D.blines.filter(l=>act.has(l.category_id)&&(!dep||l.department_id===+dep));
+      const o=(ls)=>ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0), r=(ls)=>ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0);
+      const bo=o(BL), br=r(BL);
+      const byC=D.cats.filter(c=>c.active!==false).map(c=>{ const ls=BL.filter(l=>l.category_id===c.id); return {c,o:o(ls),r:r(ls)}; }).filter(x=>x.o||x.r);
+      return dkHead('Orçamento',`${qq?'T'+qq:'Ano'} ${C.year}${dep?' · '+esc(C.dName(+dep)):''}`, `<div class="dk-chips">${dkChip('orcamento','q',0,'Ano',qq)}${[1,2,3,4].map(k=>dkChip('orcamento','q',k,'T'+k,qq)).join('')}</div>`+dkSel('orcamento','dep',[{v:'',t:'Todos os departamentos'}].concat(D.depts.map(d=>({v:d.id,t:d.name}))),dep))+
+      (bo||br?`<div class="dk-bk">${[['Orçado',dkBrl(bo),'#1F3A5F'],['Realizado',dkBrl(br),'#2e9e6b'],['Saldo',dkBrl(bo-br),bo-br<0?'#d9534f':'#B8923F'],['% realizado',bo?Math.round(br/bo*100)+'%':'—','#2E8BC0']].map(x=>`<div style="--c:${x[2]}"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div>
+        <div class="dk-orc"><div class="dk-chart"><canvas id="dk-ch-orc"></canvas></div><div class="dk-cat"><h4>Por categoria</h4>${byC.map(x=>`<div class="dk-crow"><span>${esc(x.c.name)}</span><div class="dk-gbar"><i style="width:${x.o?Math.min(100,x.r/x.o*100):0}%;background:${x.r>x.o?'#d9534f':'#2e9e6b'}"></i></div><b>${dkBrl(x.r)} / ${dkBrl(x.o)}</b></div>`).join('')}</div></div>`
+       :'<div class="empty">Nenhum orçamento lançado para este recorte.</div>'); }
+  };
+  const DK_AFTER={
+    metas(C,F,pref){ const {D,G,st}=C; const dep=F.dep||''; const GG=G.filter(g=>!dep||D.gdep.some(x=>x.goal_id===g.id&&x.department_id===+dep)); const cnt={A:0,P:0,N:0,S:0}; GG.forEach(g=>cnt[st[g.id].st]++);
+      if(typeof Chart!=='undefined') mkChart(pref+'dk-ch-donut','doughnut',{labels:Object.keys(STC).map(k=>STC[k][0]),datasets:[{data:Object.keys(STC).map(k=>cnt[k]),backgroundColor:Object.keys(STC).map(k=>STC[k][1]),borderWidth:2}]},{maintainAspectRatio:false,cutout:'68%',animation:!pref?{}:false,plugins:{legend:{display:false}}}); },
+    orcamento(C,F,pref){ const {D}=C; const qq=F.q!=null?+F.q:(C.q||0); const dep=F.dep||''; const Qs=qq?[qq]:[1,2,3,4]; const act=new Set(D.cats.filter(c=>c.active!==false).map(c=>c.id));
+      const deps=D.depts.filter(d=>!dep||d.id===+dep).map(d=>{ const ls=D.blines.filter(l=>act.has(l.category_id)&&l.department_id===d.id); return {d,o:ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0),r:ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0)}; }).filter(x=>x.o||x.r);
+      if(typeof Chart!=='undefined' && document.getElementById(pref+'dk-ch-orc')) mkChart(pref+'dk-ch-orc','bar',{labels:deps.map(x=>x.d.name.length>18?x.d.name.slice(0,17)+'…':x.d.name),datasets:[{label:'Orçado',data:deps.map(x=>x.o),backgroundColor:'#1F3A5F'},{label:'Realizado',data:deps.map(x=>x.r),backgroundColor:'#2e9e6b'}]},{maintainAspectRatio:false,animation:!pref?{}:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:(v)=>dkBrl(v)}}}}); }
+  };
+  function dkRender(){
+    const S=window.__dk; const i=S.i; const key=DK_SLIDES[i][0]; const C=dkCtx(); const F=S.F[key]=S.F[key]||{};
+    const box=document.getElementById('dk-slide'); if(!box) return;
+    box.className='dk-slide dks-'+key; box.innerHTML=DK[key](C,F)+`<div class="dk-foot"><span>${esc(me.org_name||'')} · Plano Estratégico ${C.per}</span><span>${i+1} / ${DK_SLIDES.length}</span></div>`;
+    if(DK_AFTER[key]) DK_AFTER[key](C,F,'');
+    document.querySelectorAll('.dk-nav button[data-i]').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
+    const c=document.getElementById('dk-count'); if(c) c.textContent=(i+1)+' / '+DK_SLIDES.length;
+  }
+  VIEWS.consolidado = async (v) => {
+    const year = window.__coYear || new Date().getFullYear(); window.__coYear=year;
+    const q = window.__coQ!=null ? window.__coQ : 0; window.__coQ=q;
+    v.innerHTML='<div class="empty">Montando a apresentação…</div>';
+    const D = await dkLoad(year);
+    const prev=window.__dk||{}; window.__dk={ D, year, q, i: Math.min(prev.i||0, DK_SLIDES.length-1), F: prev.F||{}, cache:null };
     const yopts=[]; for(let y=year-2;y<=year+2;y++) yopts.push(y);
-    const G=goals.filter(g=>g.year===year && (!q || goalQuarters(g).includes(q)));
-    const per = q ? `T${q} ${year}` : String(year);
-    const stOf={}; G.forEach(g=>stOf[g.id]=goalPeriodStatus(g, weekly, year, q));
-    const cnt={A:0,P:0,N:0,S:0}; G.forEach(g=>cnt[stOf[g.id].st]++);
-    const dName=(id)=>(depts.find(d=>d.id===id)||{}).name||'';
-    const brl0=(n)=>'R$ '+(Number(n)||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
-    // SWOT: período selecionado (ou o mais recente com dados no ano)
-    let sq=q; if(!sq){ const qs=[...new Set(swot.filter(s=>s.year===year).map(s=>s.quarter))].sort(); sq=qs.length?qs[qs.length-1]:null; }
-    const SW=swot.filter(s=>s.year===year && s.quarter===sq).map(s=>Object.assign({gut:s.gravidade*s.urgencia*s.tendencia},s));
-    const SWall=swot.filter(s=>s.year===year && s.quarter===sq);
-    const swTop=(cls)=>SW.filter(s=>s.classification===cls).sort((a,b)=>b.gut-a.gut).slice(0,5);
-    // orçamento
-    const activeCats=new Set(cats.filter(c=>c.active!==false).map(c=>c.id));
-    const BL=blines.filter(l=>activeCats.has(l.category_id)); const Qs=q?[q]:[1,2,3,4];
-    const bo=BL.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0), br=BL.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0);
-    const bDep=depts.map(d=>{ const ls=BL.filter(l=>l.department_id===d.id); return { d, o:ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0), r:ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0) }; }).filter(x=>x.o||x.r);
-    // iniciativas
-    const today=new Date();
-    const iniProg=(i)=>{ const l=acts.filter(a=>a.initiative_id===i.id); return l.length?Math.round(l.filter(a=>a.status==='Concluído').length/l.length*100):(i.progress||0); };
-    const kpi=(n,l,c,sub)=>`<div class="co-kpi" style="border-top-color:${c}"><b style="color:${c}">${n}</b><span>${l}</span>${sub?`<i>${sub}</i>`:''}</div>`;
-    const sec=(n,t,body,sub)=>`<section class="co-sec"><div class="co-h"><span class="co-n">${n}</span><div><h3>${t}</h3>${sub?`<p>${sub}</p>`:''}</div></div>${body}</section>`;
-    const pctBar=(p,c)=>`<div class="co-bar"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:${c}"></i></div>`;
-    const sCol={'Força':'#2e9e6b','Fraqueza':'#d9534f','Oportunidade':'#2E8BC0','Ameaça':'#E6A817'};
-    let n=0; const N=()=>String(++n).padStart(2,'0');
-    v.innerHTML = `<div class="card co-tools no-print"><div class="section-head"><div><h3>Plano Estratégico consolidado</h3><p class="desc" style="margin:0">Visão única do planejamento: identidade, diagnóstico, mapa estratégico, metas, iniciativas e orçamento — pronta para apresentar ou imprimir.</p></div>
-        <div class="inline-actions" style="align-items:flex-end"><div class="field" style="margin:0;min-width:95px"><label>Ano</label><select onchange="window.__coYear=+this.value;App.go('consolidado')">${yopts.map(y=>`<option ${y===year?'selected':''}>${y}</option>`).join('')}</select></div>
-        <div class="field" style="margin:0;min-width:120px"><label>Período</label><select onchange="window.__coQ=+this.value;App.go('consolidado')"><option value="0" ${!q?'selected':''}>Ano inteiro</option>${[1,2,3,4].map(k=>`<option value="${k}" ${q===k?'selected':''}>T${k}</option>`).join('')}</select></div>
-        <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / PDF</button></div></div></div>
-      <div class="co-doc">
-        <header class="co-cover"><div><span class="co-tag">PLANEJAMENTO ESTRATÉGICO</span><h1>${esc(comp.name||me.org_name||'')}</h1>
-          <p>${comp.positioning?esc(comp.positioning)+' · ':''}Período: <b>${per}</b>${comp.plan_start?` · Vigência do plano: ${esc(String(comp.plan_start).split('-').reverse().join('/'))} a ${esc(String(comp.plan_end||'').split('-').reverse().join('/'))}`:''}</p></div>
-          <div class="co-date">Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></header>
-        <div class="co-kpis">
-          ${kpi(objs.length,'objetivos estratégicos','#1F3A5F', persp.length+' perspectivas BSC')}
-          ${kpi(G.length,'metas no período','#2E8BC0', `${cnt.A} atingidas · ${cnt.P} parciais`)}
-          ${kpi(G.length?Math.round(cnt.A/G.length*100)+'%':'—','metas atingidas','#2e9e6b', cnt.N?cnt.N+' não atingidas':'')}
-          ${kpi(inis.length,'iniciativas','#7a5ab8', inis.filter(i=>iniProg(i)>=100).length+' concluídas')}
-          ${kpi(bo?brl0(bo):'—','orçamento '+(q?'do trimestre':'do ano'),'#E6A817', bo?`realizado ${brl0(br)} (${Math.round(br/bo*100)}%)`:'')}
-        </div>
-
-        ${sec(N(),'Identidade organizacional',`<div class="co-grid2"><div class="co-box navy"><h4>Missão</h4><p>${esc(comp.mission||'—')}</p></div><div class="co-box navy2"><h4>Visão</h4><p>${esc(comp.vision||'—')}</p></div></div>
-          ${values.length?`<div class="co-values">${values.map(x=>`<div><b>${esc(x.title)}</b><span>${esc(x.description||'')}</span></div>`).join('')}</div>`:''}`)}
-
-        ${sec(N(),'Estrutura',`<div class="co-struct">${depts.map(d=>{ const ss=secs.filter(s=>s.department_id===d.id); const np=profs.filter(p=>p.department_id===d.id && p.active!==false).length;
-            return `<div class="co-dep"><b>${esc(d.name)}</b><span>${np} pessoa(s)${ss.length?' · '+ss.length+' setor(es)':''}</span>${ss.length?`<div>${ss.map(s=>`<i>${esc(s.name)}</i>`).join('')}</div>`:''}</div>`; }).join('')}</div>`,
-          `${depts.length} departamentos · ${secs.length} setores · ${profs.filter(p=>p.active!==false).length} usuários`)}
-
-        ${sec(N(),'Diagnóstico estratégico — SWOT',sq?`<div class="co-swot">${['Força','Fraqueza','Oportunidade','Ameaça'].map(c=>`<div class="co-sw" style="border-top-color:${sCol[c]}"><h4 style="color:${sCol[c]}">${c}s <small>${SWall.filter(s=>s.classification===c).length} itens</small></h4>
-            <ol>${swTop(c).map(s=>`<li>${esc(s.item)} <em title="${c==='Força'||c==='Oportunidade'?'IUT':'GUT'}">${s.gut}</em></li>`).join('')||'<li class="muted">Sem itens</li>'}</ol></div>`).join('')}</div>
-            <p class="desc" style="margin:8px 0 0">SWOT consolidada da organização (itens gerais + departamentos e setores), T${sq} ${year} — 5 itens mais prioritários pela matriz GUT/IUT de cada quadrante. ${pestel.length?`PESTEL: ${pestel.length} fatores externos mapeados (${pestel.filter(x=>x.impact_type==='Positivo').length} positivos, ${pestel.filter(x=>x.impact_type==='Negativo').length} negativos).`:''} ${stk.length?`Stakeholders: ${stk.length} mapeados.`:''}</p>`
-          :'<div class="empty">Nenhuma SWOT cadastrada neste ano.</div>')}
-
-        ${sec(N(),'Mapa estratégico (BSC) e metas',`${persp.map(p=>{ const os=objs.filter(o=>o.perspective_id===p.id); if(!os.length) return '';
-            return `<div class="co-persp"><div class="co-ph" style="background:${esc(p.color||'#1F3A5F')}">${esc(p.name)}</div><div class="co-objs">${os.map(o=>{ const gs=G.filter(g=>g.objective_id===o.id);
-              return `<div class="co-obj" style="border-left-color:${esc(p.color||'#1F3A5F')}"><b>${esc(o.title)}</b>${gs.length?`<table class="co-gt">${gs.map(g=>{ const s=stOf[g.id], c=STC[s.st];
-                return `<tr><td>${esc(g.smart_text)}<span>${esc(goalPeriodLabel(g))}${gdep.filter(x=>x.goal_id===g.id).length?' · '+gdep.filter(x=>x.goal_id===g.id).map(x=>esc(dName(x.department_id))).join(', '):''}</span></td>
-                  <td class="co-gp">${s.p!=null?`${pctBar(s.p,c[1])}<small>${Math.round(s.p)}%</small>`:''}</td><td><span class="pill" style="background:${c[2]};color:${c[1]}">${c[0]}</span></td></tr>`; }).join('')}</table>`:'<p class="desc" style="margin:4px 0 0">Sem metas no período.</p>'}</div>`; }).join('')}</div></div>`; }).join('')}
-          <div class="co-legend">${Object.values(STC).map(c=>`<span><i style="background:${c[1]}"></i>${c[0]}: <b>${cnt[Object.keys(STC).find(k=>STC[k]===c)]}</b></span>`).join('')}<span class="muted">Status pelo % acumulado do período até a última semana fechada (≥100% atingida · 70–99% parcial).</span></div>`,
-          `${G.length} metas · ${per}`)}
-
-        ${sec(N(),'Iniciativas estratégicas',inis.length?`<table class="co-t"><thead><tr><th>Iniciativa</th><th>Metas que sustenta</th><th>Prazo</th><th>Progresso</th></tr></thead><tbody>
-            ${inis.map(i=>{ const p=iniProg(i); const late=i.date_end && new Date(i.date_end+'T23:59')<today && p<100; const ms=igoals.filter(x=>x.initiative_id===i.id).map(x=>goals.find(g=>g.id===x.goal_id)).filter(Boolean);
-              return `<tr><td><b>${esc(i.name)}</b><span class="muted" style="display:block;font-size:11px">${esc(dName(i.department_id))}</span></td><td style="font-size:11.5px">${ms.map(g=>esc(g.smart_text.length>70?g.smart_text.slice(0,69)+'…':g.smart_text)).join('<br>')||'<span style="color:#d9534f">sem meta vinculada</span>'}</td>
-                <td style="white-space:nowrap;${late?'color:#d9534f;font-weight:700':''}">${i.date_end?esc(i.date_end.split('-').reverse().join('/'))+(late?' ⚠️':''):'—'}</td><td style="min-width:130px">${pctBar(p,p>=100?'#2e9e6b':'#2E8BC0')}<small>${p}% · ${acts.filter(a=>a.initiative_id===i.id&&a.status==='Concluído').length}/${acts.filter(a=>a.initiative_id===i.id).length} ações</small></td></tr>`; }).join('')}</tbody></table>`:'<div class="empty">Nenhuma iniciativa cadastrada.</div>')}
-
-        ${sec(N(),'Orçamento',bo||br?`<div class="co-budget"><div class="co-bk"><span>Orçado</span><b>${brl0(bo)}</b></div><div class="co-bk"><span>Realizado</span><b>${brl0(br)}</b></div><div class="co-bk"><span>Saldo</span><b style="${bo-br<0?'color:#d9534f':''}">${brl0(bo-br)}</b></div><div class="co-bk"><span>% realizado</span><b>${bo?Math.round(br/bo*100)+'%':'—'}</b></div></div>
-            <table class="co-t"><thead><tr><th>Departamento</th><th class="num">Orçado</th><th class="num">Realizado</th><th class="num">Saldo</th><th style="width:30%">Execução</th></tr></thead><tbody>
-            ${bDep.map(x=>`<tr><td><b>${esc(x.d.name)}</b></td><td class="num">${brl0(x.o)}</td><td class="num">${brl0(x.r)}</td><td class="num" style="${x.o-x.r<0?'color:#d9534f;font-weight:700':''}">${brl0(x.o-x.r)}</td><td>${pctBar(x.o?x.r/x.o*100:0, x.r>x.o?'#d9534f':'#2e9e6b')}<small>${x.o?Math.round(x.r/x.o*100)+'%':'—'}</small></td></tr>`).join('')}</tbody></table>`
-          :'<div class="empty">Nenhum orçamento lançado para este período.</div>', q?`T${q} ${year}`:`${year}`)}
-        <p class="co-foot">Documento gerado pelo Sistema de Planejamento Estratégico${me.org_name?' · '+esc(me.org_name):''} em ${new Date().toLocaleString('pt-BR')}.</p>
-      </div>`;
+    v.innerHTML = `<div class="dk-bar no-print"><div class="dk-bar-l"><b>📑 Plano Estratégico</b>
+        <select onchange="window.__coYear=+this.value;App.go('consolidado')">${yopts.map(y=>`<option ${y===year?'selected':''}>${y}</option>`).join('')}</select>
+        <select onchange="window.__coQ=+this.value;App.go('consolidado')"><option value="0" ${!q?'selected':''}>Ano inteiro</option>${[1,2,3,4].map(k=>`<option value="${k}" ${q===k?'selected':''}>T${k}</option>`).join('')}</select></div>
+        <div class="dk-bar-r"><button onclick="App.dkGo(-1,true)" title="Anterior (←)">◂</button><span id="dk-count"></span><button onclick="App.dkGo(1,true)" title="Próximo (→)">▸</button>
+        <button onclick="App.dkFull()" title="Apresentar em tela cheia">⛶ Apresentar</button><button onclick="App.dkPrint()" title="Gerar PDF com todos os slides">🖨️ PDF</button></div></div>
+      <div class="dk-wrap" id="dk-wrap"><div class="dk-stage"><div id="dk-slide" class="dk-slide"></div>
+        <button class="dk-arrow l no-print" onclick="App.dkGo(-1,true)">‹</button><button class="dk-arrow r no-print" onclick="App.dkGo(1,true)">›</button>
+        <button class="dk-exit no-print" onclick="App.dkFull()" title="Sair da tela cheia">✕</button></div>
+        <div class="dk-nav no-print">${DK_SLIDES.map((s,k)=>`<button data-i="${k}" onclick="App.dkGo(${k})"><i>${String(k+1).padStart(2,'0')}</i>${s[1]}</button>`).join('')}</div></div>
+      <div id="dk-print" class="dk-print"></div>`;
+    if(!window.__dkKeys){ window.__dkKeys=true; document.addEventListener('keydown',(e)=>{ if(current!=='consolidado' || /INPUT|SELECT|TEXTAREA/.test((e.target||{}).tagName||'')) return; if(e.key==='ArrowRight'||e.key==='PageDown'){ App_dkGo(1,true); e.preventDefault(); } if(e.key==='ArrowLeft'||e.key==='PageUp'){ App_dkGo(-1,true); e.preventDefault(); } }); }
+    dkRender();
+  };
+  App_dkGo = (n, rel) => { const S=window.__dk; if(!S) return; S.i = rel ? Math.max(0,Math.min(DK_SLIDES.length-1,S.i+n)) : n; dkRender(); };
+  App_dkF = (slide, key, val) => { const S=window.__dk; S.F[slide]=S.F[slide]||{}; S.F[slide][key]=val; dkRender(); };
+  App_dkFull = () => { const w=document.getElementById('dk-wrap'); if(!w) return; if(document.fullscreenElement) document.exitFullscreen(); else if(w.requestFullscreen) w.requestFullscreen().catch(()=>toast('Seu navegador não permitiu a tela cheia.')); };
+  App_dkPrint = () => {
+    const S=window.__dk; const C=dkCtx(); const box=document.getElementById('dk-print'); if(!box) return;
+    box.innerHTML=DK_SLIDES.map((s,k)=>`<div class="dk-pslide"><div class="dk-slide dks-${s[0]}">${DK[s[0]](C, S.F[s[0]]||{}).replace(/id="dk-ch-/g,'id="p-dk-ch-')}<div class="dk-foot"><span>${esc(me.org_name||'')} · Plano Estratégico ${C.per}</span><span>${k+1} / ${DK_SLIDES.length}</span></div></div></div>`).join('');
+    DK_SLIDES.forEach(s=>{ if(DK_AFTER[s[0]]) DK_AFTER[s[0]](C, S.F[s[0]]||{}, 'p-'); });
+    document.body.classList.add('dk-printing'); setTimeout(()=>{ window.print(); setTimeout(()=>{ document.body.classList.remove('dk-printing'); box.innerHTML=''; },500); },500);
   };
 
   /* ---------- init ---------- */
@@ -3089,7 +3275,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','bscSet',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','bscSet','dkGo','dkF','dkFull','dkPrint',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });

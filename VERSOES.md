@@ -61,3 +61,6 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - 2026-10-07 — v34: SWOT "Geral da organização" passa a ser o consolidado de tudo (itens gerais + todos os departamentos
   e setores), com etiqueta de origem em cada item. "Copiar do trimestre anterior" na visão geral copia só os itens gerais.
   O Plano Estratégico consolidado também usa a SWOT consolidada.
+- 2026-10-07 — v35: "Plano Estratégico (consolidado)" virou apresentação interativa em slides 16:9 (capa com agenda,
+  visão geral, identidade, estrutura, SWOT com TODOS os itens, PESTEL, BSC e metas, desempenho das metas, iniciativas,
+  orçamento), com filtros próprios em cada slide, navegação por setas/teclado/índice, tela cheia e PDF de todos os slides.
