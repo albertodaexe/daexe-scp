@@ -55,3 +55,6 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   próxima semana; o prazo da ação define o atraso (vencida e não concluída = Atrasada; só permite Atrasado/Concluído).
   Campo "Responsável pelo impeditivo" (usuário, que recebe notificação, ou nome externo). Iniciativas ganharam início e
   prazo de conclusão e vínculo OBRIGATÓRIO com pelo menos uma meta (tabela initiative_goals). Prazos vencidos em vermelho.
+- 2026-10-07 — v33: Mapa BSC com filtros de Ano, Trimestre e Departamento (e % de atingimento de cada meta no período).
+  Nova página "Plano Estratégico (consolidado)": identidade, estrutura, SWOT, mapa BSC com metas e status, iniciativas
+  e orçamento num documento único, com filtro de ano/trimestre e botão Imprimir/PDF.

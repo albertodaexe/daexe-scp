@@ -228,6 +228,50 @@ body.nav-collapsed .content{margin-left:0}
 .tut-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 4px}
 .tut-body ol,.tut-body ul{margin:0 0 10px 18px}.tut-body li{margin-bottom:4px}
 .help-btn{font-weight:700}
+.co-doc{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:0 0 18px;overflow:hidden}
+.co-cover{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;padding:26px 30px}
+.co-cover h1{font-size:28px;margin:6px 0 4px;letter-spacing:.5px}.co-cover p{opacity:.9;font-size:13.5px}
+.co-tag{font-size:11px;letter-spacing:2px;font-weight:800;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:5px}
+.co-date{font-size:12px;opacity:.85}
+.co-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:18px 30px 4px}
+@media(max-width:1000px){.co-kpis{grid-template-columns:repeat(2,1fr)}}
+.co-kpi{border:1px solid var(--line);border-top:4px solid;border-radius:10px;padding:12px 14px}
+.co-kpi b{display:block;font-size:24px;line-height:1.15}.co-kpi span{font-size:12px;font-weight:600}.co-kpi i{display:block;font-style:normal;font-size:11px;color:var(--muted);margin-top:2px}
+.co-sec{padding:18px 30px 6px;break-inside:avoid-page}
+.co-h{display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.co-n{font-weight:800;color:#fff;background:var(--navy);border-radius:8px;padding:4px 9px;font-size:13px}
+.co-h h3{color:var(--navy);font-size:17px}.co-h p{font-size:12px;color:var(--muted)}
+.co-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.co-box{border-radius:10px;padding:14px 16px;color:#fff}.co-box h4{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.8}.co-box p{font-size:15px;margin-top:4px}
+.co-box.navy{background:var(--navy)}.co-box.navy2{background:var(--accent)}
+.co-values{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.co-values div{border-left:4px solid var(--gold);background:#fafbfd;border-radius:8px;padding:9px 12px}.co-values b{color:var(--navy);display:block}.co-values span{font-size:12px;color:var(--muted)}
+.co-struct{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.co-dep{border:1px solid var(--line);border-radius:10px;padding:10px 12px}.co-dep b{color:var(--navy);display:block}.co-dep>span{font-size:11.5px;color:var(--muted)}
+.co-dep div{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}.co-dep i{font-style:normal;font-size:10.5px;background:#fff3d6;color:#8a6d1f;border-radius:10px;padding:1px 7px}
+.co-swot{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.co-sw{border:1px solid var(--line);border-top:4px solid;border-radius:10px;padding:10px 14px}.co-sw h4{font-size:14px;margin-bottom:6px}.co-sw h4 small{color:var(--muted);font-weight:500;font-size:11px}
+.co-sw ol{margin-left:18px;font-size:12.5px}.co-sw li{margin-bottom:3px}.co-sw em{font-style:normal;font-weight:800;color:var(--navy);background:#eef2f7;border-radius:5px;padding:0 5px;font-size:11px}
+.co-persp{display:grid;grid-template-columns:170px 1fr;gap:10px;margin-bottom:10px;break-inside:avoid}
+.co-ph{color:#fff;border-radius:10px;padding:12px;font-weight:700;display:flex;align-items:center}
+.co-objs{display:flex;flex-direction:column;gap:8px}
+.co-obj{border:1px solid var(--line);border-left:4px solid;border-radius:8px;padding:8px 12px}.co-obj>b{color:var(--navy);font-size:13.5px}
+.co-gt{width:100%;margin-top:4px;font-size:12px}.co-gt td{padding:5px 6px;border-bottom:1px solid #f0f2f6;vertical-align:middle}.co-gt td span{display:block;font-size:10.5px;color:var(--muted)}
+.co-gt tr:last-child td{border-bottom:none}.co-gp{width:150px}.co-gp small{font-size:10.5px;color:var(--muted)}
+.co-bar{height:7px;background:#eef2f7;border-radius:6px;overflow:hidden;margin-bottom:2px}.co-bar i{display:block;height:100%}
+.co-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;margin-top:8px}.co-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.co-t{width:100%;font-size:12.5px}.co-t td,.co-t th{padding:7px 8px}.co-t .num{text-align:right;white-space:nowrap}
+.co-budget{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}.co-bk{background:#f7f9fc;border-radius:10px;padding:10px 14px}.co-bk span{font-size:11.5px;color:var(--muted);display:block}.co-bk b{font-size:20px;color:var(--navy)}
+.co-foot{padding:14px 30px 0;font-size:11px;color:var(--muted)}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff}
+  .sidebar,.topbar,.no-print,#toast,#modal-backdrop{display:none!important}
+  .content{margin-left:0!important}.view{padding:0;max-width:none}
+  .co-doc{box-shadow:none;border-radius:0}
+  .co-cover,.co-box,.co-ph,.co-n,.co-bar i,.pill,.co-legend i{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .co-kpis{grid-template-columns:repeat(5,1fr)}
+}
 .ras-warn{background:#fdecea;border:1px solid #f5c2bd;color:#9b2c24;border-radius:8px;padding:8px 11px;font-size:13px;margin-bottom:10px}
 .ras-opt.dis{opacity:.4;cursor:not-allowed}
 .ras-req{color:var(--red)}
@@ -936,6 +980,7 @@ const App = (() => {
   const NAV = [
     { sec:'Visão Geral' },
     { id:'dashboard', label:'Painel', ico:'📊' },
+    { id:'consolidado', label:'Plano Estratégico (consolidado)', ico:'📑' },
     { id:'tutorial', label:'Como usar (Tutorial)', ico:'📘' },
     { sec:'Diagnóstico' },
     { id:'diag', label:'Diagnóstico 360', ico:'📡' },
@@ -1496,16 +1541,31 @@ const App = (() => {
 
   /* ---------- Mapa BSC (cores por perspectiva, objetivos sem código) ---------- */
   VIEWS.bsc = async (v) => {
-    const [persp, objs, goals] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals')]);
+    const F=window.__bscF=window.__bscF||{year:new Date().getFullYear(), q:0, dept:''};
+    const [persp, objs, goals, depts, gdep] = await Promise.all([tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'), tList('departments','ord'), tList('goal_departments')]);
+    const weekly = await fetchAllRows('goal_weekly', x=>x.eq('year',F.year));
     window.__bsc={persp,objs};
+    const yopts=[]; const y0=new Date().getFullYear(); for(let y=y0-2;y<=y0+2;y++) yopts.push(y);
+    const gOk=(g)=> g.year===F.year && (!F.q || goalQuarters(g).includes(F.q)) && (!F.dept || gdep.some(x=>x.goal_id===g.id && x.department_id===+F.dept));
+    const active = !!(F.q || F.dept);
+    const GS=goals.filter(gOk);
+    const stp=(g)=>{ const s=goalPeriodStatus(g, weekly, F.year, F.q); const c=STC[s.st]; return `<span class="pill" style="background:${c[2]};color:${c[1]};margin-left:4px;font-size:10.5px" title="${c[0]}">${s.p!=null?Math.round(s.p)+'%':'—'}</span>`; };
+    const filt=`<div class="card" style="padding:14px 18px"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div class="field" style="margin:0;min-width:95px"><label>Ano</label><select onchange="App.bscSet('year',this.value)">${yopts.map(y=>`<option ${y===F.year?'selected':''}>${y}</option>`).join('')}</select></div>
+        <div class="field" style="margin:0;min-width:120px"><label>Trimestre</label><select onchange="App.bscSet('q',this.value)"><option value="0">Todos</option>${[1,2,3,4].map(k=>`<option value="${k}" ${F.q===k?'selected':''}>T${k}</option>`).join('')}</select></div>
+        <div class="field" style="margin:0;min-width:230px"><label>Departamento</label><select onchange="App.bscSet('dept',this.value)"><option value="">Todos</option>${depts.map(d=>`<option value="${d.id}" ${String(d.id)===String(F.dept)?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+        ${active?`<button class="btn btn-light btn-sm" style="margin-bottom:2px" onclick="App.bscSet('clear')">Limpar filtros</button>`:''}
+        <p class="desc" style="margin:0 0 6px auto">${GS.length} meta(s) em ${F.q?'T'+F.q+' ':''}${F.year}${F.dept?' · '+esc((depts.find(d=>d.id===+F.dept)||{}).name||''):''} · % = atingimento acumulado no período</p></div></div>`;
     v.innerHTML=`<div class="section-head"><h3>Mapa Estratégico (Balanced Scorecard)</h3>${can('manager')?`<div class="inline-actions"><button class="btn btn-light" onclick="App.editPersp()">+ Perspectiva</button><button class="btn btn-accent" onclick="App.editObj()">+ Objetivo</button></div>`:''}</div>
-      ${persp.map(p=>{ const os=objs.filter(o=>o.perspective_id===p.id);
-        return `<div class="bsc-row"><div class="bsc-persp" style="background:${esc(p.color||'#1F3A5F')}">${esc(p.name)} ${can('manager')?`<a href="#" style="color:#fff;margin-left:12px;font-size:14px;text-decoration:none" title="Editar" onclick='App.editPersp(${JSON.stringify(p)});return false;'>✎</a><a href="#" style="color:#fff;margin-left:16px;font-size:14px;text-decoration:none" title="Excluir perspectiva" onclick="App.delPersp(${p.id});return false;">🗑</a>`:''}</div><div class="bsc-objs">
-          ${os.length?os.map(o=>`<div class="bsc-obj" style="border-top-color:${esc(p.color||'#2E8BC0')}"><b>${esc(o.title)}</b>
-            <ul>${goals.filter(g=>g.objective_id===o.id).map(g=>`<li>${esc(g.smart_text)}</li>`).join('')}</ul>
-            ${can('manager')?`<div class="inline-actions" style="margin-top:8px"><button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o)})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delObj(${o.id})">Excluir</button></div>`:''}</div>`).join(''):'<span class="empty">—</span>'}
+      ${filt}
+      ${persp.map(p=>{ const os=objs.filter(o=>o.perspective_id===p.id).filter(o=> !active || GS.some(g=>g.objective_id===o.id) || (F.dept && o.department_id===+F.dept));
+        return `<div class="bsc-row"><div class="bsc-persp" style="background:${esc(p.color||'#1F3A5F')}">${esc(p.name)} ${can('manager')?`<a href="#" style="color:#fff;margin-left:12px;font-size:14px;text-decoration:none" title="Editar" onclick='App.editPersp(${JSON.stringify(p).replace(/'/g,"&#39;")});return false;'>✎</a><a href="#" style="color:#fff;margin-left:16px;font-size:14px;text-decoration:none" title="Excluir perspectiva" onclick="App.delPersp(${p.id});return false;">🗑</a>`:''}</div><div class="bsc-objs">
+          ${os.length?os.map(o=>{ const gs=GS.filter(g=>g.objective_id===o.id); return `<div class="bsc-obj" style="border-top-color:${esc(p.color||'#2E8BC0')}"><b>${esc(o.title)}</b>
+            <ul>${gs.map(g=>`<li>${esc(g.smart_text)} <span style="white-space:nowrap"><span class="pill pill-gray" style="font-size:10px">${esc(goalPeriodLabel(g).replace(' '+g.year,''))}</span>${stp(g)}</span></li>`).join('')||'<li style="list-style:none;margin-left:-16px" class="muted">Sem metas no filtro</li>'}</ul>
+            ${can('manager')?`<div class="inline-actions" style="margin-top:8px"><button class="btn btn-light btn-sm" onclick='App.editObj(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Editar</button><button class="btn btn-danger btn-sm" onclick="App.delObj(${o.id})">Excluir</button></div>`:''}</div>`; }).join(''):'<span class="empty" style="padding:14px">—</span>'}
         </div></div>`; }).join('')}`;
   };
+  App_bscSet=(k,val)=>{ const F=window.__bscF; if(k==='clear'){ F.q=0; F.dept=''; } else if(k==='year') F.year=+val; else if(k==='q') F.q=+val; else F.dept=val; go('bsc'); };
   App_editPersp = (p={}) => modal(p.id?'Editar perspectiva':'Nova perspectiva', form([f.text('ps-name','Nome',p.name),f.color('ps-color','Cor',p.color||'#2E8BC0'),`<button class="btn btn-primary btn-block" onclick="App.savePersp(${p.id||0})">Salvar</button>`]));
   App_savePersp = async (id) => { const row={name:val('ps-name'),color:val('ps-color')}; try{ if(id){ await tUpdate('bsc_perspectives',id,row); } else { const ps=(window.__bsc&&window.__bsc.persp)||[]; row.ord=ps.reduce((m,p)=>Math.max(m,p.ord||0),0)+1; await tInsert('bsc_perspectives',row); } }catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('bsc'); };
   App_delPersp = async (id) => { if(await delRow('bsc_perspectives',id,'Excluir esta perspectiva? Os objetivos ligados ficam sem perspectiva.')) go('bsc'); };
@@ -2654,7 +2714,7 @@ const App = (() => {
       passos:['Clique em "+ Atributo" e informe o Atributo (ex.: prazo de entrega, preço, atendimento).','Dê a nota da empresa e a nota da concorrência, de 0 a 10.'],
       dicas:['Atributos em que a empresa perde por pouco são bons alvos de iniciativa.'] },
     { id:'bsc', t:'Mapa BSC', who:'Gestor e Administrador', para:'Mapa estratégico com as 4 perspectivas do Balanced Scorecard e os objetivos estratégicos de cada uma.',
-      passos:['Confira as perspectivas (Financeira, Clientes, Processos Internos, Inovação e Pessoas). Você pode editar o nome e a cor de cada uma.','Clique em "+ Objetivo" e escreva o objetivo estratégico começando por um verbo (ex.: "Aumentar a receita recorrente").','Escolha a perspectiva a que o objetivo pertence.'],
+      passos:['Use os filtros de Ano, Trimestre e Departamento para ver só os objetivos e metas daquele recorte; cada meta mostra o % de atingimento acumulado no período.','Confira as perspectivas (Financeira, Clientes, Processos Internos, Inovação e Pessoas). Você pode editar o nome e a cor de cada uma.','Clique em "+ Objetivo" e escreva o objetivo estratégico começando por um verbo (ex.: "Aumentar a receita recorrente").','Escolha a perspectiva a que o objetivo pertence.'],
       dicas:['Os objetivos criados aqui são usados em Objetivos & Metas e em Iniciativas, então vale cadastrá-los antes.','De 2 a 4 objetivos por perspectiva costuma ser o bastante.'] },
     { id:'okr', t:'Objetivos & Metas', who:'Colaborador, Gestor e Administrador', para:'Detalhamento de cada objetivo em metas SMART, com período, unidade, fórmula, departamentos e responsáveis. No topo há filtros por texto, ano, trimestre, perspectiva, departamento, setor e responsável.',
       passos:['Clique em "+ Meta SMART", escolha o Objetivo e escreva a meta SMART: específica, mensurável, com prazo (ex.: "Faturar R$ 300 mil no T3 com novos contratos").','Escolha o Ano e marque o(s) Trimestre(s) da meta. Uma meta pode valer para mais de um trimestre (ex.: T3 e T4).','Escolha a Unidade de medida: Monetário (R$), Percentual (%), Unitário (un), Horas (h) ou Outro.','Escolha a Fórmula do período: "Soma" (as semanas se somam, ex.: faturamento) ou "Média" (a média das semanas, ex.: % de tarefas concluídas, NPS).','Clique em "Deptos/Setores" para marcar os departamentos e, se quiser detalhar, os setores que respondem pela meta (pode ser mais de um).','Clique em "Responsáveis" para escolher quem vai lançar os resultados. Só essas pessoas conseguem preencher a meta.'],
@@ -2677,6 +2737,9 @@ const App = (() => {
     { id:'orcvisao', t:'Visão Geral do Orçamento', who:'Todos (só consulta)', para:'Consolidado do orçamento da organização: orçado, realizado e saldo por departamento e trimestre, indicadores anuais, gráficos e totais por categoria.',
       passos:['Escolha o ano.','Confira os indicadores (orçamento anual, realizado, saldo e % realizado) e a tabela por departamento.','Clique no nome de um departamento para abrir os lançamentos dele.','Administradores podem exportar tudo para Excel (Planejamento, Acompanhamento e Revisão Trimestral).'],
       dicas:['A barra amarela do gráfico por trimestre mostra a previsão revisada.'] },
+    { id:'consolidado', t:'Plano Estratégico (consolidado)', who:'Todos (só consulta)', para:'Documento único com o planejamento estratégico definitivo: identidade (missão, visão, valores), estrutura, SWOT, mapa BSC com as metas e seu atingimento, iniciativas e orçamento.',
+      passos:['Escolha o ano e o período (ano inteiro ou um trimestre).','Confira os indicadores do topo e cada bloco numerado.','Clique em "🖨️ Imprimir / PDF" para gerar o documento (na janela de impressão, escolha "Salvar como PDF").'],
+      dicas:['Tudo é montado com o que já está cadastrado nas outras páginas: para corrigir algo, edite na página de origem.','A SWOT mostrada é a geral da organização do trimestre escolhido (ou o trimestre mais recente com itens, quando o período é o ano inteiro).'] },
     { id:'usuarios', t:'Usuários & Acessos', who:'Gestor consulta · Administrador edita', para:'Cadastro das pessoas, papel de cada uma e departamento.',
       passos:['Clique em "+ Cadastrar pessoa" e informe nome, e-mail e uma senha provisória.','Clique em "Editar" para definir o Papel (Administrador, Gestor, Colaborador ou Visualizador), o Departamento e se a pessoa está Ativa.','Peça para a pessoa trocar a senha provisória em Meu Perfil no primeiro acesso.'],
       dicas:['Administrador gerencia tudo · Gestor cria objetivos, metas e estrutura · Colaborador lança SWOT, iniciativas e resultados · Visualizador só consulta.','Quando alguém sair da empresa, marque como Inativo em vez de apagar, para manter o histórico.'] },
@@ -2906,6 +2969,99 @@ const App = (() => {
     XLSX.writeFile(wb,`Orcamento_${year}_${(me.org_name||'Org').replace(/[^A-Za-z0-9]+/g,'_')}.xlsx`);
   };
 
+  /* ---------- Plano Estratégico consolidado ---------- */
+  function goalPeriodStatus(g, weekly, year, q){
+    const lc=lastCompletedWeek(); const wsAll=weeksOfYear(year);
+    const ws=wsAll.filter(w=>(!q || Math.floor(w.start.getMonth()/3)+1===q) && (year<lc.year || (year===lc.year && w.week<=lc.week)));
+    const set=new Set(ws.map(w=>w.week));
+    const agg={}; weekly.filter(r=>r.goal_id===g.id && r.year===year && set.has(r.week)).forEach(r=>{ const x=(agg[r.week]=agg[r.week]||{m:0,r:0}); x.m+=Number(r.meta)||0; x.r+=Number(r.realizado)||0; });
+    const vals=Object.values(agg).filter(x=>x.m||x.r); const t=periodAgg(vals, g.calc_type||'soma');
+    const p = t.m ? t.r/t.m*100 : null;
+    const st = !vals.length||!t.m ? 'S' : (p>=100?'A':(p>=70?'P':'N'));
+    return { m:t.m, r:t.r, p, st };
+  }
+  const STC={ A:['Atingida','#1E7B3C','#E3F2E6'], P:['Parcial','#9A6B00','#FFF3D6'], N:['Não atingida','#B3261E','#FBE4E2'], S:['Sem dados','#5F6368','#ECEDEF'] };
+  VIEWS.consolidado = async (v) => {
+    const year = window.__coYear || new Date().getFullYear(); window.__coYear=year;
+    const q = window.__coQ!=null ? window.__coQ : 0; window.__coQ=q;
+    const [comp, values, depts, secs, profs, persp, objs, goals, gdep, inis, acts, igoals, swot, pestel, stk, cats, blines, weekly] = await Promise.all([
+      sb.from('company').select('*').limit(1).single().then(r=>r.data||{}), tList('company_values','ord'), tList('departments','ord'), tList('department_processes','ord'), tList('profiles','name'),
+      tList('bsc_perspectives','ord'), tList('objectives','ord'), tList('goals'), tList('goal_departments'), tList('initiatives','ord'), tList('initiative_actions','ord'), tList('initiative_goals'),
+      tList('swot_items'), tList('pestel_items','ord'), tList('stakeholders','ord'), tList('budget_categories','ord'), fetchAllRows('budget_lines', x=>x.eq('year',year)), fetchAllRows('goal_weekly', x=>x.eq('year',year))]);
+    const yopts=[]; for(let y=year-2;y<=year+2;y++) yopts.push(y);
+    const G=goals.filter(g=>g.year===year && (!q || goalQuarters(g).includes(q)));
+    const per = q ? `T${q} ${year}` : String(year);
+    const stOf={}; G.forEach(g=>stOf[g.id]=goalPeriodStatus(g, weekly, year, q));
+    const cnt={A:0,P:0,N:0,S:0}; G.forEach(g=>cnt[stOf[g.id].st]++);
+    const dName=(id)=>(depts.find(d=>d.id===id)||{}).name||'';
+    const brl0=(n)=>'R$ '+(Number(n)||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
+    // SWOT: período selecionado (ou o mais recente com dados no ano)
+    let sq=q; if(!sq){ const qs=[...new Set(swot.filter(s=>s.year===year).map(s=>s.quarter))].sort(); sq=qs.length?qs[qs.length-1]:null; }
+    const SW=swot.filter(s=>s.year===year && s.quarter===sq && s.department_id==null && s.sector_id==null).map(s=>Object.assign({gut:s.gravidade*s.urgencia*s.tendencia},s));
+    const SWall=swot.filter(s=>s.year===year && s.quarter===sq);
+    const swTop=(cls)=>SW.filter(s=>s.classification===cls).sort((a,b)=>b.gut-a.gut).slice(0,5);
+    // orçamento
+    const activeCats=new Set(cats.filter(c=>c.active!==false).map(c=>c.id));
+    const BL=blines.filter(l=>activeCats.has(l.category_id)); const Qs=q?[q]:[1,2,3,4];
+    const bo=BL.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0), br=BL.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0);
+    const bDep=depts.map(d=>{ const ls=BL.filter(l=>l.department_id===d.id); return { d, o:ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['o'+k])||0),0),0), r:ls.reduce((a,l)=>a+Qs.reduce((s,k)=>s+(Number(l['r'+k])||0),0),0) }; }).filter(x=>x.o||x.r);
+    // iniciativas
+    const today=new Date();
+    const iniProg=(i)=>{ const l=acts.filter(a=>a.initiative_id===i.id); return l.length?Math.round(l.filter(a=>a.status==='Concluído').length/l.length*100):(i.progress||0); };
+    const kpi=(n,l,c,sub)=>`<div class="co-kpi" style="border-top-color:${c}"><b style="color:${c}">${n}</b><span>${l}</span>${sub?`<i>${sub}</i>`:''}</div>`;
+    const sec=(n,t,body,sub)=>`<section class="co-sec"><div class="co-h"><span class="co-n">${n}</span><div><h3>${t}</h3>${sub?`<p>${sub}</p>`:''}</div></div>${body}</section>`;
+    const pctBar=(p,c)=>`<div class="co-bar"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:${c}"></i></div>`;
+    const sCol={'Força':'#2e9e6b','Fraqueza':'#d9534f','Oportunidade':'#2E8BC0','Ameaça':'#E6A817'};
+    let n=0; const N=()=>String(++n).padStart(2,'0');
+    v.innerHTML = `<div class="card co-tools no-print"><div class="section-head"><div><h3>Plano Estratégico consolidado</h3><p class="desc" style="margin:0">Visão única do planejamento: identidade, diagnóstico, mapa estratégico, metas, iniciativas e orçamento — pronta para apresentar ou imprimir.</p></div>
+        <div class="inline-actions" style="align-items:flex-end"><div class="field" style="margin:0;min-width:95px"><label>Ano</label><select onchange="window.__coYear=+this.value;App.go('consolidado')">${yopts.map(y=>`<option ${y===year?'selected':''}>${y}</option>`).join('')}</select></div>
+        <div class="field" style="margin:0;min-width:120px"><label>Período</label><select onchange="window.__coQ=+this.value;App.go('consolidado')"><option value="0" ${!q?'selected':''}>Ano inteiro</option>${[1,2,3,4].map(k=>`<option value="${k}" ${q===k?'selected':''}>T${k}</option>`).join('')}</select></div>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / PDF</button></div></div></div>
+      <div class="co-doc">
+        <header class="co-cover"><div><span class="co-tag">PLANEJAMENTO ESTRATÉGICO</span><h1>${esc(comp.name||me.org_name||'')}</h1>
+          <p>${comp.positioning?esc(comp.positioning)+' · ':''}Período: <b>${per}</b>${comp.plan_start?` · Vigência do plano: ${esc(String(comp.plan_start).split('-').reverse().join('/'))} a ${esc(String(comp.plan_end||'').split('-').reverse().join('/'))}`:''}</p></div>
+          <div class="co-date">Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></header>
+        <div class="co-kpis">
+          ${kpi(objs.length,'objetivos estratégicos','#1F3A5F', persp.length+' perspectivas BSC')}
+          ${kpi(G.length,'metas no período','#2E8BC0', `${cnt.A} atingidas · ${cnt.P} parciais`)}
+          ${kpi(G.length?Math.round(cnt.A/G.length*100)+'%':'—','metas atingidas','#2e9e6b', cnt.N?cnt.N+' não atingidas':'')}
+          ${kpi(inis.length,'iniciativas','#7a5ab8', inis.filter(i=>iniProg(i)>=100).length+' concluídas')}
+          ${kpi(bo?brl0(bo):'—','orçamento '+(q?'do trimestre':'do ano'),'#E6A817', bo?`realizado ${brl0(br)} (${Math.round(br/bo*100)}%)`:'')}
+        </div>
+
+        ${sec(N(),'Identidade organizacional',`<div class="co-grid2"><div class="co-box navy"><h4>Missão</h4><p>${esc(comp.mission||'—')}</p></div><div class="co-box navy2"><h4>Visão</h4><p>${esc(comp.vision||'—')}</p></div></div>
+          ${values.length?`<div class="co-values">${values.map(x=>`<div><b>${esc(x.title)}</b><span>${esc(x.description||'')}</span></div>`).join('')}</div>`:''}`)}
+
+        ${sec(N(),'Estrutura',`<div class="co-struct">${depts.map(d=>{ const ss=secs.filter(s=>s.department_id===d.id); const np=profs.filter(p=>p.department_id===d.id && p.active!==false).length;
+            return `<div class="co-dep"><b>${esc(d.name)}</b><span>${np} pessoa(s)${ss.length?' · '+ss.length+' setor(es)':''}</span>${ss.length?`<div>${ss.map(s=>`<i>${esc(s.name)}</i>`).join('')}</div>`:''}</div>`; }).join('')}</div>`,
+          `${depts.length} departamentos · ${secs.length} setores · ${profs.filter(p=>p.active!==false).length} usuários`)}
+
+        ${sec(N(),'Diagnóstico estratégico — SWOT',sq?`<div class="co-swot">${['Força','Fraqueza','Oportunidade','Ameaça'].map(c=>`<div class="co-sw" style="border-top-color:${sCol[c]}"><h4 style="color:${sCol[c]}">${c}s <small>${SWall.filter(s=>s.classification===c).length} itens</small></h4>
+            <ol>${swTop(c).map(s=>`<li>${esc(s.item)} <em title="${c==='Força'||c==='Oportunidade'?'IUT':'GUT'}">${s.gut}</em></li>`).join('')||'<li class="muted">Sem itens gerais</li>'}</ol></div>`).join('')}</div>
+            <p class="desc" style="margin:8px 0 0">SWOT geral da organização, T${sq} ${year} — 5 itens mais prioritários pela matriz GUT/IUT de cada quadrante. ${pestel.length?`PESTEL: ${pestel.length} fatores externos mapeados (${pestel.filter(x=>x.impact_type==='Positivo').length} positivos, ${pestel.filter(x=>x.impact_type==='Negativo').length} negativos).`:''} ${stk.length?`Stakeholders: ${stk.length} mapeados.`:''}</p>`
+          :'<div class="empty">Nenhuma SWOT cadastrada neste ano.</div>')}
+
+        ${sec(N(),'Mapa estratégico (BSC) e metas',`${persp.map(p=>{ const os=objs.filter(o=>o.perspective_id===p.id); if(!os.length) return '';
+            return `<div class="co-persp"><div class="co-ph" style="background:${esc(p.color||'#1F3A5F')}">${esc(p.name)}</div><div class="co-objs">${os.map(o=>{ const gs=G.filter(g=>g.objective_id===o.id);
+              return `<div class="co-obj" style="border-left-color:${esc(p.color||'#1F3A5F')}"><b>${esc(o.title)}</b>${gs.length?`<table class="co-gt">${gs.map(g=>{ const s=stOf[g.id], c=STC[s.st];
+                return `<tr><td>${esc(g.smart_text)}<span>${esc(goalPeriodLabel(g))}${gdep.filter(x=>x.goal_id===g.id).length?' · '+gdep.filter(x=>x.goal_id===g.id).map(x=>esc(dName(x.department_id))).join(', '):''}</span></td>
+                  <td class="co-gp">${s.p!=null?`${pctBar(s.p,c[1])}<small>${Math.round(s.p)}%</small>`:''}</td><td><span class="pill" style="background:${c[2]};color:${c[1]}">${c[0]}</span></td></tr>`; }).join('')}</table>`:'<p class="desc" style="margin:4px 0 0">Sem metas no período.</p>'}</div>`; }).join('')}</div></div>`; }).join('')}
+          <div class="co-legend">${Object.values(STC).map(c=>`<span><i style="background:${c[1]}"></i>${c[0]}: <b>${cnt[Object.keys(STC).find(k=>STC[k]===c)]}</b></span>`).join('')}<span class="muted">Status pelo % acumulado do período até a última semana fechada (≥100% atingida · 70–99% parcial).</span></div>`,
+          `${G.length} metas · ${per}`)}
+
+        ${sec(N(),'Iniciativas estratégicas',inis.length?`<table class="co-t"><thead><tr><th>Iniciativa</th><th>Metas que sustenta</th><th>Prazo</th><th>Progresso</th></tr></thead><tbody>
+            ${inis.map(i=>{ const p=iniProg(i); const late=i.date_end && new Date(i.date_end+'T23:59')<today && p<100; const ms=igoals.filter(x=>x.initiative_id===i.id).map(x=>goals.find(g=>g.id===x.goal_id)).filter(Boolean);
+              return `<tr><td><b>${esc(i.name)}</b><span class="muted" style="display:block;font-size:11px">${esc(dName(i.department_id))}</span></td><td style="font-size:11.5px">${ms.map(g=>esc(g.smart_text.length>70?g.smart_text.slice(0,69)+'…':g.smart_text)).join('<br>')||'<span style="color:#d9534f">sem meta vinculada</span>'}</td>
+                <td style="white-space:nowrap;${late?'color:#d9534f;font-weight:700':''}">${i.date_end?esc(i.date_end.split('-').reverse().join('/'))+(late?' ⚠️':''):'—'}</td><td style="min-width:130px">${pctBar(p,p>=100?'#2e9e6b':'#2E8BC0')}<small>${p}% · ${acts.filter(a=>a.initiative_id===i.id&&a.status==='Concluído').length}/${acts.filter(a=>a.initiative_id===i.id).length} ações</small></td></tr>`; }).join('')}</tbody></table>`:'<div class="empty">Nenhuma iniciativa cadastrada.</div>')}
+
+        ${sec(N(),'Orçamento',bo||br?`<div class="co-budget"><div class="co-bk"><span>Orçado</span><b>${brl0(bo)}</b></div><div class="co-bk"><span>Realizado</span><b>${brl0(br)}</b></div><div class="co-bk"><span>Saldo</span><b style="${bo-br<0?'color:#d9534f':''}">${brl0(bo-br)}</b></div><div class="co-bk"><span>% realizado</span><b>${bo?Math.round(br/bo*100)+'%':'—'}</b></div></div>
+            <table class="co-t"><thead><tr><th>Departamento</th><th class="num">Orçado</th><th class="num">Realizado</th><th class="num">Saldo</th><th style="width:30%">Execução</th></tr></thead><tbody>
+            ${bDep.map(x=>`<tr><td><b>${esc(x.d.name)}</b></td><td class="num">${brl0(x.o)}</td><td class="num">${brl0(x.r)}</td><td class="num" style="${x.o-x.r<0?'color:#d9534f;font-weight:700':''}">${brl0(x.o-x.r)}</td><td>${pctBar(x.o?x.r/x.o*100:0, x.r>x.o?'#d9534f':'#2e9e6b')}<small>${x.o?Math.round(x.r/x.o*100)+'%':'—'}</small></td></tr>`).join('')}</tbody></table>`
+          :'<div class="empty">Nenhum orçamento lançado para este período.</div>', q?`T${q} ${year}`:`${year}`)}
+        <p class="co-foot">Documento gerado pelo Sistema de Planejamento Estratégico${me.org_name?' · '+esc(me.org_name):''} em ${new Date().toLocaleString('pt-BR')}.</p>
+      </div>`;
+  };
+
   /* ---------- init ---------- */
   async function init(){
     document.getElementById('login-form').addEventListener('submit', async (e)=>{ e.preventDefault();
@@ -2929,7 +3085,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','bscSet',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
