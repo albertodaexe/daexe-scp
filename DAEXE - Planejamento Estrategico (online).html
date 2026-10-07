@@ -351,6 +351,7 @@ body.nav-collapsed .content{margin-left:0}
 .org-sec{background:#f7f9fc;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:6px 9px;font-size:11.5px}
 .org-sec b{display:block;color:var(--navy);font-size:12px}.org-sec span{display:block;color:var(--muted)}
 .sec-tag{display:inline-block;background:#eef2f7;color:var(--navy);border-radius:6px;padding:1px 7px;font-size:10.5px;margin-left:6px;font-weight:600}
+.sec-tag.org{background:#e6f1f8;color:var(--accent)}
 .sec-tag.dep{background:#fff3d6;color:#8a6d1f}
 .sec-chip{display:inline-block;background:#fff3d6;color:#8a6d1f;border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:700;margin:0 4px 4px 0}
 .people-pick{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:8px}
@@ -1288,7 +1289,8 @@ const App = (() => {
     const qt = window.__swotQuarter || (Math.floor(now.getMonth()/3)+1); window.__swotQuarter=qt;
     rows.forEach(r=>r.gut=r.gravidade*r.urgencia*r.tendencia);
     const inView=(r)=> swotInScope(r, view, secs) && (r.year==yr && r.quarter==qt);
-    const tagOf=(r)=> view[0]==='d' ? (r.sector_id&&secOf(r.sector_id) ? `<span class="sec-tag">${esc(secOf(r.sector_id).name)}</span>` : `<span class="sec-tag dep">Departamento</span>`) : '';
+    const depN=(id)=>(depts.find(d=>d.id===id)||{}).name||'';
+    const tagOf=(r)=> view==='geral' ? (r.sector_id&&secOf(r.sector_id) ? `<span class="sec-tag">${esc(depN(secOf(r.sector_id).department_id))} › ${esc(secOf(r.sector_id).name)}</span>` : (r.department_id ? `<span class="sec-tag dep">${esc(depN(r.department_id))}</span>` : `<span class="sec-tag org">Geral</span>`)) : (view[0]==='d' ? (r.sector_id&&secOf(r.sector_id) ? `<span class="sec-tag">${esc(secOf(r.sector_id).name)}</span>` : `<span class="sec-tag dep">Departamento</span>`) : '');
     const items=rows.filter(inView);
     const group=(cls)=>items.filter(r=>r.classification===cls).sort((a,b)=>b.gut-a.gut);
     const tbl=(cls)=>`<div class="card swot-${cls}"><div class="section-head"><h3>${cls}s</h3></div>
@@ -1296,23 +1298,25 @@ const App = (() => {
       ${group(cls).length?group(cls).map(r=>`<tr><td>${esc(r.item)}${tagOf(r)}</td><td>${r.gravidade}</td><td>${r.urgencia}</td><td>${r.tendencia}</td><td class="gut-num">${r.gut}</td>
         ${can('contributor')?`<td>${actionsCol(`App.editSwot(${JSON.stringify(r).replace(/"/g,'&quot;')})`,`App.delSwot(${r.id})`)}</td>`:''}</tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhum item</td></tr>`}
       </tbody></table></div>`;
-    const viewLabel = view==='geral' ? 'Geral da organização' : (view[0]==='d' ? (((depts.find(d=>d.id==+view.slice(1))||{}).name||'')+' — consolidado (departamento + setores)') : (()=>{ const s=secOf(+view.slice(1))||{}; const d=depts.find(x=>x.id===s.department_id)||{}; return (d.name?d.name+' › ':'')+(s.name||''); })());
+    const viewLabel = view==='geral' ? 'Geral da organização — consolidado (itens gerais + todos os departamentos e setores)' : (view[0]==='d' ? (((depts.find(d=>d.id==+view.slice(1))||{}).name||'')+' — consolidado (departamento + setores)') : (()=>{ const s=secOf(+view.slice(1))||{}; const d=depts.find(x=>x.id===s.department_id)||{}; return (d.name?d.name+' › ':'')+(s.name||''); })());
     const nSecItems = view[0]==='d' ? items.filter(r=>r.sector_id).length : 0;
+    const nOrg = items.filter(r=>r.department_id==null && r.sector_id==null).length;
     const yopts=[]; for(let y=yr-3;y<=yr+2;y++) yopts.push(y);
     v.innerHTML=`<div class="card"><div class="section-head"><div><h3>Análise SWOT — priorização GUT (Gravidade/Impacto × Urgência × Tendência)</h3>
-        <p class="desc">SWOT por período (mantém histórico) — geral da organização, por departamento ou por setor. A SWOT do departamento reúne os itens do próprio departamento e os de todos os seus setores.</p></div>
+        <p class="desc">SWOT por período (mantém histórico) — geral da organização, por departamento ou por setor. A visão Geral da organização reúne os itens cadastrados como gerais e os de todos os departamentos e setores; a do departamento reúne os itens do próprio departamento e os de todos os seus setores.</p></div>
         ${can('contributor')?`<button class="btn btn-accent" onclick="App.editSwot()">+ Novo item</button>`:''}</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
         <div class="field" style="margin:0;min-width:240px"><label>Visão da SWOT</label>
-          <select onchange="App.swotSetView(this.value)"><option value="geral" ${view==='geral'?'selected':''}>Geral da organização</option>${depts.map(d=>`<optgroup label="${esc(d.name)}"><option value="d${d.id}" ${view==='d'+d.id?'selected':''}>${esc(d.name)} (consolidado)</option>${secs.filter(s=>s.department_id===d.id).map(s=>`<option value="s${s.id}" ${view==='s'+s.id?'selected':''}>&nbsp;&nbsp;Setor: ${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+          <select onchange="App.swotSetView(this.value)"><option value="geral" ${view==='geral'?'selected':''}>Geral da organização (consolidado)</option>${depts.map(d=>`<optgroup label="${esc(d.name)}"><option value="d${d.id}" ${view==='d'+d.id?'selected':''}>${esc(d.name)} (consolidado)</option>${secs.filter(s=>s.department_id===d.id).map(s=>`<option value="s${s.id}" ${view==='s'+s.id?'selected':''}>&nbsp;&nbsp;Setor: ${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
         <div class="field" style="margin:0;min-width:110px"><label>Ano</label><select onchange="App.swotSetPeriod('y',this.value)">${yopts.map(y=>`<option value="${y}" ${y==yr?'selected':''}>${y}</option>`).join('')}</select></div>
         <div class="field" style="margin:0;min-width:120px"><label>Trimestre</label><select onchange="App.swotSetPeriod('q',this.value)">${[1,2,3,4].map(q=>`<option value="${q}" ${q==qt?'selected':''}>T${q}</option>`).join('')}</select></div>
-        ${can('contributor')&&!items.length?`<button class="btn btn-light btn-sm" onclick="App.swotCopyPrev()">Copiar do trimestre anterior</button>`:''}</div>
-      <p class="desc" style="margin:10px 0 0">Mostrando: <b>${esc(viewLabel)}</b> · T${qt} ${yr} · ${items.length} itens${view[0]==='d'?` (${items.length-nSecItems} do departamento, ${nSecItems} dos setores)`:''}</p></div>
+        ${can('contributor')&&!(view==='geral'?nOrg:items.length)?`<button class="btn btn-light btn-sm" onclick="App.swotCopyPrev()">${view==='geral'?'Copiar itens gerais do trimestre anterior':'Copiar do trimestre anterior'}</button>`:''}</div>
+      <p class="desc" style="margin:10px 0 0">Mostrando: <b>${esc(viewLabel)}</b> · T${qt} ${yr} · ${items.length} itens${view[0]==='d'?` (${items.length-nSecItems} do departamento, ${nSecItems} dos setores)`:''}${view==='geral'?` (${nOrg} gerais da organização, ${items.length-nOrg} de departamentos e setores)`:''}</p></div>
       <div class="grid-2">${tbl('Força')}${tbl('Fraqueza')}${tbl('Oportunidade')}${tbl('Ameaça')}</div>`;
   };
   function swotInScope(r, view, secs){
-    if(view==='geral') return r.department_id==null && r.sector_id==null;
+    if(view==='geral') return true;
+    if(view==='org') return r.department_id==null && r.sector_id==null;
     if(view[0]==='d'){ const d=+view.slice(1); const s=r.sector_id?secs.find(x=>x.id===r.sector_id):null; return r.department_id==d || (s && s.department_id===d); }
     return r.sector_id==+view.slice(1);
   }
@@ -1322,7 +1326,7 @@ const App = (() => {
     const view=window.__swotView, yr=window.__swotYear, qt=window.__swotQuarter;
     let py=yr, pq=qt-1; if(pq<1){ pq=4; py=yr-1; }
     const { data:prev } = await sb.from('swot_items').select('*').eq('year',py).eq('quarter',pq);
-    const src=(prev||[]).filter(r=> swotInScope(r, view, window.__sectors||[]));
+    const src=(prev||[]).filter(r=> swotInScope(r, view==='geral'?'org':view, window.__sectors||[]));
     if(!src.length){ toast('Nada para copiar de T'+pq+' '+py+'.'); return; }
     try{ for(const r of src){ await tInsert('swot_items',{classification:r.classification,item:r.item,department_id:r.department_id,sector_id:r.sector_id||null,gravidade:r.gravidade,urgencia:r.urgencia,tendencia:r.tendencia,insights:r.insights,year:yr,quarter:qt}); } }
     catch(e){ return toast(e.message); }
@@ -2699,7 +2703,7 @@ const App = (() => {
       passos:['Escolha o Período (ano) no canto superior.','Na aba "Responder", marque de 1 a 5 em cada pergunta: 1 Não fazemos · 2 Início/informal · 3 Parcial · 4 Estruturado · 5 Otimizado. Clique em "Salvar minhas respostas".','Na aba "Resultados" (gestores), veja o radar, as notas por área e as áreas mais frágeis.','Na aba "Perguntas" (administrador), carregue as perguntas padrão ou crie as suas.'],
       dicas:['Responda com base no que acontece hoje, não no que está planejado.','As áreas com menor nota são boas candidatas a virar objetivos e iniciativas.'] },
     { id:'swot', t:'SWOT / GUT', who:'Colaborador, Gestor e Administrador', para:'Forças, fraquezas, oportunidades e ameaças, priorizadas pela matriz GUT (Gravidade/Impacto × Urgência × Tendência). Pode ser feita para a organização, por departamento ou por setor.',
-      passos:['Escolha o período (ano e trimestre) e a visão: Geral da organização, um departamento (consolidado) ou um setor.','Na visão de um setor, cadastre os itens daquele setor. A visão do departamento mostra automaticamente os itens do departamento mais os de todos os seus setores, com uma etiqueta indicando a origem.','Clique em "+ Novo item", escolha a Classificação (Força, Fraqueza, Oportunidade ou Ameaça) e descreva o Item em uma frase.','Dê notas de 1 a 5 para Gravidade (ou Impacto), Urgência e Tendência. O sistema multiplica as três e ordena pela nota GUT.','Use "Insights" para registrar o que fazer a respeito do item.','No trimestre seguinte, use "Copiar do trimestre anterior" e só ajuste o que mudou.'],
+      passos:['Escolha o período (ano e trimestre) e a visão: Geral da organização (consolidado de tudo), um departamento (consolidado com seus setores) ou um setor.','Na visão de um setor, cadastre os itens daquele setor. A visão do departamento mostra os itens do departamento mais os de todos os seus setores, e a Geral da organização mostra os itens gerais mais os de todos os departamentos e setores — sempre com uma etiqueta indicando a origem. Para cadastrar um item geral, deixe Departamento e Setor em branco.','Clique em "+ Novo item", escolha a Classificação (Força, Fraqueza, Oportunidade ou Ameaça) e descreva o Item em uma frase.','Dê notas de 1 a 5 para Gravidade (ou Impacto), Urgência e Tendência. O sistema multiplica as três e ordena pela nota GUT.','Use "Insights" para registrar o que fazer a respeito do item.','No trimestre seguinte, use "Copiar do trimestre anterior" e só ajuste o que mudou.'],
       dicas:['Forças e fraquezas são internas (dependem da empresa); oportunidades e ameaças são externas.','Os itens com GUT mais alto aparecem no Painel como prioridades.'] },
     { id:'pestel', t:'Análise PESTEL', who:'Colaborador, Gestor e Administrador', para:'Fatores externos do macroambiente: Político, Econômico, Sociocultural, Tecnológico, Ambiental e Legal.',
       passos:['Clique em "+ Novo fator" e escolha a Categoria.','Marque o Tipo de impacto (Positivo, Negativo ou Neutro).','Descreva o Fato/Fator e, em seguida, o impacto e como a empresa pode lidar com ele.'],
@@ -2739,7 +2743,7 @@ const App = (() => {
       dicas:['A barra amarela do gráfico por trimestre mostra a previsão revisada.'] },
     { id:'consolidado', t:'Plano Estratégico (consolidado)', who:'Todos (só consulta)', para:'Documento único com o planejamento estratégico definitivo: identidade (missão, visão, valores), estrutura, SWOT, mapa BSC com as metas e seu atingimento, iniciativas e orçamento.',
       passos:['Escolha o ano e o período (ano inteiro ou um trimestre).','Confira os indicadores do topo e cada bloco numerado.','Clique em "🖨️ Imprimir / PDF" para gerar o documento (na janela de impressão, escolha "Salvar como PDF").'],
-      dicas:['Tudo é montado com o que já está cadastrado nas outras páginas: para corrigir algo, edite na página de origem.','A SWOT mostrada é a geral da organização do trimestre escolhido (ou o trimestre mais recente com itens, quando o período é o ano inteiro).'] },
+      dicas:['Tudo é montado com o que já está cadastrado nas outras páginas: para corrigir algo, edite na página de origem.','A SWOT mostrada é a consolidada da organização (itens gerais + departamentos e setores) do trimestre escolhido (ou o trimestre mais recente com itens, quando o período é o ano inteiro).'] },
     { id:'usuarios', t:'Usuários & Acessos', who:'Gestor consulta · Administrador edita', para:'Cadastro das pessoas, papel de cada uma e departamento.',
       passos:['Clique em "+ Cadastrar pessoa" e informe nome, e-mail e uma senha provisória.','Clique em "Editar" para definir o Papel (Administrador, Gestor, Colaborador ou Visualizador), o Departamento e se a pessoa está Ativa.','Peça para a pessoa trocar a senha provisória em Meu Perfil no primeiro acesso.'],
       dicas:['Administrador gerencia tudo · Gestor cria objetivos, metas e estrutura · Colaborador lança SWOT, iniciativas e resultados · Visualizador só consulta.','Quando alguém sair da empresa, marque como Inativo em vez de apagar, para manter o histórico.'] },
@@ -2997,7 +3001,7 @@ const App = (() => {
     const brl0=(n)=>'R$ '+(Number(n)||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
     // SWOT: período selecionado (ou o mais recente com dados no ano)
     let sq=q; if(!sq){ const qs=[...new Set(swot.filter(s=>s.year===year).map(s=>s.quarter))].sort(); sq=qs.length?qs[qs.length-1]:null; }
-    const SW=swot.filter(s=>s.year===year && s.quarter===sq && s.department_id==null && s.sector_id==null).map(s=>Object.assign({gut:s.gravidade*s.urgencia*s.tendencia},s));
+    const SW=swot.filter(s=>s.year===year && s.quarter===sq).map(s=>Object.assign({gut:s.gravidade*s.urgencia*s.tendencia},s));
     const SWall=swot.filter(s=>s.year===year && s.quarter===sq);
     const swTop=(cls)=>SW.filter(s=>s.classification===cls).sort((a,b)=>b.gut-a.gut).slice(0,5);
     // orçamento
@@ -3037,8 +3041,8 @@ const App = (() => {
           `${depts.length} departamentos · ${secs.length} setores · ${profs.filter(p=>p.active!==false).length} usuários`)}
 
         ${sec(N(),'Diagnóstico estratégico — SWOT',sq?`<div class="co-swot">${['Força','Fraqueza','Oportunidade','Ameaça'].map(c=>`<div class="co-sw" style="border-top-color:${sCol[c]}"><h4 style="color:${sCol[c]}">${c}s <small>${SWall.filter(s=>s.classification===c).length} itens</small></h4>
-            <ol>${swTop(c).map(s=>`<li>${esc(s.item)} <em title="${c==='Força'||c==='Oportunidade'?'IUT':'GUT'}">${s.gut}</em></li>`).join('')||'<li class="muted">Sem itens gerais</li>'}</ol></div>`).join('')}</div>
-            <p class="desc" style="margin:8px 0 0">SWOT geral da organização, T${sq} ${year} — 5 itens mais prioritários pela matriz GUT/IUT de cada quadrante. ${pestel.length?`PESTEL: ${pestel.length} fatores externos mapeados (${pestel.filter(x=>x.impact_type==='Positivo').length} positivos, ${pestel.filter(x=>x.impact_type==='Negativo').length} negativos).`:''} ${stk.length?`Stakeholders: ${stk.length} mapeados.`:''}</p>`
+            <ol>${swTop(c).map(s=>`<li>${esc(s.item)} <em title="${c==='Força'||c==='Oportunidade'?'IUT':'GUT'}">${s.gut}</em></li>`).join('')||'<li class="muted">Sem itens</li>'}</ol></div>`).join('')}</div>
+            <p class="desc" style="margin:8px 0 0">SWOT consolidada da organização (itens gerais + departamentos e setores), T${sq} ${year} — 5 itens mais prioritários pela matriz GUT/IUT de cada quadrante. ${pestel.length?`PESTEL: ${pestel.length} fatores externos mapeados (${pestel.filter(x=>x.impact_type==='Positivo').length} positivos, ${pestel.filter(x=>x.impact_type==='Negativo').length} negativos).`:''} ${stk.length?`Stakeholders: ${stk.length} mapeados.`:''}</p>`
           :'<div class="empty">Nenhuma SWOT cadastrada neste ano.</div>')}
 
         ${sec(N(),'Mapa estratégico (BSC) e metas',`${persp.map(p=>{ const os=objs.filter(o=>o.perspective_id===p.id); if(!os.length) return '';

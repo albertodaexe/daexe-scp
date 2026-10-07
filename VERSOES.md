@@ -58,3 +58,6 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - 2026-10-07 — v33: Mapa BSC com filtros de Ano, Trimestre e Departamento (e % de atingimento de cada meta no período).
   Nova página "Plano Estratégico (consolidado)": identidade, estrutura, SWOT, mapa BSC com metas e status, iniciativas
   e orçamento num documento único, com filtro de ano/trimestre e botão Imprimir/PDF.
+- 2026-10-07 — v34: SWOT "Geral da organização" passa a ser o consolidado de tudo (itens gerais + todos os departamentos
+  e setores), com etiqueta de origem em cada item. "Copiar do trimestre anterior" na visão geral copia só os itens gerais.
+  O Plano Estratégico consolidado também usa a SWOT consolidada.
