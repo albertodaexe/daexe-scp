@@ -64,3 +64,10 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - 2026-10-07 — v35: "Plano Estratégico (consolidado)" virou apresentação interativa em slides 16:9 (capa com agenda,
   visão geral, identidade, estrutura, SWOT com TODOS os itens, PESTEL, BSC e metas, desempenho das metas, iniciativas,
   orçamento), com filtros próprios em cada slide, navegação por setas/teclado/índice, tela cheia e PDF de todos os slides.
+
+## v36 — 08/10/2026
+- Ações das iniciativas: data de início prevista, data de conclusão prevista (prazo), data de início efetiva, data de fim efetiva e nível de prioridade (matriz de Eisenhower: N3 Importante e urgente · N2 Importante e não urgente · N1 Não importante e urgente · N0 Não importante e não urgente).
+- Tabela de ações mostra prioridade, previsto x efetivo e dias de atraso na conclusão (+Nd).
+- RAS (assistente e Atualizar): datas efetivas; ao marcar Concluído, a data de fim efetiva é obrigatória (sugerida com o fim da semana).
+- Report semanal: mais de um responsável pelo impeditivo (usuários marcados + externos); cada novo usuário indicado recebe notificação.
+- Supabase: initiative_actions (start_planned, start_actual, end_actual, priority 0–3); action_weekly.impeditivo_resps uuid[].
