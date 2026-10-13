@@ -71,3 +71,9 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - RAS (assistente e Atualizar): datas efetivas; ao marcar Concluído, a data de fim efetiva é obrigatória (sugerida com o fim da semana).
 - Report semanal: mais de um responsável pelo impeditivo (usuários marcados + externos); cada novo usuário indicado recebe notificação.
 - Supabase: initiative_actions (start_planned, start_actual, end_actual, priority 0–3); action_weekly.impeditivo_resps uuid[].
+
+## v37 — 13/10/2026
+- RAS com dois modelos, escolhidos pelo administrador no topo da página Desempenho de Iniciativas/Metas (organizations.ras_mode):
+  - "Metas" (ativo na Daexe): o assistente mostra só as metas do trimestre, com 1. meta da semana, 2. resultado, 3. causa e 4. ação (causa e ação obrigatórias quando o resultado fica abaixo da meta). A página e a Apresentação da semana mostram meta, resultado, % e causa/ação; os pontos semanais são coloridos pelo % da meta.
+  - "Completo": o fluxo da v30–v36 (ações das iniciativas + evolução das metas), preservado sem alterações para ser retomado.
+- Cadastro de iniciativas e ações (datas, prioridade, vínculo com metas) continua igual na página Iniciativas.
