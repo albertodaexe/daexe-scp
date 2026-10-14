@@ -77,3 +77,8 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   - "Metas" (ativo na Daexe): o assistente mostra só as metas do trimestre, com 1. meta da semana, 2. resultado, 3. causa e 4. ação (causa e ação obrigatórias quando o resultado fica abaixo da meta). A página e a Apresentação da semana mostram meta, resultado, % e causa/ação; os pontos semanais são coloridos pelo % da meta.
   - "Completo": o fluxo da v30–v36 (ações das iniciativas + evolução das metas), preservado sem alterações para ser retomado.
 - Cadastro de iniciativas e ações (datas, prioridade, vínculo com metas) continua igual na página Iniciativas.
+
+## v38 — 14/10/2026
+- Sistema renomeado para **Cangolo**: tela de login e de nova senha, título da aba, marca na barra lateral, boas-vindas e textos do relatório trimestral.
+- Apresentação da semana: seletor 👥 para apresentar Todos, individualmente (uma pessoa), por departamento ou por setor. Metas filtradas por responsável/departamento/setor (no individual, só os lançamentos da pessoa); ações por responsável, departamento da iniciativa/pessoa ou pessoas do setor.
+- Nova página **RAS com iniciativas (testes)** no menu Administração (gestor e administrador): sempre no modelo completo (ações das iniciativas + metas). O assistente nessa página atualiza só as ações; as metas aparecem para consulta e não são alteradas (para não sobrescrever a RAS oficial).
