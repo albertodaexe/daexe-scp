@@ -90,3 +90,6 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 ## v40 — 19/10/2026
 - Apresentação da semana (oficial e testes): na parte das metas, cada responsável aparece num mini bloco com meta, valor atingido, % , causa e ação (e o total/média da semana quando há mais de um).
 - Página de testes: novo botão "✨ Apresentação v2 (testes)" — roteiro da reunião em blocos: Abertura (indicadores gerais e cartões por departamento), um bloco por departamento (metas e ações lado a lado, modo "Só exceções"), Espaço do diretor (metas < 70%, ações atrasadas, impeditivos que dependem de alguém) e Encaminhamentos (compromissos por pessoa). Cronômetro da reunião (30 min) e tempo por bloco; navegação pelas setas do teclado.
+
+## v41 — 19/10/2026
+- Apresentação v2 (testes): nos blocos de departamento, ações das iniciativas passam para a esquerda e metas para a direita.
