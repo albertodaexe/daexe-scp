@@ -86,3 +86,7 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 ## v39 — 19/10/2026
 - Correção do cálculo semanal das metas com vários responsáveis: metas com fórmula "Média" (ex.: metas em %) agora tiram a **média** dos lançamentos da semana, e não a soma (antes, 100% + 100% + 83% aparecia como 283%). Linhas em branco (meta 0 e resultado 0) e "sem evolução" da RAS não entram na média. Metas com fórmula "Soma" continuam somando. Vale para Painel, Painel de Metas, Preenchimento de Metas, BSC, Plano consolidado, relatório trimestral, exportação Excel e Apresentação da semana.
 - Apresentação da semana (modelo completo / página de testes): dividida em dois blocos — 1. Iniciativas (indicadores e tabela das ações) e 2. Metas (metas com evolução, sem evolução e sem informação + tabela das metas). O resultado mostra também a meta da semana e, nas metas de média, quantos lançamentos entraram.
+
+## v40 — 19/10/2026
+- Apresentação da semana (oficial e testes): na parte das metas, cada responsável aparece num mini bloco com meta, valor atingido, % , causa e ação (e o total/média da semana quando há mais de um).
+- Página de testes: novo botão "✨ Apresentação v2 (testes)" — roteiro da reunião em blocos: Abertura (indicadores gerais e cartões por departamento), um bloco por departamento (metas e ações lado a lado, modo "Só exceções"), Espaço do diretor (metas < 70%, ações atrasadas, impeditivos que dependem de alguém) e Encaminhamentos (compromissos por pessoa). Cronômetro da reunião (30 min) e tempo por bloco; navegação pelas setas do teclado.

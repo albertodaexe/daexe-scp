@@ -441,6 +441,70 @@ body.nav-collapsed .content{margin-left:0}
 .pres-mini{width:120px;height:7px;background:#e3e9f0;border-radius:6px;overflow:hidden}.pres-mini i{display:block;height:100%;background:var(--accent)}
 .pres-pct{margin-left:auto;font-weight:700}
 .pres-acc{display:flex;align-items:center;gap:6px;margin-top:5px}.pres-acc span{font-size:10.5px;color:var(--muted);white-space:normal;line-height:1.2;max-width:70px}
+.pres-txt.pp{min-width:440px;max-width:none}
+.pp-tot{font-size:11.5px;color:var(--muted);margin-bottom:6px}.pp-tot b{color:var(--text)}
+.pp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.pp-card{background:#f8fafc;border:1px solid #e6ebf2;border-left:4px solid;border-radius:8px;padding:7px 9px}
+.pp-h{display:flex;justify-content:space-between;align-items:center;gap:6px}.pp-h b{font-size:12px;color:var(--navy)}
+.pp-pill{display:inline-block;color:#fff;border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pp-v{display:flex;gap:16px;margin:4px 0 2px}.pp-v span{font-size:10px;color:var(--muted);display:flex;flex-direction:column;text-transform:uppercase;letter-spacing:.3px;font-weight:700}.pp-v b{font-size:12.5px;color:var(--text);text-transform:none;letter-spacing:0}
+.pp-t{font-size:11.5px;line-height:1.35;margin-top:4px}.pp-t em{display:block;font-style:normal;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+.btn-gold{background:var(--gold);color:#1b1b1b;font-weight:700}
+#pres2{position:fixed;inset:0;z-index:81;background:#eef2f7;display:flex;flex-direction:column}
+.p2-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--navy);color:#fff;padding:12px 24px}
+.p2-title b{font-size:19px;margin-right:8px}
+.p2-time{display:flex;gap:10px;align-items:center}
+.p2-clock{font-variant-numeric:tabular-nums;background:rgba(255,255,255,.12);border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:14px}
+.p2-timer{font-variant-numeric:tabular-nums;background:#2e9e6b;border-radius:8px;padding:6px 14px;font-weight:800;font-size:18px;min-width:78px;text-align:center}
+.p2-clock.warn,.p2-timer.warn{background:#e6a817;color:#1b1b1b}.p2-clock.over,.p2-timer.over{background:#d9534f;color:#fff}
+.p2-bar .pres-ctl button.on{background:var(--gold);color:#1b1b1b;border-color:var(--gold)}
+.p2-agenda{display:flex;gap:6px;padding:10px 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+.p2-agenda button{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:#f7f9fc;border-radius:20px;padding:5px 12px 5px 8px;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap}
+.p2-agenda button span{font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis}.p2-agenda button small{color:var(--muted);font-weight:600}
+.p2-agenda button.done{background:#e9f6ef;border-color:#bfe3cf}.p2-agenda button.on{background:var(--navy);color:#fff;border-color:var(--navy)}.p2-agenda button.on small{color:#cfe0f2}
+.p2-body{flex:1;overflow:auto;padding:22px 28px 30px}
+.p2-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 24px;background:#fff;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.p2-foot button{border:1px solid var(--line);background:#f7f9fc;border-radius:8px;padding:8px 16px;font-weight:700;color:var(--navy);cursor:pointer}.p2-foot button:disabled{opacity:.35;cursor:default}
+.p2-kick{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:var(--accent)}
+.p2-hero{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(120deg,#1F3A5F,#2E8BC0);color:#fff;border-radius:16px;padding:22px 28px;margin-bottom:18px}
+.p2-hero .p2-kick{color:#cfe6ff}.p2-hero h2{font-size:30px;margin:4px 0}.p2-hero p{opacity:.85}
+.p2-hero .p2-ring circle:first-child{stroke:rgba(255,255,255,.25)}.p2-hero .p2-ring text{fill:#fff}
+.p2-ring text{font-size:8.5px;font-weight:800;fill:var(--navy)}
+.p2-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.p2-kpis div{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border-top:4px solid var(--c)}.p2-kpis b{display:block;font-size:30px;color:var(--c);line-height:1.1}.p2-kpis span{font-size:12.5px;font-weight:600}
+.p2-h3{color:var(--navy);font-size:15px;margin:4px 0 10px}.p2-h3 small{color:var(--muted);font-weight:500;font-size:12px}
+.p2-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.p2-tile{display:flex;gap:12px;align-items:center;background:#fff;border-radius:12px;padding:14px;box-shadow:var(--shadow);cursor:pointer;border:2px solid transparent;position:relative}
+.p2-tile:hover{border-color:var(--accent)}.p2-tile b{display:block;color:var(--navy);font-size:15px;margin-bottom:3px}.p2-tile span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.p2-tile span i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px 0 4px}.p2-tile>small{position:absolute;top:8px;right:10px;font-weight:700;color:var(--muted)}
+.p2-dep-h{display:flex;gap:16px;align-items:center;background:#fff;border-radius:14px;padding:14px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.p2-dep-h h2{font-size:26px;color:var(--navy);margin:2px 0 6px}.p2-dep-h p{color:var(--muted);font-size:13px}
+.p2-big{width:64px;height:64px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800}
+.p2-chip{display:inline-block;border-radius:14px;padding:3px 10px;font-size:12px;font-weight:700;margin:0 6px 4px 0}
+.p2-chip.g{background:#e3f4ea;color:#1d7a52}.p2-chip.r{background:#fde8e7;color:#b33a36}.p2-chip.n{background:#eef1f5;color:#5b6675}.p2-chip.b{background:#e6f1f8;color:#1f6fa0}
+.p2-cols{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
+.p2-cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.p2-cols>section,.p2-cols3>section{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.p2-goal{border:1px solid #e6ebf2;border-left:5px solid;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.p2-goal-h{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px}.p2-goal-h b{display:block;color:var(--navy);font-size:13px;line-height:1.35}.p2-goal-h span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.p2-goal-k{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:130px}.p2-goal-k small{font-size:11px;color:var(--muted)}
+.p2-dots{display:flex;gap:3px}.p2-dots i{width:10px;height:10px;border-radius:50%;border:1.5px solid #d5dce6;display:inline-block}.p2-dots i.cur{outline:2px solid var(--navy);outline-offset:1px}
+.p2-okbox{background:#f3faf6;border:1px dashed #bfe3cf;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:12px}.p2-okbox b{display:block;color:#1d7a52;margin-bottom:4px}
+.p2-okbox span{display:inline-block;background:#fff;border:1px solid #d7ece0;border-radius:12px;padding:2px 9px;margin:0 5px 5px 0}.p2-okbox i{font-style:normal;font-weight:700;color:var(--muted)}
+.p2-ini{margin-bottom:10px}.p2-ini-h{font-weight:800;color:var(--navy);font-size:13px;padding:4px 0;border-bottom:2px solid var(--line);margin-bottom:6px}.p2-ini-h span{font-weight:600;color:var(--muted);font-size:11px}
+.p2-act{border:1px solid #e6ebf2;border-radius:10px;padding:8px 10px;margin-bottom:7px}.p2-act.late{border-color:#f3c3c1;background:#fff8f8}
+.p2-act-h{display:flex;gap:9px;align-items:flex-start}.p2-act-h>i{width:12px;height:12px;border-radius:50%;margin-top:3px;flex:none}.p2-act-h>div:nth-child(2){flex:1}
+.p2-act-h b{color:var(--navy);font-size:12.5px}.p2-act-h span{display:block;font-size:11px;color:var(--muted)}
+.p2-act-st{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.p2-imp,.p2-next{font-size:12px;margin:6px 0 0 21px;line-height:1.35}.p2-imp em,.p2-next em{display:block;font-style:normal;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+.p2-imp{border-left:3px solid #d9534f;padding-left:8px}.p2-next{border-left:3px solid var(--accent);padding-left:8px}
+.p2-empty{color:var(--muted);font-size:13px;padding:14px;text-align:center;background:#f7f9fc;border-radius:10px}
+.p2-li .pp-pill{display:inline-block;flex:none;font-size:11px}
+.p2-li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eef1f5}.p2-li b{display:block;color:var(--navy);font-size:12.5px;line-height:1.35}.p2-li span{display:block;font-size:11px;color:var(--muted)}
+.p2-enc{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.p2-encp{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}.p2-encp h4{color:var(--navy);font-size:14px;margin-bottom:6px}.p2-encp h4 small{background:var(--navy);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px}
+.p2-enci{border-left:3px solid var(--accent);padding:4px 0 4px 9px;margin-bottom:7px}.p2-enci.late{border-left-color:#d9534f}.p2-enci b{display:block;font-size:12.5px;line-height:1.35}.p2-enci span{font-size:11px;color:var(--muted)}
+@media(max-width:1100px){.p2-cols,.p2-cols3{grid-template-columns:1fr}.p2-tiles{grid-template-columns:repeat(2,1fr)}.p2-kpis{grid-template-columns:repeat(2,1fr)}}
 .pres-ring{width:38px;height:38px}.pres-ring text{font-size:9px;font-weight:700;fill:var(--navy)}
 .muted{color:var(--muted)}
 .ras-top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
@@ -2204,7 +2268,7 @@ const App = (() => {
     const TEST = current==='rasteste';
     const head=`${TEST?`<div class="ras-warn" style="margin-bottom:12px">🧪 <b>Página de testes</b> — RAS no modelo com iniciativas (ações das iniciativas + metas), guardada para ser retomada. A RAS oficial continua em <a href="#" onclick="App.go('desini');return false">Desempenho de Iniciativas/Metas</a>. O que for salvo nas ações aqui é real (mesmas ações e status); as metas aparecem só para consulta e não são alteradas por esta página.</div>`:''}<div class="card"><div class="section-head"><div><h3>${TEST?'RAS com iniciativas (testes)':'Desempenho de Iniciativas/Metas'}</h3>
         <p class="desc" style="margin:0">${rm==='metas'?'Base da <b>RAS</b> (reunião de avanço semanal): cada responsável informa, para cada meta, a meta da semana, o resultado, a causa e a ação.':'Base da <b>RAS</b> (reunião de avanço semanal): cada responsável atualiza o status das suas ações e informa a evolução das suas metas da semana.'}</p></div>
-        <div class="inline-actions">${can('contributor')?`<button class="btn btn-accent" onclick="App.rasOpen()">📋 Preenchimento para RAS</button>`:''}<button class="btn btn-primary" onclick="App.presOpen()">🖥️ Apresentação da semana</button>
+        <div class="inline-actions">${can('contributor')?`<button class="btn btn-accent" onclick="App.rasOpen()">📋 Preenchimento para RAS</button>`:''}<button class="btn btn-primary" onclick="App.presOpen()">🖥️ Apresentação da semana</button>${TEST?`<button class="btn btn-gold" onclick="App.pres2Open()" title="Versão 2 da apresentação (em testes): roteiro da reunião por departamento, com cronômetro">✨ Apresentação v2 (testes)</button>`:''}
         <div class="toggle-group"><button class="${scope==='minhas'?'active':''}" onclick="App.diScope('minhas')">Minhas</button><button class="${scope==='todas'?'active':''}" onclick="App.diScope('todas')">Todas</button></div></div></div>
       <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:6px">
         ${can('admin')&&!TEST?`<div class="field" style="margin:0;min-width:270px"><label>Modelo da RAS (administrador)</label><select onchange="App.setRasMode(this.value)"><option value="metas" ${rm==='metas'?'selected':''}>Metas — meta, resultado, causa e ação</option><option value="completo" ${rm!=='metas'?'selected':''}>Completo — ações das iniciativas + metas</option></select></div>`:''}
@@ -2556,7 +2620,7 @@ const App = (() => {
           gHtml+=`<tr><td class="pres-name"><b>${esc(g.smart_text)}</b><span>${esc(owners)} · ${esc(goalPeriodLabel(g))}</span></td>
             ${wNums.map(w=>{ const p=gPct(g.id,w); return `<td class="pc${w===week?' cur':''}"><span class="dot" ${p!=null?`style="background:${pctColor(p)}"`:''} title="S${w}: ${p!=null?Math.round(p)+'% da meta':'não informado'}"></span></td>`; }).join('')}
             <td class="pres-st">${pw!=null?`<span class="pill" style="background:${pctColor(pw)};color:#fff">${Math.round(pw)}% na S${week}</span>`:'<span class="pill pill-gray">Não informado</span>'}<div class="pres-acc">${t.m?ring(pc, pctColor(pc)):''}<span>${t.m?'acumulado no trimestre':''}</span></div></td>
-            <td class="pres-txt">${rs.length?`<div><em>Meta:</em> <b>${fmtByUnit(mS,g.unit)}</b> · <em>Resultado:</em> <b>${fmtByUnit(rS,g.unit)}</b></div>`:''}${txt}${!rs.length?'<span class="muted">—</span>':''}</td></tr>`;
+            <td class="pres-txt pp">${presPersonCards(rs, g, profN)}</td></tr>`;
           return;
         }
         const st=gState(g.id,week); const rs=gw.filter(r=>r.goal_id===g.id && r.week===week);
@@ -2566,7 +2630,7 @@ const App = (() => {
         gHtml+=`<tr><td class="pres-name"><b>${esc(g.smart_text)}</b><span>${esc(owners)} · ${esc(goalPeriodLabel(g))}</span></td>
           ${wNums.map(w=>{ const s=gState(g.id,w); return `<td class="pc${w===week?' cur':''}"><span class="dot ${s}" title="S${w}: ${s==='e'?'evoluiu':s==='s'?'sem evolução':'não informado'}"></span></td>`; }).join('')}
           <td class="pres-st">${st==='e'?'<span class="pill pill-green">Evoluiu</span>':st==='s'?'<span class="pill pill-amber">Sem evolução</span>':'<span class="pill pill-gray">Não informado</span>'}<div class="pres-acc">${t.m?ring(pc, pc>=100?'#2e9e6b':pc>=70?'#2E8BC0':pc>=40?'#e6a817':'#d9534f'):''}<span>${t.m?'acumulado no trimestre':''}</span></div></td>
-          <td class="pres-txt">${st==='e'?`<div><em>Resultado${g.calc_type==='media'&&ag.n>1?' (média de '+ag.n+')':''}:</em> <b>${fmtByUnit(res,g.unit)}</b>${ag.m?` · <em>meta</em> ${fmtByUnit(ag.m,g.unit)}`:''}</div>`:''}${causa?`<div><em>Causa:</em> ${esc(causa)}</div>`:''}${st!=='e'&&!causa?'<span class="muted">—</span>':''}</td></tr>`;
+          <td class="pres-txt pp">${presPersonCards(rs, g, profN)}</td></tr>`;
       });
       const wPrev=week>1?week-1:null, wNext=week<weeksOfYear(year).length?week+1:null;
       ov.innerHTML=`<div class="pres-bar"><div><span class="pres-tag">RAS</span><b>Apresentação da semana ${week}</b><span class="pres-sub">${wk.start?dm(wk.start)+' a '+dm(wk.end)+' · ':''}T${qW} ${year} · ${rm==='metas'?'metas':'ações e metas'} — ${esc(fLabel)}${me.org_name?' · '+esc(me.org_name):''}</span></div>
@@ -2580,7 +2644,7 @@ const App = (() => {
           </div>
           <div class="pres-sec"><div class="pres-sec-h"><h3>Metas do T${qW} — % da meta por semana</h3>
             <div class="pres-leg"><span><i style="background:#2e9e6b"></i>≥ 100%</span><span><i style="background:#2E8BC0"></i>70–99%</span><span><i style="background:#e6a817"></i>40–69%</span><span><i style="background:#d9534f"></i>&lt; 40%</span><span><i class="nil"></i>Não informado</span></div></div>
-            ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Meta, resultado, causa e ação</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>`:`
+            ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Lançamentos por responsável — meta, atingido, causa e ação</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>`:`
           <div class="pres-block"><span>1</span><div><b>Iniciativas</b><i>status das ações, impeditivos e próximos passos</i></div></div>
           <div class="pres-kpis k3">
             ${kpi(`${nUpd}/${actsOpen.length}`,'ações atualizadas','#1F3A5F', actsOpen.length?Math.round(nUpd/actsOpen.length*100)+'% de adesão':'')}
@@ -2598,7 +2662,7 @@ const App = (() => {
           </div>
           <div class="pres-sec"><div class="pres-sec-h"><h3>Metas do T${qW} — evolução por semana</h3>
             <div class="pres-leg"><span><i style="background:#2e9e6b"></i>Evoluiu</span><span><i style="background:#e6a817"></i>Sem evolução</span><span><i class="nil"></i>Não informado</span></div></div>
-            ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Resultado e causa</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>`}
+            ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Lançamentos por responsável — meta, atingido, causa e ação</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>`}
         </div>`;
       window.__presArgs=[year,week];
     }catch(e){ ov.innerHTML=`<div class="pres-load">Erro ao montar a apresentação: ${esc(e.message)} <button class="btn btn-light btn-sm" onclick="App.presClose()">Fechar</button></div>`; }
@@ -3019,7 +3083,7 @@ const App = (() => {
       passos:['Filtre por ano, trimestre, departamento, setor ou responsável.','Alterne entre as visões por semana, mês e trimestre.','Clique em uma semana para ver o resumo com os lançamentos, as causas e as ações.'],
       dicas:['Verde = 100% ou mais · Azul = 70 a 99% · Amarelo = 40 a 69% · Vermelho = abaixo de 40%.'] },
     { id:'desini', t:'Desempenho de Iniciativas/Metas', who:'Responsáveis por ações e metas', para:'Página da RAS (reunião de avanço semanal): status semanal das ações das iniciativas e evolução das metas do trimestre.',
-      passos:['A RAS tem dois modelos, escolhidos pelo administrador no topo desta página: "Metas" (cada responsável informa, por meta, 1. a meta da semana, 2. o resultado, 3. a causa e 4. a ação) e "Completo" (ações das iniciativas + evolução das metas). Os passos abaixo valem para o modelo Completo; no modelo Metas o assistente mostra só as suas metas do trimestre, uma por vez, com esses quatro campos.','Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução. Se a ação estiver Em andamento ou Atrasada, é obrigatório informar o impeditivo / motivo do atraso e o que será feito na próxima semana para concluí-la. Você também pode indicar um ou mais responsáveis pelo impeditivo (colegas, que recebem uma notificação, e/ou alguém externo). Informe a data de início efetiva quando a ação começar; ao marcar Concluído, informe a data de fim efetiva (vem sugerida com o fim da semana). Clique em "Salvar e continuar".','O sistema usa o prazo da ação: se a data venceu e a ação não foi concluída, ela aparece como Atrasada (só dá para marcar Atrasado ou Concluído).','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.','Na apresentação, use o seletor 👥 no topo para apresentar Todos, uma pessoa (individual), um departamento ou um setor.','Na reunião, clique em "🖥️ Apresentação da semana": abre em tela cheia um painel com indicadores, a linha do tempo semanal de cada ação das iniciativas e a evolução de cada meta do trimestre, com impeditivos, próximos passos, resultados e causas. Use ◂ ▸ para trocar de semana e o ✕ para fechar.'],
+      passos:['A RAS tem dois modelos, escolhidos pelo administrador no topo desta página: "Metas" (cada responsável informa, por meta, 1. a meta da semana, 2. o resultado, 3. a causa e 4. a ação) e "Completo" (ações das iniciativas + evolução das metas). Os passos abaixo valem para o modelo Completo; no modelo Metas o assistente mostra só as suas metas do trimestre, uma por vez, com esses quatro campos.','Clique em "📋 Preenchimento para RAS". O assistente abre na semana passada (dá para trocar a semana no topo).','Primeiro aparecem, uma por vez, as suas ações em aberto: marque o status de evolução. Se a ação estiver Em andamento ou Atrasada, é obrigatório informar o impeditivo / motivo do atraso e o que será feito na próxima semana para concluí-la. Você também pode indicar um ou mais responsáveis pelo impeditivo (colegas, que recebem uma notificação, e/ou alguém externo). Informe a data de início efetiva quando a ação começar; ao marcar Concluído, informe a data de fim efetiva (vem sugerida com o fim da semana). Clique em "Salvar e continuar".','O sistema usa o prazo da ação: se a data venceu e a ação não foi concluída, ela aparece como Atrasada (só dá para marcar Atrasado ou Concluído).','Depois vem a pergunta "Você concluiu alguma meta do trimestre?" e, em seguida, cada uma das suas metas do trimestre: diga se houve evolução. Se sim, informe o resultado da semana e a causa de ter atingido esse resultado.','Cada card é salvo ao avançar. No final aparece o resumo do que foi atualizado.','Na página, escolha a semana e veja "Minhas" ou "Todas" as ações e metas para conduzir a reunião.','Na página "RAS com iniciativas (testes)" há também a "✨ Apresentação v2": um roteiro da reunião com abertura, um bloco por departamento (metas e ações, mostrando só as exceções), espaço do diretor e encaminhamentos, com cronômetro de 30 minutos e tempo por bloco. Use ← → para avançar.','Na apresentação, use o seletor 👥 no topo para apresentar Todos, uma pessoa (individual), um departamento ou um setor.','Na reunião, clique em "🖥️ Apresentação da semana": abre em tela cheia um painel com indicadores, a linha do tempo semanal de cada ação das iniciativas e a evolução de cada meta do trimestre, com impeditivos, próximos passos, resultados e causas. Use ◂ ▸ para trocar de semana e o ✕ para fechar.'],
       dicas:['Faça o preenchimento antes da RAS, com os dados da semana anterior (segunda a domingo).','Ações concluídas em semanas anteriores não aparecem mais no assistente.','O campo "Meta da semana" vem preenchido com a meta da semana anterior; ele é usado para calcular o % de atingimento.'] },
     { id:'orcamento', t:'Orçamento', who:'Departamentos (planejamento e revisão) · Financeiro (realizado)', para:'Orçamento trimestral de cada departamento por categoria de gasto, numa página só com as três etapas do ciclo: Planejamento, Acompanhamento e Revisão trimestral.',
       passos:['Escolha o Ano e o Departamento. Por padrão abre o seu departamento.','Etapa "1. Planejamento": lance o valor previsto de cada categoria em T1, T2, T3 e T4. O total anual é calculado sozinho. Os valores são salvos ao sair do campo (o campo pisca verde).','Etapa "2. Acompanhamento": ao fechar cada trimestre, o Financeiro lança o realizado de cada categoria. O sistema mostra o saldo (orçado − realizado) e o % realizado; saldo negativo fica em vermelho.','Etapa "3. Revisão trimestral": depois do fechamento, o departamento lança a nova previsão dos trimestres seguintes e escreve a justificativa ou decisão. Previsão em branco mantém o orçado.'],
@@ -3422,6 +3486,175 @@ const App = (() => {
     document.body.classList.add('dk-printing'); setTimeout(()=>{ window.print(); setTimeout(()=>{ document.body.classList.remove('dk-printing'); box.innerHTML=''; },500); },500);
   };
 
+  /* ---------- Mini blocos por responsável (metas na apresentação) ---------- */
+  const ppS=(c)=>`background:${c};color:${c==='#e6a817'?'#1b1b1b':'#fff'}`;
+  function presPersonCards(rs, g, nameOf){
+    const L=(rs||[]).filter(r=>Number(r.meta)||Number(r.realizado)||(r.causa||'').trim()||(r.acao||'').trim()||r.evolucao===false);
+    if(!L.length) return '<span class="muted">—</span>';
+    const tot=__wkAgg(L, g.calc_type||'soma');
+    const head = L.length>1 ? `<div class="pp-tot">${g.calc_type==='media'?'Média':'Total'} da semana: meta <b>${fmtByUnit(tot.m,g.unit)}</b> · atingido <b>${fmtByUnit(tot.r,g.unit)}</b></div>` : '';
+    return head+`<div class="pp-cards">${L.map(r=>{ const m=Number(r.meta)||0, v=Number(r.realizado)||0; const sem=r.evolucao===false; const p=m?v/m*100:null; const c=sem?'#e6a817':(p!=null?pctColor(p):'#9aa6b5');
+      return `<div class="pp-card" style="border-left-color:${c}"><div class="pp-h"><b>${esc(nameOf(r.profile_id))}</b>${sem?`<span class="pp-pill" style="${ppS('#e6a817')}">sem evolução</span>`:p!=null?`<span class="pp-pill" style="${ppS(c)}">${Math.round(p)}%</span>`:''}</div>
+        <div class="pp-v"><span>Meta<b>${fmtByUnit(m,g.unit)}</b></span><span>Atingido<b>${sem?'—':fmtByUnit(v,g.unit)}</b></span></div>
+        ${(r.causa||'').trim()?`<div class="pp-t"><em>Causa</em>${esc(r.causa)}</div>`:''}${(r.acao||'').trim()?`<div class="pp-t"><em>Ação</em>${esc(r.acao)}</div>`:''}</div>`; }).join('')}</div>`;
+  }
+
+  /* ---------- Apresentação v2 (página de testes): roteiro da reunião por departamento ---------- */
+  App_pres2Open = async (year, week) => {
+    const keepIdx = !!year && window.__p2;
+    year = year || window.__diYear || new Date().getFullYear(); week = week || window.__diWeek || currentWeekOf(year);
+    let ov=document.getElementById('pres2'); if(!ov){ ov=document.createElement('div'); ov.id='pres2'; document.body.appendChild(ov); }
+    ov.innerHTML='<div class="pres-load">Montando a reunião…</div>'; ov.classList.remove('hidden'); document.body.style.overflow='hidden';
+    try{
+      const qW=quarterOfWeek(year,week);
+      const qWeeks=weeksOfYear(year).filter(w=>Math.floor(w.start.getMonth()/3)+1===qW);
+      const w0=qWeeks[0].week, w1=qWeeks[qWeeks.length-1].week;
+      const wNums=qWeeks.map(w=>w.week).filter(n=>n<=Math.max(week,w0));
+      const [inis, acts, profs, goals, asg, aw, gw, gDeps, gSecs, depts, secs] = await Promise.all([
+        tList('initiatives','ord'), tList('initiative_actions','ord'), tList('profiles','name'), tList('goals'), tList('goal_assignees'),
+        fetchAllRows('action_weekly', q=>q.eq('year',year).gte('week',w0).lte('week',w1)),
+        fetchAllRows('goal_weekly', q=>q.eq('year',year).gte('week',w0).lte('week',w1)),
+        tList('goal_departments'), tList('goal_sectors'), tList('departments','ord'), tList('department_processes','ord')]);
+      const nameOf=(id)=>{ const p=profs.find(x=>x.id===id); return p?p.name.split(' ').slice(0,2).join(' '):'—'; };
+      const depOfP=(id)=>(profs.find(x=>x.id===id)||{}).department_id||null;
+      const secDep=(sid)=>(secs.find(x=>x.id===sid)||{}).department_id;
+      const wk=weeksOfYear(year).find(w=>w.week===week)||{};
+      // ----- metas do trimestre
+      const G=goals.filter(g=>g.year===year && goalQuarters(g).includes(qW));
+      const gDepIds=(g)=>[...new Set(gDeps.filter(x=>x.goal_id===g.id).map(x=>x.department_id).concat(gSecs.filter(x=>x.goal_id===g.id).map(x=>secDep(x.sector_id)).filter(Boolean)))];
+      const ct=(g)=>g.calc_type||'soma';
+      const gInfo=G.map(g=>{
+        const rows=gw.filter(r=>r.goal_id===g.id && r.week===week);
+        const a=__wkAgg(rows, ct(g)); const p=a.n?(a.m?a.r/a.m*100:(a.r?100:0)):null;
+        const v=Object.values(__wkGroup(gw.filter(r=>r.goal_id===g.id && r.week<=week), ct(g))).filter(x=>x.m||x.r); const t=periodAgg(v, ct(g)); const acc=t.m?t.r/t.m*100:null;
+        const hist=wNums.map(w=>{ const x=__wkAgg(gw.filter(r=>r.goal_id===g.id && r.week===w), ct(g)); return { w, p: x.n?(x.m?x.r/x.m*100:(x.r?100:0)):null }; });
+        const owners=asg.filter(x=>x.goal_id===g.id).map(x=>x.profile_id);
+        return { g, rows, p, acc, hist, owners, deps:gDepIds(g), cat: p==null?'none':(p>=100?'ok':'low') };
+      });
+      // ----- ações das iniciativas
+      const awOf=(id,w)=>aw.find(r=>r.action_id===id && r.week===w);
+      const aInfo=acts.filter(a=> a.status!=='Concluído' || awOf(a.id,week)).map(a=>{
+        const ini=inis.find(i=>i.id===a.initiative_id)||{}; const r=awOf(a.id,week)||null;
+        const st=r?r.status:null; const late=(actOverdue(a,year,week) && (st||a.status)!=='Concluído') || st==='Atrasado';
+        const dep=ini.department_id||depOfP(a.who_profile);
+        const issue = !r || late || ((r.impeditivo||'').trim() && st!=='Concluído');
+        return { a, ini, r, st, late, dep, issue, hist:wNums.map(w=>{ const x=awOf(a.id,w); return { w, s:x?x.status:null }; }) };
+      });
+      // ----- departamentos e roteiro
+      const D=depts.map(d=>({ d, goals:gInfo.filter(x=>x.deps.includes(d.id)), acts:aInfo.filter(x=>x.dep===d.id) })).filter(x=>x.goals.length||x.acts.length);
+      const semDep={ d:{id:0,name:'Geral (sem departamento)'}, goals:gInfo.filter(x=>!x.deps.length), acts:aInfo.filter(x=>!x.dep) };
+      if(semDep.goals.length||semDep.acts.length) D.push(semDep);
+      const per=D.length? Math.max(2, Math.round(18/D.length*2)/2) : 3;
+      const slides=[{k:'open', t:'Abertura', min:2}].concat(D.map(x=>({k:'dep', t:x.d.name, min:per, D:x})), [{k:'dir', t:'Diretor', min:7}, {k:'enc', t:'Encaminhamentos', min:3}]);
+      const prev=window.__p2||{};
+      window.__p2={ year, week, qW, wk, wNums, slides, D, gInfo, aInfo, profs, nameOf,
+        i: keepIdx ? Math.min(prev.i||0, slides.length-1) : 0, ex: prev.ex!==false,
+        t0: keepIdx&&prev.t0 ? prev.t0 : Date.now(), spent: keepIdx&&prev.spent ? prev.spent : {}, ss: Date.now() };
+      p2Render();
+      if(!window.__p2key){ window.__p2key=true; document.addEventListener('keydown', e=>{ const o=document.getElementById('pres2'); if(!o||o.classList.contains('hidden')) return; if(['INPUT','SELECT','TEXTAREA'].includes((e.target||{}).tagName)) return; if(e.key==='ArrowRight'||e.key==='PageDown'){ e.preventDefault(); App_pres2Go((window.__p2.i||0)+1); } if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); App_pres2Go((window.__p2.i||0)-1); } }); }
+      clearInterval(window.__p2tick); window.__p2tick=setInterval(p2Tick, 1000);
+    }catch(e){ ov.innerHTML=`<div class="pres-load">Erro ao montar a apresentação: ${esc(e.message)} <button class="btn btn-light btn-sm" onclick="App.pres2Close()">Fechar</button></div>`; }
+  };
+  const p2mmss=(s)=>{ const neg=s<0; s=Math.abs(Math.round(s)); return (neg?'+':'')+Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+  function p2Tick(){
+    const P=window.__p2; if(!P) return; const o=document.getElementById('pres2'); if(!o||o.classList.contains('hidden')){ clearInterval(window.__p2tick); return; }
+    const el=(Date.now()-P.t0)/1000; const c=document.getElementById('p2-clock'); if(c){ c.textContent=p2mmss(el)+' / 30:00'; c.className='p2-clock'+(el>1800?' over':el>1500?' warn':''); }
+    const s=P.slides[P.i]; const used=(P.spent[P.i]||0)+(Date.now()-P.ss)/1000; const left=s.min*60-used;
+    const t=document.getElementById('p2-slide'); if(t){ t.textContent=left>=0?p2mmss(left):'⚠ '+p2mmss(left); t.className='p2-timer'+(left<0?' over':left<30?' warn':''); }
+  }
+  App_pres2Go = (i) => { const P=window.__p2; if(!P) return; i=Math.max(0,Math.min(P.slides.length-1,i)); if(i===P.i) return; P.spent[P.i]=(P.spent[P.i]||0)+(Date.now()-P.ss)/1000; P.i=i; P.ss=Date.now(); p2Render(); };
+  App_pres2Ex = () => { const P=window.__p2; P.ex=!P.ex; p2Render(); };
+  App_pres2Reset = () => { const P=window.__p2; P.t0=Date.now(); P.spent={}; P.ss=Date.now(); p2Tick(); };
+  App_pres2Close = () => { clearInterval(window.__p2tick); const ov=document.getElementById('pres2'); if(ov) ov.classList.add('hidden'); document.body.style.overflow=''; };
+
+  function p2Ring(p, size){ const c=p==null?'#c7d0db':pctColor(p); const v=p==null?0:Math.min(100,Math.max(0,p)); return `<svg viewBox="0 0 36 36" class="p2-ring" style="width:${size||44}px;height:${size||44}px"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8edf3" stroke-width="3.6"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="${c}" stroke-width="3.6" stroke-dasharray="${v} 100" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle">${p==null?'—':Math.round(p)+'%'}</text></svg>`; }
+  const p2Dots=(hist, week)=>`<div class="p2-dots">${hist.map(h=>`<i class="${h.w===week?'cur':''}" style="${h.p!=null?'background:'+pctColor(h.p)+';border-color:'+pctColor(h.p):''}" title="S${h.w}: ${h.p!=null?Math.round(h.p)+'%':'sem informação'}"></i>`).join('')}</div>`;
+  const p2ADots=(hist, week)=>`<div class="p2-dots">${hist.map(h=>{ const c=h.s&&PST[h.s]?PST[h.s][0]:''; return `<i class="${h.w===week?'cur':''}" style="${c?'background:'+c+';border-color:'+c:''}" title="S${h.w}: ${h.s||'sem atualização'}"></i>`; }).join('')}</div>`;
+  function p2Stats(goalsL, actsL){
+    const ok=goalsL.filter(x=>x.cat==='ok').length, low=goalsL.filter(x=>x.cat==='low').length, none=goalsL.filter(x=>x.cat==='none').length;
+    const inf=ok+low; const late=actsL.filter(x=>x.late).length, upd=actsL.filter(x=>x.r).length;
+    return { ok, low, none, inf, late, upd, n:goalsL.length, na:actsL.length, pOk: inf?ok/inf*100:null };
+  }
+
+  function p2GoalCard(x, P){
+    const g=x.g;
+    return `<div class="p2-goal" style="border-left-color:${x.p==null?'#c7d0db':pctColor(x.p)}">
+      <div class="p2-goal-h"><div><b>${esc(g.smart_text)}</b><span>${esc(x.owners.map(P.nameOf).join(', ')||'—')} · ${esc(goalPeriodLabel(g))}</span></div>
+        <div class="p2-goal-k">${x.p!=null?`<span class="pp-pill" style="${ppS(pctColor(x.p))}">${Math.round(x.p)}% na S${P.week}</span>`:`<span class="pp-pill" style="${ppS('#9aa6b5')}">sem informação</span>`}
+          <small>acumulado ${x.acc!=null?`<b style="color:${pctColor(x.acc)}">${Math.round(x.acc)}%</b>`:'—'}</small>${p2Dots(x.hist, P.week)}</div></div>
+      ${presPersonCards(x.rows, g, P.nameOf)}</div>`;
+  }
+  function p2ActRow(x, P){
+    const a=x.a, r=x.r; const c=x.st&&PST[x.st]?PST[x.st][0]:'#c7d0db';
+    return `<div class="p2-act${x.late?' late':''}"><div class="p2-act-h"><i style="background:${c}"></i><div><b>${esc(a.what)}</b> ${a.priority!=null?prioPill(a.priority):''}
+        <span>${esc(P.nameOf(a.who_profile))}${a.when_date?` · <span style="${x.late?'color:#d9534f;font-weight:700':''}">prazo ${brDate(a.when_date)}${x.late?' ⚠️':''}</span>`:''}</span></div>
+        <div class="p2-act-st">${x.st?statusPill(x.st):'<span class="pill pill-gray">sem atualização</span>'}${p2ADots(x.hist, P.week)}</div></div>
+      ${r&&(r.impeditivo||'').trim()?`<div class="p2-imp"><em>Impeditivo</em>${esc(r.impeditivo)}${respList(r,P.profs).map(n=>` <span class="owner-chip" style="margin:0 0 0 4px">👤 ${esc(n)}</span>`).join('')}</div>`:''}
+      ${r&&(r.proximo_passo||'').trim()?`<div class="p2-next"><em>Próxima semana</em>${esc(r.proximo_passo)}</div>`:''}</div>`;
+  }
+
+  function p2Render(){
+    const P=window.__p2; const s=P.slides[P.i]; const ov=document.getElementById('pres2');
+    const wPrev=P.week>1?P.week-1:null, wNext=P.week<weeksOfYear(P.year).length?P.week+1:null;
+    const agenda=P.slides.map((x,k)=>`<button class="${k===P.i?'on':''}${k<P.i?' done':''}" onclick="App.pres2Go(${k})" title="${esc(x.t)} · ${x.min} min">${k===0?'▶':k===P.slides.length-2?'★':k===P.slides.length-1?'✓':k}<span>${esc(x.t)}</span><small>${x.min}′</small></button>`).join('');
+    let body='';
+    if(s.k==='open'){
+      const all=p2Stats(P.gInfo, P.aInfo);
+      body=`<div class="p2-hero"><div><span class="p2-kick">Reunião de avanço semanal</span><h2>Semana ${P.week}${P.wk.start?` · ${dm(P.wk.start)} a ${dm(P.wk.end)}`:''}</h2><p>T${P.qW} ${P.year} · ${P.D.length} departamento(s) · ${P.gInfo.length} metas · ${P.aInfo.length} ações em aberto</p></div>${p2Ring(all.pOk,96)}</div>
+        <div class="p2-kpis">
+          <div style="--c:#1F3A5F"><b>${all.inf}/${all.n}</b><span>metas com lançamento</span></div>
+          <div style="--c:#2e9e6b"><b>${all.ok}</b><span>metas no verde (≥ 100%)</span></div>
+          <div style="--c:#d9534f"><b>${all.low}</b><span>metas abaixo da meta</span></div>
+          <div style="--c:#2E8BC0"><b>${all.upd}/${all.na}</b><span>ações atualizadas</span></div>
+          <div style="--c:#e6a817"><b>${all.late}</b><span>ações atrasadas</span></div></div>
+        <h3 class="p2-h3">Departamentos — clique para abrir</h3>
+        <div class="p2-tiles">${P.D.map((x,k)=>{ const st=p2Stats(x.goals, x.acts); return `<div class="p2-tile" onclick="App.pres2Go(${k+1})">${p2Ring(st.pOk,58)}<div><b>${esc(x.d.name)}</b>
+            <span><i style="background:#2e9e6b"></i>${st.ok} no verde · <i style="background:#d9534f"></i>${st.low} abaixo · <i style="background:#c7d0db"></i>${st.none} sem info</span>
+            <span>Ações: ${st.upd}/${st.na} atualizadas${st.late?` · <b style="color:#d9534f">${st.late} atrasada(s)</b>`:''}</span></div><small>${P.slides[k+1].min}′</small></div>`; }).join('')||'<div class="empty">Nenhum departamento com metas ou ações neste trimestre.</div>'}</div>`;
+    } else if(s.k==='dep'){
+      const x=s.D; const st=p2Stats(x.goals, x.acts);
+      const ord={low:0,none:1,ok:2}; const gs=x.goals.slice().sort((a,b)=>ord[a.cat]-ord[b.cat] || (a.p==null?1:0)-(b.p==null?1:0) || (a.p||0)-(b.p||0));
+      const gShow=P.ex?gs.filter(y=>y.cat!=='ok'):gs, gOk=P.ex?gs.filter(y=>y.cat==='ok'):[];
+      const as=x.acts.slice().sort((a,b)=>(b.late?1:0)-(a.late?1:0) || (b.issue?1:0)-(a.issue?1:0));
+      const aShow=P.ex?as.filter(y=>y.issue):as, aOk=P.ex?as.filter(y=>!y.issue):[];
+      const byIni={}; aShow.forEach(y=>{ (byIni[y.ini.id||0]=byIni[y.ini.id||0]||{ini:y.ini,L:[]}).L.push(y); });
+      body=`<div class="p2-dep-h">${p2Ring(st.pOk,64)}<div><span class="p2-kick">Departamento ${P.i} de ${P.D.length}</span><h2>${esc(x.d.name)}</h2>
+          <p><span class="p2-chip g">${st.ok} meta(s) no verde</span><span class="p2-chip r">${st.low} abaixo</span><span class="p2-chip n">${st.none} sem informação</span><span class="p2-chip b">${st.upd}/${st.na} ações atualizadas</span>${st.late?`<span class="p2-chip r">${st.late} ação(ões) atrasada(s)</span>`:''}</p></div></div>
+        <div class="p2-cols">
+          <section><h3 class="p2-h3">🎯 Metas do T${P.qW}${P.ex?' <small>— só o que precisa de atenção</small>':''}</h3>
+            ${gShow.map(y=>p2GoalCard(y,P)).join('')||'<div class="p2-empty">Nenhuma meta abaixo da meta ou sem informação. 👏</div>'}
+            ${gOk.length?`<div class="p2-okbox"><b>✓ No verde (${gOk.length})</b>${gOk.map(y=>`<span title="${esc(y.g.smart_text)}">${esc(y.g.smart_text.length>58?y.g.smart_text.slice(0,57)+'…':y.g.smart_text)} <i style="color:#2e9e6b">${Math.round(y.p)}%</i></span>`).join('')}</div>`:''}</section>
+          <section><h3 class="p2-h3">🚀 Ações das iniciativas${P.ex?' <small>— atrasadas, com impeditivo ou sem atualização</small>':''}</h3>
+            ${Object.values(byIni).map(b=>`<div class="p2-ini"><div class="p2-ini-h">${esc(b.ini.name||'Iniciativa')}${b.ini.date_end?` <span>até ${brDate(b.ini.date_end)}</span>`:''}</div>${b.L.map(y=>p2ActRow(y,P)).join('')}</div>`).join('')||'<div class="p2-empty">Nenhuma ação com problema nesta semana.</div>'}
+            ${aOk.length?`<div class="p2-okbox"><b>✓ Em dia ou concluídas (${aOk.length})</b>${aOk.map(y=>`<span>${esc(y.a.what)} <i>${esc(y.st||'')}</i></span>`).join('')}</div>`:''}</section></div>`;
+    } else if(s.k==='dir'){
+      const lowG=P.gInfo.filter(y=>y.p!=null && y.p<70).sort((a,b)=>a.p-b.p);
+      const lateA=P.aInfo.filter(y=>y.late);
+      const impA=P.aInfo.filter(y=>y.r && (y.r.impeditivo||'').trim() && y.st!=='Concluído' && respList(y.r,P.profs).length);
+      const dn=(id)=>(P.D.find(z=>z.d.id===id)||{d:{name:''}}).d.name;
+      body=`<div class="p2-dep-h"><div class="p2-big">★</div><div><span class="p2-kick">Espaço do diretor de projetos · ${s.min} min</span><h2>Pontos de atenção da semana</h2><p>Visão cruzada de todos os departamentos para orientar as decisões.</p></div></div>
+        <div class="p2-cols3">
+          <section><h3 class="p2-h3">🔴 Metas abaixo de 70% <small>(${lowG.length})</small></h3>${lowG.map(y=>`<div class="p2-li"><span class="pp-pill" style="${ppS(pctColor(y.p))}">${Math.round(y.p)}%</span><div><b>${esc(y.g.smart_text)}</b><span>${esc(y.deps.map(dn).filter(Boolean).join(', ')||'—')} · ${esc(y.owners.map(P.nameOf).join(', '))}</span></div></div>`).join('')||'<div class="p2-empty">Nenhuma.</div>'}</section>
+          <section><h3 class="p2-h3">⏰ Ações atrasadas <small>(${lateA.length})</small></h3>${lateA.map(y=>`<div class="p2-li"><span class="pp-pill" style="${ppS('#d9534f')}">${y.a.when_date?brDate(y.a.when_date).slice(0,5):'—'}</span><div><b>${esc(y.a.what)}</b><span>${esc(P.nameOf(y.a.who_profile))} · ${esc(y.ini.name||'')}</span></div></div>`).join('')||'<div class="p2-empty">Nenhuma.</div>'}</section>
+          <section><h3 class="p2-h3">🧱 Impeditivos que dependem de alguém <small>(${impA.length})</small></h3>${impA.map(y=>`<div class="p2-li"><span class="pp-pill" style="${ppS('#7a5af8')}">!</span><div><b>${esc(y.r.impeditivo)}</b><span>${esc(y.a.what)} · ${esc(P.nameOf(y.a.who_profile))}</span><div>${respList(y.r,P.profs).map(n=>`<span class="owner-chip">👤 ${esc(n)}</span>`).join('')}</div></div></div>`).join('')||'<div class="p2-empty">Nenhum.</div>'}</section></div>`;
+    } else {
+      const items=[];
+      P.aInfo.filter(y=>y.r && (y.r.proximo_passo||'').trim() && y.st!=='Concluído').forEach(y=>items.push({ pid:y.a.who_profile, txt:y.r.proximo_passo, orig:'Ação · '+y.a.what, dep:y.dep, late:y.late }));
+      P.gInfo.filter(y=>y.cat==='low').forEach(y=>y.rows.filter(r=>(r.acao||'').trim()).forEach(r=>items.push({ pid:r.profile_id, txt:r.acao, orig:'Meta · '+y.g.smart_text, dep:y.deps[0], late:false })));
+      const byP={}; items.forEach(it=>{ (byP[it.pid]=byP[it.pid]||[]).push(it); });
+      const dn=(id)=>(P.D.find(z=>z.d.id===id)||{d:{name:''}}).d.name;
+      body=`<div class="p2-dep-h"><div class="p2-big">✓</div><div><span class="p2-kick">Encerramento · ${s.min} min</span><h2>Encaminhamentos e compromissos</h2><p>O que cada pessoa se comprometeu a fazer até a próxima RAS (próximos passos das ações e ações das metas abaixo da meta).</p></div></div>
+        <div class="p2-enc">${Object.keys(byP).sort((a,b)=>P.nameOf(a).localeCompare(P.nameOf(b))).map(pid=>`<div class="p2-encp"><h4>👤 ${esc(P.nameOf(pid))} <small>${byP[pid].length}</small></h4>${byP[pid].map(it=>`<div class="p2-enci${it.late?' late':''}"><b>${esc(it.txt)}</b><span>${esc(it.orig.length>90?it.orig.slice(0,89)+'…':it.orig)}${dn(it.dep)?' · '+esc(dn(it.dep)):''}</span></div>`).join('')}</div>`).join('')||'<div class="p2-empty">Nenhum compromisso registrado nesta semana.</div>'}</div>`;
+    }
+    ov.innerHTML=`<div class="p2-bar"><div class="p2-title"><span class="pres-tag">RAS v2 · TESTES</span><b>Reunião da semana ${P.week}</b><span class="pres-sub">${P.wk.start?dm(P.wk.start)+' a '+dm(P.wk.end)+' · ':''}T${P.qW} ${P.year}${me.org_name?' · '+esc(me.org_name):''}</span></div>
+        <div class="p2-time"><span id="p2-clock" class="p2-clock" title="Tempo total da reunião (clique para zerar)" onclick="App.pres2Reset()">0:00 / 30:00</span><span id="p2-slide" class="p2-timer" title="Tempo restante deste bloco">—</span></div>
+        <div class="pres-ctl"><button onclick="App.pres2Ex()" class="${P.ex?'on':''}" title="Mostrar só o que precisa de atenção">${P.ex?'◉ Só exceções':'○ Mostrar tudo'}</button><button onclick="App.pres2Open(${P.year},${wPrev})" ${wPrev?'':'disabled'}>◂ S${wPrev||''}</button><button onclick="App.pres2Open(${P.year},${wNext})" ${wNext?'':'disabled'}>S${wNext||''} ▸</button><button class="pres-x" onclick="App.pres2Close()" title="Fechar">✕</button></div></div>
+      <div class="p2-agenda">${agenda}</div>
+      <div class="p2-body">${body}</div>
+      <div class="p2-foot"><button onclick="App.pres2Go(${P.i-1})" ${P.i?'':'disabled'}>◂ Anterior</button><span>${P.i+1} / ${P.slides.length} · ${esc(s.t)} · use as setas ← → do teclado</span><button onclick="App.pres2Go(${P.i+1})" ${P.i<P.slides.length-1?'':'disabled'}>Próximo ▸</button></div>`;
+    p2Tick();
+  }
+
   /* ---------- init ---------- */
   async function init(){
     document.getElementById('login-form').addEventListener('submit', async (e)=>{ e.preventDefault();
@@ -3445,7 +3678,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','actSt','setRasMode','presFilter','bscSet','dkGo','dkF','dkFull','dkPrint',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','actSt','setRasMode','presFilter','pres2Open','pres2Go','pres2Ex','pres2Reset','pres2Close','bscSet','dkGo','dkF','dkFull','dkPrint',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });
