@@ -413,6 +413,11 @@ body.nav-collapsed .content{margin-left:0}
 .pres-ctl .pres-x{font-size:16px;padding:6px 12px;background:rgba(255,255,255,.18)}
 .pres-body{flex:1;overflow:auto;padding:20px 26px 40px}
 .pres-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+.pres-kpis.k3{grid-template-columns:repeat(3,1fr)}
+.pres-block{display:flex;align-items:center;gap:12px;margin:6px 0 14px;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#1F3A5F,#2E8BC0);color:#fff}
+.pres-block.g{background:linear-gradient(90deg,#1d7a52,#2e9e6b);margin-top:28px}
+.pres-block span{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}
+.pres-block b{display:block;font-size:18px}.pres-block i{font-style:normal;font-size:12.5px;opacity:.85}
 @media(max-width:1000px){.pres-kpis{grid-template-columns:repeat(2,1fr)}}
 .pres-kpi{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border-top:4px solid}
 .pres-kpi b{display:block;font-size:30px;line-height:1.1}.pres-kpi span{font-size:12.5px;color:var(--text);font-weight:600}.pres-kpi i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px}
@@ -572,6 +577,17 @@ body.nav-collapsed .content{margin-left:0}
   <div id="toast" class="toast hidden"></div>
 
 <script>
+/* ====== Combinação semanal dos lançamentos de vários responsáveis de uma meta ======
+   - Fórmula "soma": soma os lançamentos da semana (ex.: faturamento de cada pessoa).
+   - Fórmula "media" (metas em %): média dos lançamentos da semana — percentuais não se somam.
+     Linhas em branco (meta 0 e resultado 0) não entram; "sem evolução" na RAS também não entra na média.  */
+function __wkAgg(rows, calc){
+  const has=(rows||[]).filter(x=>Number(x.meta)||Number(x.realizado));
+  const sum=(L,k)=>L.reduce((a,b)=>a+(Number(b[k])||0),0);
+  if(calc==='media'){ const v=has.filter(x=>x.evolucao!==false); const L=v.length?v:has; if(!L.length) return {m:0,r:0,n:0}; const r1=(x)=>Math.round(x*10)/10; return { m:r1(sum(L,'meta')/L.length), r:r1(sum(L,'realizado')/L.length), n:L.length }; }
+  return { m:sum(has,'meta'), r:sum(has,'realizado'), n:has.length };
+}
+function __wkGroup(rows, calc, keyFn){ const by={}; (rows||[]).forEach(r=>{ const k=keyFn?keyFn(r):r.week; (by[k]=by[k]||[]).push(r); }); const o={}; Object.keys(by).forEach(k=>{ const a=__wkAgg(by[k],calc); if(a.n) o[k]=a; }); return o; }
 /* ====== CONFIGURAÇÃO SUPABASE (banco/login na nuvem) ====== */
 const SUPABASE_URL = 'https://qgkelrlftxqpoyspxmsf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFna2VscmxmdHhxcG95c3B4bXNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjczNTUsImV4cCI6MjA5NTkwMzM1NX0.dvEPOWwBLbrJJdYtXnhfjTsWvH4MxCDj3mxq9Yit7B0';
@@ -657,7 +673,7 @@ const RelMetas = (() => {
       let dlist=ds.length?ds:(o.department_id&&deptsById[o.department_id]?[deptsById[o.department_id]]:[]);
       const all=D.weekly.filter(w=>w.goal_id===g.id && w.year===year);
       const ents=all.filter(w=>closedSet.has(w.week));
-      const agg={}; ents.forEach(e=>{ if(!hasVal(e)) return; const x=(agg[e.week]=agg[e.week]||{m:0,r:0}); x.m+=Number(e.meta)||0; x.r+=Number(e.realizado)||0; });
+      const agg=__wkGroup(ents.filter(hasVal), g.calc_type||'soma');
       const vals=Object.values(agg); const ct=g.calc_type||'soma';
       const sm=vals.reduce((a,b)=>a+b.m,0), sr=vals.reduce((a,b)=>a+b.r,0);
       const m= ct==='media'&&vals.length ? sm/vals.length : sm, r= ct==='media'&&vals.length ? sr/vals.length : sr;
@@ -1175,7 +1191,7 @@ const App = (() => {
     const dweeks=weeksOfYear(dyear);
     const DMESH=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     const dCalcType = (goals.find(g=>g.id===dashGoal)||{}).calc_type||'soma';
-    const dwAgg={}; weekly.filter(w=>w.goal_id===dashGoal && w.year===dyear).forEach(w=>{ const x=(dwAgg[w.week]=dwAgg[w.week]||{m:0,r:0}); x.m+=Number(w.meta)||0; x.r+=Number(w.realizado)||0; });
+    const dwAgg=__wkGroup(weekly.filter(w=>w.goal_id===dashGoal && w.year===dyear), dCalcType);
     const dmWeeks={}; dweeks.forEach(wk=>{ const mo=wk.start.getMonth(); const val=dwAgg[wk.week]; if(!val) return; (dmWeeks[mo]=dmWeeks[mo]||[]).push(val); });
     const mAgg={}; Object.keys(dmWeeks).forEach(mo=>{ mAgg[mo]=periodAgg(dmWeeks[mo], dCalcType); });
     v.innerHTML = `
@@ -1212,7 +1228,7 @@ const App = (() => {
     let weeks = weeksOfYear(year);
     if(mode==='semanal' && quarterFilter){ weeks = weeks.filter(wk=> (Math.floor(wk.start.getMonth()/3)+1) === +quarterFilter); }
     const aggW={};
-    weekly.forEach(row=>{ const b=(aggW[row.goal_id]=aggW[row.goal_id]||{}); const yy=(b[row.week]=b[row.week]||{m:0,r:0}); yy.m+=Number(row.meta)||0; yy.r+=Number(row.realizado)||0; });
+    { const byG={}; weekly.forEach(row=>{ (byG[row.goal_id]=byG[row.goal_id]||[]).push(row); }); Object.keys(byG).forEach(gid=>{ const gg=goals.find(x=>x.id==gid)||{}; aggW[gid]=__wkGroup(byG[gid], gg.calc_type||'soma'); }); }
     const monthAgg=(gid,month,calcType)=>{ const ws=weeksOfYear(year).filter(wk=>wk.start.getMonth()===month); const vals=ws.map(wk=>(aggW[gid]||{})[wk.week]).filter(Boolean); return periodAgg(vals,calcType); };
     const yearAgg=(gid,calcType)=>{ const vals=weeksOfYear(year).map(wk=>(aggW[gid]||{})[wk.week]).filter(Boolean); return periodAgg(vals,calcType); };
     const perspName=(id)=>{const p=persp.find(x=>x.id===id);return p?p.name:'';};
@@ -1273,7 +1289,7 @@ const App = (() => {
     const body = goals.map(g=>{
       const rows = rowsForWeek.filter(r=>r.goal_id===g.id);
       if(!rows.length) return '';
-      const m = rows.reduce((a,b)=>a+(Number(b.meta)||0),0), r = rows.reduce((a,b)=>a+(Number(b.realizado)||0),0);
+      const { m, r } = __wkAgg(rows, g.calc_type||'soma');
       const notes = rows.filter(x=>x.causa||x.acao).map(x=>`<li><b>${esc(profName(x.profile_id)||'—')}:</b> ${x.causa?('Causa: '+esc(x.causa)+' '):''}${x.acao?('Ação: '+esc(x.acao)):''}</li>`).join('');
       return `<div class="card" style="padding:12px;margin-bottom:8px"><b style="color:var(--navy)">${esc(g.smart_text)}</b>
         <p class="desc" style="margin-top:4px">Meta: <b>${fmtByUnit(m,g.unit)}</b> · Resultado: <b>${fmtByUnit(r,g.unit)}</b> · ${pct(r,m)}%</p>
@@ -2002,6 +2018,7 @@ const App = (() => {
     window.__wkRows = rows||[];
     const map={};
     (rows||[]).forEach(r=>{ const cur=(map[r.week]=map[r.week]||{meta:0,realizado:0,causa:[],acao:[],hasData:false}); cur.meta+=Number(r.meta)||0; cur.realizado+=Number(r.realizado)||0; cur.hasData=true; if(r.causa) cur.causa.push(r.causa); if(r.acao) cur.acao.push(r.acao); });
+    { const ct=(goals.find(g=>g.id==goalId)||{}).calc_type||'soma'; Object.keys(map).forEach(k=>{ const a=__wkAgg((rows||[]).filter(r=>r.week==k), ct); map[k].meta=a.m; map[k].realizado=a.r; map[k].hasData=a.n>0; }); }
     window.__wkMap=map;
     const weeks=weeksOfYear(year);
     const selGoal = goals.find(g=>g.id==goalId)||{};
@@ -2128,7 +2145,7 @@ const App = (() => {
     }).join('');
     const canSaveAny = assignees.some(a=>can('manager')||a.profile_id===me.id);
     modal('Semana '+week+(wk.start?(' · '+dm(wk.start)+'–'+dm(wk.end)):''), form([
-      `<p class="desc">Total atual da semana: meta <b>${fmtByUnit(curAgg.meta||0,selGoal.unit)}</b> · resultado <b>${fmtByUnit(curAgg.realizado||0,selGoal.unit)}</b> (soma de todos os responsáveis)</p>`,
+      `<p class="desc">Total atual da semana: meta <b>${fmtByUnit(curAgg.meta||0,selGoal.unit)}</b> · resultado <b>${fmtByUnit(curAgg.realizado||0,selGoal.unit)}</b> (${selGoal.calc_type==='media'?'média dos responsáveis':'soma de todos os responsáveis'})</p>`,
       blocks,
       canSaveAny?`<button class="btn btn-primary btn-block" onclick="App.saveWeekPopup(${week})">Salvar</button>`:`<p class="desc" style="margin-top:6px">Somente leitura — você não é responsável por esta meta.</p>`]));
   };
@@ -2499,10 +2516,11 @@ const App = (() => {
       const myG=new Set(asg.filter(a=>a.profile_id===me.id).map(a=>a.goal_id));
       const G=goals.filter(g=>g.year===year && goalQuarters(g).includes(qW) && goalIn(g));
       const gState=(gid,w)=>{ const rs=gw.filter(r=>r.goal_id===gid && r.week===w); if(!rs.length) return 'n'; if(rs.some(r=>r.evolucao===true || (r.evolucao==null && Number(r.realizado)>0))) return 'e'; return 's'; };
-      const gPct=(gid,w)=>{ const rs=gw.filter(r=>r.goal_id===gid && r.week===w); if(!rs.length) return null; const m=rs.reduce((a,b)=>a+(Number(b.meta)||0),0), r=rs.reduce((a,b)=>a+(Number(b.realizado)||0),0); return m?r/m*100:(r?100:0); };
+      const gCalc=(gid)=>((goals.find(x=>x.id===gid)||{}).calc_type||'soma');
+      const gPct=(gid,w)=>{ const a=__wkAgg(gw.filter(r=>r.goal_id===gid && r.week===w), gCalc(gid)); if(!a.n) return null; return a.m?a.r/a.m*100:(a.r?100:0); };
       const gpCur=G.map(g=>gPct(g.id,week)); const mF=gpCur.filter(x=>x!=null).length, mOk=gpCur.filter(x=>x!=null&&x>=100).length, mLow=gpCur.filter(x=>x!=null&&x<100).length;
       const gCur=G.map(g=>gState(g.id,week)); const gE=gCur.filter(x=>x==='e').length, gS=gCur.filter(x=>x==='s').length, gN=gCur.filter(x=>x==='n').length;
-      const gTot=(g)=>{ const ws={}; gw.filter(r=>r.goal_id===g.id && r.week<=week).forEach(r=>{ const x=(ws[r.week]=ws[r.week]||{m:0,r:0}); x.m+=Number(r.meta)||0; x.r+=Number(r.realizado)||0; }); const v=Object.values(ws).filter(x=>x.m||x.r); return periodAgg(v, g.calc_type||'soma'); };
+      const gTot=(g)=>{ const v=Object.values(__wkGroup(gw.filter(r=>r.goal_id===g.id && r.week<=week), g.calc_type||'soma')).filter(x=>x.m||x.r); return periodAgg(v, g.calc_type||'soma'); };
       const ring=(p,c)=>`<svg viewBox="0 0 36 36" class="pres-ring"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8edf3" stroke-width="3.4"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="${c}" stroke-width="3.4" stroke-dasharray="${Math.min(100,Math.max(0,p))} 100" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle">${Math.round(p)}%</text></svg>`;
       const kpi=(n,l,c,sub)=>`<div class="pres-kpi" style="border-top-color:${c}"><b style="color:${c}">${n}</b><span>${l}</span>${sub?`<i>${sub}</i>`:''}</div>`;
       const wh=(w)=>`<th class="pw${w===week?' cur':''}" title="S${w}">S${w}</th>`;
@@ -2533,7 +2551,7 @@ const App = (() => {
           const rs=gw.filter(r=>r.goal_id===g.id && r.week===week); const pw=gPct(g.id,week);
           const owners=ownersOf(g.id);
           const t=gTot(g); const pc=t.m?t.r/t.m*100:0;
-          const mS=rs.reduce((a,b)=>a+(Number(b.meta)||0),0), rS=rs.reduce((a,b)=>a+(Number(b.realizado)||0),0);
+          const { m:mS, r:rS } = __wkAgg(rs, g.calc_type||'soma');
           const txt=rs.filter(r=>(r.causa||'').trim()||(r.acao||'').trim()).map(r=>`<div style="margin-top:3px">${rs.length>1?`<b>${esc(profN(r.profile_id))}:</b>`:''}${(r.causa||'').trim()?`<div><em>Causa:</em> ${esc(r.causa)}</div>`:''}${(r.acao||'').trim()?`<div><em>Ação:</em> ${esc(r.acao)}</div>`:''}</div>`).join('');
           gHtml+=`<tr><td class="pres-name"><b>${esc(g.smart_text)}</b><span>${esc(owners)} · ${esc(goalPeriodLabel(g))}</span></td>
             ${wNums.map(w=>{ const p=gPct(g.id,w); return `<td class="pc${w===week?' cur':''}"><span class="dot" ${p!=null?`style="background:${pctColor(p)}"`:''} title="S${w}: ${p!=null?Math.round(p)+'% da meta':'não informado'}"></span></td>`; }).join('')}
@@ -2542,13 +2560,13 @@ const App = (() => {
           return;
         }
         const st=gState(g.id,week); const rs=gw.filter(r=>r.goal_id===g.id && r.week===week);
-        const res=rs.reduce((a,b)=>a+(Number(b.realizado)||0),0); const causa=rs.map(r=>(r.causa||'').trim()).filter(Boolean).join(' · ');
+        const ag=__wkAgg(rs, g.calc_type||'soma'); const res=ag.r; const causa=rs.map(r=>(r.causa||'').trim()).filter(Boolean).join(' · ');
         const owners=ownersOf(g.id);
         const t=gTot(g); const pc=t.m?t.r/t.m*100:0;
         gHtml+=`<tr><td class="pres-name"><b>${esc(g.smart_text)}</b><span>${esc(owners)} · ${esc(goalPeriodLabel(g))}</span></td>
           ${wNums.map(w=>{ const s=gState(g.id,w); return `<td class="pc${w===week?' cur':''}"><span class="dot ${s}" title="S${w}: ${s==='e'?'evoluiu':s==='s'?'sem evolução':'não informado'}"></span></td>`; }).join('')}
           <td class="pres-st">${st==='e'?'<span class="pill pill-green">Evoluiu</span>':st==='s'?'<span class="pill pill-amber">Sem evolução</span>':'<span class="pill pill-gray">Não informado</span>'}<div class="pres-acc">${t.m?ring(pc, pc>=100?'#2e9e6b':pc>=70?'#2E8BC0':pc>=40?'#e6a817':'#d9534f'):''}<span>${t.m?'acumulado no trimestre':''}</span></div></td>
-          <td class="pres-txt">${st==='e'?`<div><em>Resultado:</em> <b>${fmtByUnit(res,g.unit)}</b></div>`:''}${causa?`<div><em>Causa:</em> ${esc(causa)}</div>`:''}${st!=='e'&&!causa?'<span class="muted">—</span>':''}</td></tr>`;
+          <td class="pres-txt">${st==='e'?`<div><em>Resultado${g.calc_type==='media'&&ag.n>1?' (média de '+ag.n+')':''}:</em> <b>${fmtByUnit(res,g.unit)}</b>${ag.m?` · <em>meta</em> ${fmtByUnit(ag.m,g.unit)}`:''}</div>`:''}${causa?`<div><em>Causa:</em> ${esc(causa)}</div>`:''}${st!=='e'&&!causa?'<span class="muted">—</span>':''}</td></tr>`;
       });
       const wPrev=week>1?week-1:null, wNext=week<weeksOfYear(year).length?week+1:null;
       ov.innerHTML=`<div class="pres-bar"><div><span class="pres-tag">RAS</span><b>Apresentação da semana ${week}</b><span class="pres-sub">${wk.start?dm(wk.start)+' a '+dm(wk.end)+' · ':''}T${qW} ${year} · ${rm==='metas'?'metas':'ações e metas'} — ${esc(fLabel)}${me.org_name?' · '+esc(me.org_name):''}</span></div>
@@ -2563,16 +2581,21 @@ const App = (() => {
           <div class="pres-sec"><div class="pres-sec-h"><h3>Metas do T${qW} — % da meta por semana</h3>
             <div class="pres-leg"><span><i style="background:#2e9e6b"></i>≥ 100%</span><span><i style="background:#2E8BC0"></i>70–99%</span><span><i style="background:#e6a817"></i>40–69%</span><span><i style="background:#d9534f"></i>&lt; 40%</span><span><i class="nil"></i>Não informado</span></div></div>
             ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Meta, resultado, causa e ação</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>`:`
-          <div class="pres-kpis">
+          <div class="pres-block"><span>1</span><div><b>Iniciativas</b><i>status das ações, impeditivos e próximos passos</i></div></div>
+          <div class="pres-kpis k3">
             ${kpi(`${nUpd}/${actsOpen.length}`,'ações atualizadas','#1F3A5F', actsOpen.length?Math.round(nUpd/actsOpen.length*100)+'% de adesão':'')}
             ${kpi(nEvo,'ações com evolução','#2E8BC0', nDone?nDone+' concluída(s)':'')}
             ${kpi(nLate,'ações atrasadas','#d9534f', nImp?nImp+' com impeditivo':'')}
-            ${kpi(`${gE}/${G.length}`,'metas com evolução','#2e9e6b', gS?gS+' sem evolução':'')}
-            ${kpi(gN,'metas sem informação','#9aa6b5','')}
           </div>
           <div class="pres-sec"><div class="pres-sec-h"><h3>Iniciativas — avanço das ações por semana</h3>
             <div class="pres-leg">${Object.values(PST).map(x=>`<span><i style="background:${x[0]}"></i>${x[1]}</span>`).join('')}<span><i class="nil"></i>Sem atualização</span></div></div>
             ${iniHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Ação · responsável</th>${wNums.map(wh).join('')}<th>Status S${week}</th><th>Impeditivo e próximos passos</th></tr></thead><tbody>${iniHtml}</tbody></table></div>`:'<div class="empty">Nenhuma ação em aberto.</div>'}</div>
+          <div class="pres-block g"><span>2</span><div><b>Metas do T${qW}</b><i>evolução, resultado e causa</i></div></div>
+          <div class="pres-kpis k3">
+            ${kpi(`${gE}/${G.length}`,'metas com evolução','#2e9e6b', G.length?Math.round(gE/G.length*100)+'% das metas':'')}
+            ${kpi(gS,'metas sem evolução','#e6a817','')}
+            ${kpi(gN,'metas sem informação','#9aa6b5','')}
+          </div>
           <div class="pres-sec"><div class="pres-sec-h"><h3>Metas do T${qW} — evolução por semana</h3>
             <div class="pres-leg"><span><i style="background:#2e9e6b"></i>Evoluiu</span><span><i style="background:#e6a817"></i>Sem evolução</span><span><i class="nil"></i>Não informado</span></div></div>
             ${gHtml?`<div class="pres-scroll"><table class="pres-t"><thead><tr><th class="pres-name">Meta · responsáveis</th>${wNums.map(wh).join('')}<th>Situação S${week}</th><th>Resultado e causa</th></tr></thead><tbody>${gHtml}</tbody></table></div>`:'<div class="empty">Nenhuma meta neste trimestre.</div>'}</div>`}
@@ -2821,7 +2844,7 @@ const App = (() => {
     add('Responsáveis',[['Departamento','Nome','Cargo'],...D.mems.map(m=>[(D.depts.find(d=>d.id===m.department_id)||{}).name||'',m.name,m.cargo])]);
     add('SWOT (GUT)',[['Classificação','Item','Departamento','G','U','T','GUT'],...D.swot.map(s=>[s.classification,s.item,(D.depts.find(d=>d.id===s.department_id)||{}).name||'Geral',s.gravidade,s.urgencia,s.tendencia,s.gravidade*s.urgencia*s.tendencia])]);
     add('Curva de Valor',[['Atributo',(c.name||'Empresa'),'Concorrência'],...D.curve.map(r=>[r.attribute,r.daexe_score,r.competitor_score])]);
-    const goalWeekAgg={}; D.weekly.forEach(w=>{ const g=(goalWeekAgg[w.goal_id]=goalWeekAgg[w.goal_id]||{}); const k=w.year+'_'+w.week; const x=(g[k]=g[k]||{m:0,r:0}); x.m+=Number(w.meta)||0; x.r+=Number(w.realizado)||0; });
+    const goalWeekAgg={}; { const byG={}; D.weekly.forEach(w=>{ (byG[w.goal_id]=byG[w.goal_id]||[]).push(w); }); Object.keys(byG).forEach(gid=>{ const gg=D.goals.find(x=>x.id==gid)||{}; goalWeekAgg[gid]=__wkGroup(byG[gid], gg.calc_type||'soma', w=>w.year+'_'+w.week); }); }
     const goalTotal=(id,calcType)=>periodAgg(Object.values(goalWeekAgg[id]||{}),calcType);
     add('Objetivos e Metas',[['Objetivo','Meta SMART','Unidade','Ano','Trimestre','Fórmula','Total Meta','Total Realizado','% Atingido'],...D.goals.map(g=>{ const ct=g.calc_type||'soma'; const {m,r}=goalTotal(g.id,ct); return [objT(g.objective_id),g.smart_text,g.unit||'',g.year,goalPeriodLabel(g).replace(' '+g.year,''),ct==='media'?'Média':'Soma',m,r,pct(r,m)]; })]);
     add('Iniciativas 5W2H',[['Quê','Quem','Início','Fim','Como','Quanto','Onde','Porquê','Medida','Status','Progresso %'],...D.inis.map(i=>[i.name,i.who,i.date_start,i.date_end,i.how,i.how_much,i.where_,i.why,i.measure,i.status,i.progress])]);
@@ -3241,7 +3264,7 @@ const App = (() => {
     const lc=lastCompletedWeek(); const wsAll=weeksOfYear(year);
     const ws=wsAll.filter(w=>(!q || Math.floor(w.start.getMonth()/3)+1===q) && (year<lc.year || (year===lc.year && w.week<=lc.week)));
     const set=new Set(ws.map(w=>w.week));
-    const agg={}; weekly.filter(r=>r.goal_id===g.id && r.year===year && set.has(r.week)).forEach(r=>{ const x=(agg[r.week]=agg[r.week]||{m:0,r:0}); x.m+=Number(r.meta)||0; x.r+=Number(r.realizado)||0; });
+    const agg=__wkGroup(weekly.filter(r=>r.goal_id===g.id && r.year===year && set.has(r.week)), g.calc_type||'soma');
     const vals=Object.values(agg).filter(x=>x.m||x.r); const t=periodAgg(vals, g.calc_type||'soma');
     const p = t.m ? t.r/t.m*100 : null;
     const st = !vals.length||!t.m ? 'S' : (p>=100?'A':(p>=70?'P':'N'));
