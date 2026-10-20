@@ -93,3 +93,12 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 
 ## v41 — 19/10/2026
 - Apresentação v2 (testes): nos blocos de departamento, ações das iniciativas passam para a esquerda e metas para a direita.
+
+## v42 — 20/10/2026
+- Apresentação v2 (testes): votação ao vivo e Ranking gamificado no final.
+  - Abertura: botão "🗳️ Abrir votação (1 min)" (gestor/admin). Todos os usuários logados recebem um popup com cronômetro para votar em 1 departamento destaque e 1 organizador destaque (sem voto em si mesmo nem no próprio departamento; dá para mudar o voto até acabar o tempo).
+  - Novo bloco final "🏆 Ranking" (pódio + tabela), por semana ou acumulado do trimestre:
+    - Organizador: meta batida ×3, ação concluída no prazo ×3, voto recebido ×3, RAS completa até sábado às 10h ×1.
+    - Departamento: meta do departamento batida ×3, ação do departamento concluída no prazo ×3, voto recebido ×3.
+  - Roteiro: abertura 1', departamentos 18', diretor 7', encaminhamentos 2', ranking 2'.
+- Supabase: tabelas ras_vote_sessions e ras_votes (RLS: votação só dentro do prazo); goal_weekly/action_weekly.first_filled_at (data do 1º preenchimento, usada no prazo de sábado 10h).
