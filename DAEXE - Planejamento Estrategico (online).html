@@ -1257,6 +1257,8 @@ const App = (() => {
     { sec:'Orçamento' },
     { id:'orcamento', label:'Orçamento', ico:'💰' },
     { id:'orcvisao', label:'Visão Geral do Orçamento', ico:'📊' },
+    { sec:'Pessoas', role:'admin', org:1 },
+    { id:'gpp', label:'Cultura & Desempenho', ico:'🧭', role:'admin', org:1, href:'gpp/' },
     { sec:'Administração', role:'manager' },
     { id:'usuarios', label:'Usuários & Acessos', ico:'👥', role:'manager' },
     { id:'gestao', label:'Relatórios e Gestão', ico:'📤', role:'admin' },
@@ -1270,9 +1272,11 @@ const App = (() => {
     const nav=document.getElementById('nav'); nav.innerHTML='';
     NAV.forEach(n=>{
       if(n.role && !can(n.role)) return;
+      if(n.org && (!me || Number(me.org_id)!==n.org)) return;
       if(n.sec){ const s=document.createElement('div'); s.className='nav-section'; s.textContent=n.sec; nav.appendChild(s); return; }
       const d=document.createElement('div'); d.className='nav-item'; d.dataset.id=n.id;
-      d.innerHTML=`<span class="ico">${n.ico}</span><span>${n.label}</span>`; d.onclick=()=>go(n.id); nav.appendChild(d);
+      d.innerHTML=`<span class="ico">${n.ico}</span><span>${n.label}</span>${n.href?'<span style="margin-left:auto;opacity:.6;font-size:11px">↗</span>':''}`;
+      d.onclick = n.href ? ()=>window.open(n.href,'_blank','noopener') : ()=>go(n.id); nav.appendChild(d);
     });
   }
   let current=null;

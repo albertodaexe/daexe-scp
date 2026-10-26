@@ -102,3 +102,9 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
     - Departamento: meta do departamento batida ×3, ação do departamento concluída no prazo ×3, voto recebido ×3.
   - Roteiro: abertura 1', departamentos 18', diretor 7', encaminhamentos 2', ranking 2'.
 - Supabase: tabelas ras_vote_sessions e ras_votes (RLS: votação só dentro do prazo); goal_weekly/action_weekly.first_filled_at (data do 1º preenchimento, usada no prazo de sábado 10h).
+
+## v43 — 26/10/2026
+- Novo módulo **Cultura & Desempenho** (Gestão para Pessoas), seção "Pessoas" do menu — visível só para **administradores da DAEXE**. Abre em nova aba a página própria `public/gpp/index.html` (endereço `/gpp/`), que usa o mesmo login do SisPlano.
+  - Pesquisa de Cultura (OCAI): ciclo trimestral automático (abre no último dia útil do trimestre às 8h, lembrete no 5º dia, encerra no 10º), formulário anônimo com trava de 100 pontos (`/gpp/?t=<token>`), painel com mapa dos quadrantes, radar atual x desejado e evolução do Índice de Aderência; cenário desejado por trimestre; histórico 1T e 2T/26.
+  - Cadastro de Organizadores próprio do módulo (independente de Usuários & Acessos). Gestão do Desempenho: em construção (o "Desempenho" antigo do SisPlano continua como está).
+- Supabase: schema `gpp` (não exposto na API; acesso só pelas funções `gpp_*`), migrações `gpp_01` a `gpp_07`; agendamentos pg_cron `gpp-rotina-diaria` e `gpp-envio-emails`; Edge Function `gpp-email` (envio pelo organiza@ via SMTP — segredos SMTP_USER/SMTP_PASS).

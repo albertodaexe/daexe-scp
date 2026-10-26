@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cultura & Desempenho · DAEXE</title>
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --marca:#1F3A5F; --marca-2:#2A4E7D; --marca-claro:#E8EEF6;
+    --fundo:#F5F6F8; --superficie:#FFFFFF; --borda:#E2E5EA; --borda-forte:#CBD1D9;
+    --tinta:#1A2230; --tinta-2:#4B5563; --tinta-3:#6B7280;
+    --s-atual:#1D6FD1; --s-desejado:#D97706;
+    --ok:#15803D; --ok-bg:#E7F6EC; --atencao:#A16207; --atencao-bg:#FEF6D8; --critico:#B91C1C; --critico-bg:#FDECEC;
+    --raio:10px;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--fundo); color:var(--tinta); font-family:Inter, system-ui, Arial, sans-serif; font-size:15px; line-height:1.45; }
+  button, input, select { font:inherit; }
+  a { color:var(--marca-2); }
+  .oculto { display:none !important; }
+
+  /* topo */
+  .topo { background:var(--marca); color:#fff; }
+  .topo .in { max-width:1120px; margin:0 auto; padding:14px 16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .marca { font-weight:700; letter-spacing:.2px; font-size:17px; }
+  .marca small { font-weight:500; opacity:.75; margin-left:6px; font-size:13px; }
+  nav.abas { display:flex; gap:4px; flex-wrap:wrap; margin-left:auto; }
+  nav.abas button { background:transparent; color:#fff; border:0; padding:8px 12px; border-radius:7px; cursor:pointer; opacity:.8; font-weight:500; }
+  nav.abas button:hover { opacity:1; background:rgba(255,255,255,.08); }
+  nav.abas button.ativa { opacity:1; background:rgba(255,255,255,.16); }
+  .sair { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; border-radius:7px; padding:6px 10px; cursor:pointer; font-size:13px; }
+
+  main { max-width:1120px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:16px; margin:0 0 12px; }
+  .sub { color:var(--tinta-3); font-size:14px; margin:0 0 18px; }
+  .card { background:var(--superficie); border:1px solid var(--borda); border-radius:var(--raio); padding:18px; margin-bottom:16px; }
+  .grade { display:grid; gap:16px; margin-bottom:16px; }
+  .grade > .card, .grade > div > .card:last-child { margin-bottom:0; }
+  @media (min-width:860px) { .g2 { grid-template-columns:1fr 1fr; } .g3 { grid-template-columns:repeat(3,1fr); } }
+
+  /* botões e campos */
+  .btn { background:var(--marca); color:#fff; border:1px solid var(--marca); border-radius:8px; padding:9px 16px; cursor:pointer; font-weight:600; }
+  .btn:hover { background:var(--marca-2); }
+  .btn:disabled { background:#9CA3AF; border-color:#9CA3AF; cursor:not-allowed; }
+  .btn.sec { background:#fff; color:var(--marca); border-color:var(--borda-forte); }
+  .btn.sec:hover { background:var(--marca-claro); }
+  .btn.perigo { background:#fff; color:var(--critico); border-color:#F3C4C4; }
+  .btn.mini { padding:5px 10px; font-size:13px; font-weight:500; }
+  .acoes { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  label.campo { display:block; font-size:13px; color:var(--tinta-2); font-weight:500; margin-bottom:12px; }
+  label.campo input, label.campo select { display:block; width:100%; margin-top:4px; padding:9px 10px; border:1px solid var(--borda-forte); border-radius:8px; background:#fff; color:var(--tinta); }
+  input:focus, select:focus, button:focus-visible { outline:2px solid var(--s-atual); outline-offset:1px; }
+  .check { display:flex; gap:8px; align-items:center; font-size:14px; margin-bottom:10px; }
+
+  /* tabelas */
+  .tabela-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; font-weight:600; color:var(--tinta-2); font-size:12px; text-transform:uppercase; letter-spacing:.4px; padding:8px 10px; border-bottom:1px solid var(--borda); white-space:nowrap; }
+  td { padding:9px 10px; border-bottom:1px solid #F0F2F5; vertical-align:middle; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tr:last-child td { border-bottom:0; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; }
+  .tag.ok { background:var(--ok-bg); color:var(--ok); }
+  .tag.atencao { background:var(--atencao-bg); color:var(--atencao); }
+  .tag.critico { background:var(--critico-bg); color:var(--critico); }
+  .tag.neutro { background:#EEF0F3; color:var(--tinta-2); }
+
+  /* KPIs */
+  .kpi .rot { font-size:13px; color:var(--tinta-3); font-weight:500; }
+  .kpi .val { font-size:34px; font-weight:700; letter-spacing:-.5px; color:var(--tinta); font-variant-numeric:tabular-nums; }
+  .kpi .det { font-size:13px; color:var(--tinta-2); }
+
+  /* mapa de quadrantes */
+  .mapa { display:grid; grid-template-columns:28px 1fr 1fr; grid-template-rows:auto 1fr 1fr; gap:6px; }
+  .mapa .eixo-x { font-size:11px; letter-spacing:.6px; color:var(--tinta-3); text-align:center; font-weight:600; }
+  .mapa .eixo-y { writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; letter-spacing:.6px; color:var(--tinta-3); text-align:center; font-weight:600; }
+  .quad { border:1px solid var(--borda); border-radius:10px; padding:14px; background:#FBFCFD; min-height:132px; }
+  .quad .nome { font-weight:700; font-size:15px; }
+  .quad .desc { font-size:12px; color:var(--tinta-3); margin-bottom:8px; }
+  .quad .linha { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+  .quad .atual { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .quad .des { font-size:13px; color:var(--tinta-2); }
+  .quad .tag { margin-top:8px; }
+
+  /* gráficos */
+  .grafico { position:relative; }
+  .grafico svg { width:100%; height:auto; display:block; }
+  .legenda { display:flex; gap:16px; font-size:13px; color:var(--tinta-2); margin-top:6px; flex-wrap:wrap; }
+  .legenda i { display:inline-block; width:18px; height:0; border-top:2px solid; vertical-align:middle; margin-right:6px; }
+  .dica { position:absolute; pointer-events:none; background:var(--tinta); color:#fff; font-size:12px; padding:6px 9px; border-radius:6px; white-space:nowrap; transform:translate(-50%, calc(-100% - 10px)); z-index:5; }
+  .dica b { font-weight:600; }
+
+  /* avisos */
+  .aviso { padding:10px 12px; border-radius:8px; font-size:14px; margin-bottom:14px; }
+  .aviso.info { background:var(--marca-claro); color:var(--marca); }
+  .aviso.erro { background:var(--critico-bg); color:var(--critico); }
+  .aviso.ok { background:var(--ok-bg); color:var(--ok); }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--tinta); color:#fff; padding:10px 16px; border-radius:8px; font-size:14px; z-index:50; max-width:90vw; }
+
+  /* barra de progresso */
+  .barra { height:8px; background:#EEF0F3; border-radius:999px; overflow:hidden; }
+  .barra > div { height:100%; background:var(--s-atual); border-radius:999px; }
+
+  /* login e formulário */
+  .centro { max-width:440px; margin:8vh auto; padding:0 16px; }
+  .form-pesq { max-width:760px; margin:0 auto; padding:16px; }
+  .opcao { display:flex; gap:12px; align-items:center; padding:10px 0; border-top:1px solid #F0F2F5; }
+  .opcao:first-of-type { border-top:0; }
+  .opcao label { flex:1; font-size:14px; }
+  .opcao input { width:78px; padding:8px; font-size:16px; text-align:center; border:1px solid var(--borda-forte); border-radius:8px; }
+  .soma { margin-top:10px; padding:8px 12px; border-radius:8px; font-weight:600; font-size:14px; background:var(--critico-bg); color:var(--critico); }
+  .soma.ok { background:var(--ok-bg); color:var(--ok); }
+  .rodape-fixo { position:sticky; bottom:0; background:#fff; border-top:1px solid var(--borda); padding:12px 16px; }
+  .rodape-fixo .in { max-width:760px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  @media (max-width:520px) { .opcao { flex-direction:column; align-items:stretch; gap:6px; } .opcao input { width:100%; } }
+
+  dialog { border:0; border-radius:12px; padding:0; width:min(520px, 94vw); box-shadow:0 20px 50px rgba(0,0,0,.25); }
+  dialog::backdrop { background:rgba(17,24,39,.45); }
+  dialog .cab { padding:16px 18px; border-bottom:1px solid var(--borda); font-weight:700; }
+  dialog .corpo { padding:16px 18px; }
+  dialog .pe { padding:12px 18px; border-top:1px solid var(--borda); display:flex; justify-content:flex-end; gap:8px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="oculto"></div>
+
+<script>
+/* ================== CONFIGURAÇÃO ================== */
+const SUPABASE_URL = 'https://qgkelrlftxqpoyspxmsf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFna2VscmxmdHhxcG95c3B4bXNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjczNTUsImV4cCI6MjA5NTkwMzM1NX0.dvEPOWwBLbrJJdYtXnhfjTsWvH4MxCDj3mxq9Yit7B0';
+// Mesma chave de sessão do SisPlano: quem entrou no SisPlano já está logado aqui.
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SISPLANO = '../';
+
+const QUADS = [
+  { k:'cla', nome:'Clã', desc:'Colaboração, pessoas' },
+  { k:'adocracia', nome:'Adocracia', desc:'Inovação, autonomia' },
+  { k:'mercado', nome:'Mercado', desc:'Resultado, performance' },
+  { k:'hierarquia', nome:'Hierarquia', desc:'Processos, controle' },
+];
+const AFIRMATIVAS = [
+  ['Características da organização', ['A empresa é um ambiente colaborativo, com relações de confiança e proximidade entre as pessoas','A empresa é dinâmica, inovadora e incentiva autonomia e iniciativa','A empresa é orientada a resultados, metas e alta performance','A empresa é estruturada, organizada e guiada por processos bem definidos']],
+  ['Estilo de liderança', ['Líderes atuam como mentores, desenvolvendo pessoas e promovendo engajamento','Líderes incentivam autonomia, inovação e tomada de decisão baseada em dados','Líderes são exigentes, focados em metas, resultados e excelência','Líderes priorizam organização, controle e previsibilidade']],
+  ['Gestão de pessoas', ['Existe forte colaboração, espírito de equipe e desenvolvimento contínuo','As pessoas têm liberdade com responsabilidade e são incentivadas a experimentar','Há cobrança por desempenho e entrega de resultados consistentes','As pessoas seguem processos claros e padrões definidos']],
+  ['Coesão organizacional', ['A empresa é unida por confiança e relacionamento entre as pessoas','A empresa é unida por inovação e crescimento','A empresa é unida pelo foco em resultados e sucesso do cliente','A empresa é unida por regras, processos e estrutura']],
+  ['Ênfase estratégica', ['O foco está nas pessoas, desenvolvimento e engajamento','O foco está em inovação, autonomia e adaptação rápida','O foco está em resultados, competitividade e excelência','O foco está em eficiência, organização e previsibilidade']],
+  ['Critérios de sucesso', ['Sucesso é medido pelo engajamento, desenvolvimento e satisfação das pessoas','Sucesso é medido pela inovação, autonomia e capacidade de adaptação','Sucesso é medido por resultados consistentes, performance e satisfação do cliente','Sucesso é medido pela qualidade dos processos, organização e eficiência']],
+];
+
+/* ================== UTILITÁRIOS ================== */
+const $ = (s, el = document) => el.querySelector(s);
+const app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const n1 = v => (v === null || v === undefined || v === '') ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits:1, maximumFractionDigits:1 });
+const sinal = v => v === null || v === undefined ? '—' : (Number(v) > 0 ? '+' : '') + n1(v);
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.remove('oculto'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('oculto'), 3800); }
+function msgErro(e) { return (e && (e.message || e.msg)) ? (e.message || e.msg).replace(/^.*?ERROR:\s*/,'') : 'Algo deu errado.'; }
+function statusGap(g) {
+  const a = Math.abs(Number(g));
+  if (a <= 2) return { cls:'ok', txt:'✓ Alinhado' };
+  if (a <= 5) return { cls:'atencao', txt:'! Atenção' };
+  return { cls:'critico', txt:'✕ Distante' };
+}
+
+/* ================== ROTEADOR ================== */
+const params = new URLSearchParams(location.search);
+if (params.get('t')) telaFormulario(params.get('t'));
+else iniciarPainel();
+
+/* =========================================================
+   FORMULÁRIO OCAI (quem recebe o link)
+   ========================================================= */
+async function telaFormulario(token) {
+  document.title = 'Pesquisa de Cultura DAEXE';
+  app.innerHTML = `<div class="topo"><div class="in"><span class="marca">Pesquisa de Cultura DAEXE</span></div></div>
+    <div class="form-pesq"><div class="card">Carregando…</div></div>`;
+  const { data, error } = await sb.rpc('gpp_ocai_convite', { p_token: token });
+  const box = $('.form-pesq');
+  if (error) { box.innerHTML = `<div class="card"><h2>Não foi possível abrir a pesquisa</h2><p>Tente novamente em instantes.</p></div>`; return; }
+  const msgs = {
+    invalido: ['Link inválido', 'Use o link pessoal que chegou no seu e-mail.'],
+    respondido: ['Resposta já registrada', 'Este link já foi usado. Obrigado pela participação!'],
+    encerrado: ['Pesquisa encerrada', 'O prazo deste trimestre terminou.'],
+  };
+  if (data.estado !== 'ok') {
+    const [t, p] = msgs[data.estado] || msgs.invalido;
+    box.innerHTML = `<div class="card" style="text-align:center;padding:48px 18px"><h2>${esc(t)}</h2><p>${esc(p)}</p></div>`;
+    return;
+  }
+
+  $('.marca').innerHTML = `Pesquisa de Cultura DAEXE <small>${esc(data.trimestre)}</small>`;
+  box.innerHTML = `
+    <div class="card">
+      <p><span class="tag ok">100% anônima</span></p>
+      <p>O objetivo é entender como a cultura da empresa é percebida <b>hoje</b>, no dia a dia.</p>
+      <p>Em cada afirmativa, <b>distribua 100 pontos</b> entre as 4 alternativas, como quiser (ex.: 40 / 30 / 20 / 10). Se uma alternativa não representa a empresa, dê 0. Não há resposta certa ou errada.</p>
+      <p style="color:var(--tinta-3);font-size:13px;margin-bottom:0">O sistema registra apenas que você respondeu. Suas notas são gravadas sem nome e sem horário, separadas do seu convite. Prazo: <b>${esc(data.prazo)}</b>.</p>
+    </div>
+    ${AFIRMATIVAS.map(([titulo, ops], a) => `
+      <div class="card">
+        <h2 style="margin-bottom:2px">Afirmativa ${a + 1} · ${esc(titulo)}</h2>
+        <div class="sub" style="margin-bottom:8px">Distribua 100 pontos</div>
+        ${ops.map((o, i) => `<div class="opcao"><label for="v${a}_${i}">${'ABCD'[i]}) ${esc(o)}</label>
+          <input id="v${a}_${i}" type="number" inputmode="numeric" min="0" max="100" step="1" placeholder="0" data-a="${a}"></div>`).join('')}
+        <div class="soma" id="soma${a}">Soma: 0 de 100 — faltam 100</div>
+      </div>`).join('')}`;
+  app.insertAdjacentHTML('beforeend', `<div class="rodape-fixo" id="rodape"><div class="in">
+      <span id="progresso" style="color:var(--tinta-3);font-size:14px">0 de 6 afirmativas completas</span>
+      <button class="btn" id="enviar" disabled>Enviar respostas</button></div>
+      <div id="erroEnvio" style="max-width:760px;margin:6px auto 0;color:var(--critico);font-size:14px"></div></div>`);
+
+  const val = (a, i) => { const v = $(`#v${a}_${i}`).value; return v === '' ? 0 : Number(v); };
+  function atualizar() {
+    let completas = 0, valido = true;
+    for (let a = 0; a < 6; a++) {
+      let soma = 0, ruim = false;
+      for (let i = 0; i < 4; i++) { const v = val(a, i); if (!Number.isInteger(v) || v < 0 || v > 100) ruim = true; soma += v; }
+      const el = $(`#soma${a}`);
+      if (ruim) { el.className = 'soma'; el.textContent = 'Use números inteiros de 0 a 100'; valido = false; continue; }
+      if (soma === 100) { el.className = 'soma ok'; el.textContent = 'Soma: 100 ✓'; completas++; }
+      else { el.className = 'soma'; el.textContent = `Soma: ${soma} de 100 — ${soma < 100 ? 'faltam ' + (100 - soma) : 'passou ' + (soma - 100)}`; valido = false; }
+    }
+    $('#progresso').textContent = `${completas} de 6 afirmativas completas`;
+    $('#enviar').disabled = !(valido && completas === 6);
+  }
+  box.addEventListener('input', atualizar);
+  $('#enviar').addEventListener('click', async () => {
+    const b = $('#enviar'); const valores = [];
+    for (let a = 0; a < 6; a++) for (let i = 0; i < 4; i++) valores.push(val(a, i));
+    b.disabled = true; b.textContent = 'Enviando…'; $('#erroEnvio').textContent = '';
+    const { data: r, error: e } = await sb.rpc('gpp_ocai_responder', { p_token: token, p_valores: valores });
+    if (!e && r && r.ok) {
+      box.innerHTML = `<div class="card" style="text-align:center;padding:48px 18px"><h2>Obrigado!</h2><p>Sua resposta foi registrada de forma anônima.</p></div>`;
+      $('#rodape').remove(); scrollTo(0, 0);
+    } else {
+      $('#erroEnvio').textContent = e ? 'Falha de conexão. Tente de novo.' : (r && r.msg) || 'Não foi possível registrar.';
+      b.textContent = 'Enviar respostas'; atualizar();
+    }
+  });
+}
+
+/* =========================================================
+   PAINEL DA GPP
+   ========================================================= */
+let D = null;          // dados do painel
+let aba = 'cultura';
+let triSel = null;
+
+async function iniciarPainel() {
+  document.title = 'Cultura & Desempenho · DAEXE';
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return telaAcesso('Entre no SisPlano com o seu usuário de administrador e abra o módulo pelo menu.');
+  await carregar();
+}
+
+function telaAcesso(msg) {
+  app.innerHTML = `
+    <div class="centro">
+      <div class="card" style="padding:28px">
+        <div style="font-weight:700;color:var(--marca);font-size:18px">Cultura & Desempenho</div>
+        <p class="sub" style="margin-top:4px">Módulo de Gestão para Pessoas do SisPlano DAEXE</p>
+        <div class="aviso info">${esc(msg)}</div>
+        <a class="btn" href="${SISPLANO}" style="display:block;text-align:center;text-decoration:none">Ir para o SisPlano</a>
+      </div>
+    </div>`;
+}
+
+async function carregar() {
+  const { data, error } = await sb.rpc('gpp_admin_painel');
+  if (error) {
+    if (String(error.code) === '42501' || /restrito/i.test(error.message)) {
+      return telaAcesso('Este módulo é exclusivo para administradores da DAEXE no SisPlano.');
+    }
+    app.innerHTML = `<main><div class="aviso erro">Erro ao carregar: ${esc(msgErro(error))}</div></main>`;
+    return;
+  }
+  D = data;
+  if (!triSel || !D.resultados.some(r => r.trimestre === triSel)) triSel = D.resultados.length ? D.resultados[D.resultados.length - 1].trimestre : null;
+  desenhar();
+}
+
+function desenhar() {
+  const abas = [['cultura','Cultura (OCAI)'],['ciclos','Ciclos'],['pessoas','Organizadores'],['cenario','Cenário desejado'],['desempenho','Desempenho'],['config','Configurações']];
+  app.innerHTML = `
+    <div class="topo"><div class="in">
+      <span class="marca">Cultura & Desempenho<small>DAEXE · Gestão para Pessoas</small></span>
+      <nav class="abas">${abas.map(([k, t]) => `<button data-aba="${k}" class="${aba === k ? 'ativa' : ''}">${t}</button>`).join('')}</nav>
+      <a class="sair" href="${SISPLANO}" title="${esc(D.eu)}" style="text-decoration:none">← Voltar ao SisPlano</a>
+    </div></div>
+    <main id="conteudo"></main>`;
+  app.querySelectorAll('[data-aba]').forEach(b => b.onclick = () => { aba = b.dataset.aba; desenhar(); });
+  ({ cultura: abaCultura, ciclos: abaCiclos, pessoas: abaPessoas, cenario: abaCenario, desempenho: abaDesempenho, config: abaConfig })[aba]();
+}
+
+async function rpc(nome, args, okMsg) {
+  const { data, error } = await sb.rpc(nome, args);
+  if (error) { toast(msgErro(error)); return { erro: true }; }
+  if (okMsg) toast(typeof okMsg === 'function' ? okMsg(data) : okMsg);
+  await carregar();
+  return { data };
+}
+
+/* ---------------- ABA: CULTURA ---------------- */
+function abaCultura() {
+  const c = $('#conteudo');
+  const R = D.resultados;
+  if (!R.length) { c.innerHTML = `<div class="card">Ainda não há resultados.</div>`; return; }
+  const r = R.find(x => x.trimestre === triSel) || R[R.length - 1];
+  const idx = R.indexOf(r), ant = idx > 0 ? R[idx - 1] : null;
+  const delta = ant ? Math.round((r.indice - ant.indice) * 10) / 10 : null;
+  const aberto = D.ciclos.find(x => x.modulo === 'ocai' && x.status === 'aberto');
+
+  c.innerHTML = `
+    <div class="acoes" style="justify-content:space-between;margin-bottom:14px">
+      <div><h1>Pesquisa de Cultura</h1><p class="sub" style="margin:0">Como a cultura é percebida hoje x cenário desejado pela estratégia</p></div>
+      <label class="campo" style="margin:0;min-width:160px">Trimestre
+        <select id="selTri">${R.map(x => `<option ${x.trimestre === r.trimestre ? 'selected' : ''}>${esc(x.trimestre)}</option>`).join('')}</select></label>
+    </div>
+    ${aberto ? `<div class="aviso info">Ciclo ${esc(aberto.trimestre)} em andamento: ${aberto.responderam} de ${aberto.convidados} responderam · prazo ${esc(aberto.prazo)}. O resultado aparece aqui quando o ciclo encerrar.</div>` : ''}
+    ${r.respondentes !== null && r.respondentes < Number(cfg('minimo_respostas') || 3) ? `<div class="aviso erro">Apenas ${r.respondentes} resposta(s) neste trimestre — abaixo do mínimo. Leia com cautela.</div>` : ''}
+
+    <div class="grade g3">
+      <div class="card kpi"><div class="rot">Índice de Aderência Cultural</div>
+        <div class="val">${n1(r.indice)}%</div>
+        <div class="det">${delta === null ? 'Primeiro trimestre medido' : `${delta >= 0 ? '▲' : '▼'} ${sinal(delta)} pts vs ${esc(ant.trimestre)}`}</div></div>
+      <div class="card kpi"><div class="rot">Distância total do cenário desejado</div>
+        <div class="val">${n1(r.soma_gap)}</div>
+        <div class="det">Soma dos gaps absolutos (Σ|atual − desejado|)</div></div>
+      <div class="card kpi"><div class="rot">Respondentes</div>
+        <div class="val">${r.respondentes ?? '—'}</div>
+        <div class="det">${esc(r.origem)}</div></div>
+    </div>
+
+    <div class="grade g2">
+      <div class="card">
+        <h2>Mapa dos quadrantes</h2>
+        <div class="mapa">
+          <div></div><div class="eixo-x">FOCO INTERNO</div><div class="eixo-x">FOCO EXTERNO</div>
+          <div class="eixo-y">FLEXIBILIDADE</div>${quad(r, 'cla')}${quad(r, 'adocracia')}
+          <div class="eixo-y">ESTABILIDADE</div>${quad(r, 'hierarquia')}${quad(r, 'mercado')}
+        </div>
+        <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Gap = atual − desejado. ✓ até 2 pts · ! de 2 a 5 · ✕ acima de 5.</p>
+      </div>
+      <div class="card">
+        <h2>Perfil cultural: atual x desejado</h2>
+        <div class="grafico" id="radar"></div>
+        <div class="legenda"><span><i style="border-color:var(--s-atual)"></i>Atual (percebido)</span><span><i style="border-color:var(--s-desejado);border-top-style:dashed"></i>Desejado (estratégia)</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Evolução do Índice de Aderência</h2>
+      <div class="grafico" id="linha"></div>
+    </div>
+
+    <div class="card">
+      <h2>Histórico completo</h2>
+      <div class="tabela-wrap"><table>
+        <thead><tr><th>Trimestre</th><th class="num">Resp.</th>${QUADS.map(q => `<th class="num">${q.nome} atual</th><th class="num">desej.</th>`).join('')}<th class="num">Índice</th></tr></thead>
+        <tbody>${R.map(x => `<tr><td><b>${esc(x.trimestre)}</b></td><td class="num">${x.respondentes ?? '—'}</td>
+          ${QUADS.map(q => `<td class="num">${n1(x[q.k])}</td><td class="num" style="color:var(--tinta-3)">${n1(x['des_' + q.k])}</td>`).join('')}
+          <td class="num"><b>${n1(x.indice)}%</b></td></tr>`).join('')}</tbody>
+      </table></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Índice = 100 − Σ|Atual − Desejado| ÷ 2. Trimestres marcados como "Histórico" vieram das planilhas anteriores.</p>
+    </div>`;
+  $('#selTri').onchange = e => { triSel = e.target.value; abaCultura(); };
+  radar($('#radar'), r);
+  linha($('#linha'), R);
+}
+
+function cfg(chave) { const c = D.config.find(x => x.chave === chave); return c ? c.valor : ''; }
+
+function quad(r, k) {
+  const q = QUADS.find(x => x.k === k), g = r['gap_' + k], s = statusGap(g);
+  return `<div class="quad"><div class="nome">${q.nome}</div><div class="desc">${q.desc}</div>
+    <div class="linha"><span class="atual">${n1(r[k])}</span><span class="des">desejado ${n1(r['des_' + k])}</span></div>
+    <span class="tag ${s.cls}">${s.txt} · gap ${sinal(g)}</span></div>`;
+}
+
+/* Radar em losango: Clã ↖, Adocracia ↗, Mercado ↘, Hierarquia ↙ (mesma posição do mapa) */
+function radar(el, r) {
+  const W = 440, H = 340, cx = W / 2, cy = H / 2, R = 165;
+  const vals = [...QUADS.map(q => Number(r[q.k])), ...QUADS.map(q => Number(r['des_' + q.k]))];
+  const max = Math.max(40, Math.ceil(Math.max(...vals) / 10) * 10);
+  const ang = [-135, -45, 45, 135].map(a => a * Math.PI / 180);
+  const pt = (i, v) => [cx + Math.cos(ang[i]) * R * v / max, cy + Math.sin(ang[i]) * R * v / max];
+  const poly = key => QUADS.map((q, i) => pt(i, Number(r[key(q)])).join(',')).join(' ');
+  let grid = '';
+  for (let v = 10; v <= max; v += 10) {
+    grid += `<polygon points="${QUADS.map((_, i) => pt(i, v).join(',')).join(' ')}" fill="none" stroke="#E5E7EB" stroke-width="1"/>`;
+    grid += `<text x="${cx}" y="${cy - R * v / max * Math.SQRT1_2 - 3}" text-anchor="middle" font-size="10" fill="#9CA3AF" stroke="#fff" stroke-width="3" paint-order="stroke">${v}</text>`;
+  }
+  const eixos = QUADS.map((q, i) => { const [x, y] = pt(i, max); return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#E5E7EB"/>`; }).join('');
+  const rotulos = QUADS.map((q, i) => { const [x, y] = pt(i, max * 1.13); return `<text x="${x}" y="${y}" text-anchor="${i === 0 || i === 3 ? 'end' : 'start'}" font-size="13" font-weight="600" fill="#1A2230">${q.nome}</text>`; }).join('');
+  const pontos = (key, cor, nomeSerie) => QUADS.map((q, i) => { const [x, y] = pt(i, Number(r[key(q)]));
+    return `<circle cx="${x}" cy="${y}" r="5" fill="${cor}" stroke="#fff" stroke-width="2"/>
+      <circle cx="${x}" cy="${y}" r="14" fill="transparent" data-tip="<b>${q.nome}</b> · ${nomeSerie}: ${n1(r[key(q)])}"/>`; }).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Radar da cultura atual comparada à desejada">
+    ${grid}${eixos}
+    <polygon points="${poly(q => 'des_' + q.k)}" fill="none" stroke="var(--s-desejado)" stroke-width="2" stroke-dasharray="6 4"/>
+    <polygon points="${poly(q => q.k)}" fill="rgba(29,111,209,.12)" stroke="var(--s-atual)" stroke-width="2"/>
+    ${pontos(q => 'des_' + q.k, 'var(--s-desejado)', 'desejado')}${pontos(q => q.k, 'var(--s-atual)', 'atual')}
+    ${rotulos}</svg>`;
+  dicas(el);
+}
+
+function linha(el, R) {
+  const W = 900, H = 260, m = { l:44, r:24, t:22, b:36 };
+  const ys = R.map(x => Number(x.indice));
+  const max = 100, min = Math.min(90, Math.floor((Math.min(...ys) - 1) / 5) * 5), passo = max - min > 10 ? 5 : 2;
+  const x = i => R.length === 1 ? (m.l + W - m.r) / 2 : m.l + i * (W - m.l - m.r) / (R.length - 1);
+  const y = v => m.t + (max - v) * (H - m.t - m.b) / (max - min);
+  let grid = '';
+  for (let v = min; v <= max; v += passo) grid += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="#EEF0F3"/><text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#6B7280">${v}</text>`;
+  const path = R.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${y(p.indice)}`).join(' ');
+  const ult = R.length - 1;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução do índice de aderência por trimestre">
+    ${grid}
+    <path d="${path}" fill="none" stroke="var(--s-atual)" stroke-width="2"/>
+    ${R.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.indice)}" r="5" fill="var(--s-atual)" stroke="#fff" stroke-width="2"/>
+      <text x="${x(i)}" y="${H - 12}" text-anchor="middle" font-size="12" fill="#4B5563">${esc(p.trimestre)}</text>
+      <rect x="${x(i) - 30}" y="${m.t}" width="60" height="${H - m.t - m.b}" fill="transparent" data-tip="<b>${esc(p.trimestre)}</b> · índice ${n1(p.indice)}% · ${p.respondentes ?? '—'} resp."/>`).join('')}
+    <text x="${x(ult)}" y="${y(R[ult].indice) - 12}" text-anchor="middle" font-size="12" font-weight="600" fill="#1A2230">${n1(R[ult].indice)}%</text>
+  </svg>`;
+  dicas(el);
+}
+
+function dicas(el) {
+  let d = null;
+  el.querySelectorAll('[data-tip]').forEach(n => {
+    n.addEventListener('mouseenter', () => {
+      d = document.createElement('div'); d.className = 'dica'; d.innerHTML = n.dataset.tip; el.appendChild(d);
+      const b = n.getBoundingClientRect(), e = el.getBoundingClientRect();
+      d.style.left = (b.left + b.width / 2 - e.left) + 'px'; d.style.top = (b.top + b.height / 2 - e.top) + 'px';
+    });
+    n.addEventListener('mouseleave', () => { if (d) d.remove(); d = null; });
+  });
+}
+
+/* ---------------- ABA: CICLOS ---------------- */
+function abaCiclos() {
+  const c = $('#conteudo');
+  const aberto = D.ciclos.find(x => x.modulo === 'ocai' && x.status === 'aberto');
+  const semUrl = !cfg('url_app');
+  const pct = aberto ? Math.round(100 * aberto.responderam / Math.max(1, aberto.convidados)) : 0;
+  const auto = cfg('abertura_automatica').toLowerCase() === 'sim';
+
+  c.innerHTML = `
+    <h1>Ciclos da Pesquisa de Cultura</h1>
+    <p class="sub">${auto ? `A abertura é automática: no último dia útil de cada trimestre, às 8h. Próxima: <b>${esc(D.proxima_abertura)}</b> (${esc(D.proximo_trimestre)}).` : 'Abertura automática desligada (veja Configurações). Abra os ciclos manualmente.'}</p>
+    ${semUrl ? `<div class="aviso erro">O endereço da página do módulo não está configurado (Configurações). Sem ele os convites não podem ser enviados.</div>` : ''}
+    ${D.emails_com_erro > 0 ? `<div class="aviso erro">${D.emails_com_erro} e-mail(s) não saíram. Verifique a configuração de envio (SMTP).</div>` : ''}
+    ${aberto ? `
+      <div class="card">
+        <div class="acoes" style="justify-content:space-between">
+          <div><h2 style="margin:0">Ciclo ${esc(aberto.trimestre)} <span class="tag ok">Aberto</span></h2>
+            <div class="sub" style="margin:2px 0 0">Aberto em ${esc(aberto.abertura)} · prazo ${esc(aberto.prazo)} · lembrete ${aberto.lembrete_enviado ? 'enviado' : 'automático no ' + esc(cfg('lembrete_dias')) + 'º dia'}</div></div>
+          <div class="acoes"><button class="btn sec" id="lembrar">Enviar lembrete agora</button><button class="btn perigo" id="encerrar">Encerrar e apurar agora</button></div>
+        </div>
+        <div style="margin:16px 0 6px;font-weight:600">${aberto.responderam} de ${aberto.convidados} responderam (${pct}%)</div>
+        <div class="barra"><div style="width:${pct}%"></div></div>
+        <div class="tabela-wrap" style="margin-top:14px"><table><thead><tr><th>Organizador</th><th>Situação</th></tr></thead>
+          <tbody>${D.pendentes.map(p => `<tr><td>${esc(p.nome)}</td><td>${p.respondeu ? '<span class="tag ok">✓ Respondeu</span>' : '<span class="tag neutro">Pendente</span>'}</td></tr>`).join('')}</tbody></table></div>
+        <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">A lista mostra só quem respondeu, para o lembrete. O que cada pessoa respondeu nunca fica ligado ao nome.</p>
+      </div>` : `
+      <div class="card">
+        <h2>Abrir um ciclo agora</h2>
+        <p class="sub">Use só se precisar antecipar ou repetir uma abertura. Os convites saem para todos os Organizadores ativos com e-mail.</p>
+        <div class="acoes"><label class="campo" style="margin:0;width:140px">Trimestre<input id="triNovo" value="${esc(D.proximo_trimestre)}"></label>
+          <button class="btn" id="abrir" style="align-self:flex-end" ${semUrl ? 'disabled' : ''}>Abrir e enviar convites</button></div>
+      </div>`}
+    <div class="card"><h2>Histórico de ciclos</h2>
+      <div class="tabela-wrap"><table><thead><tr><th>Trimestre</th><th>Abertura</th><th>Prazo</th><th>Status</th><th class="num">Participação</th></tr></thead>
+      <tbody>${D.ciclos.filter(x => x.modulo === 'ocai').map(x => `<tr><td><b>${esc(x.trimestre)}</b></td><td>${esc(x.abertura)}</td><td>${esc(x.prazo)}</td>
+        <td>${x.status === 'aberto' ? '<span class="tag ok">Aberto</span>' : '<span class="tag neutro">Encerrado</span>'}</td>
+        <td class="num">${x.responderam}/${x.convidados}</td></tr>`).join('') || '<tr><td colspan="5" style="color:var(--tinta-3)">Nenhum ciclo aplicado pelo sistema ainda.</td></tr>'}</tbody></table></div></div>`;
+
+  if (aberto) {
+    $('#lembrar').onclick = async () => { if (confirm('Enviar lembrete para quem ainda não respondeu?')) await rpc('gpp_admin_lembrar_ocai', {}, n => `Lembrete na fila para ${n} pessoa(s).`); };
+    $('#encerrar').onclick = async () => { if (confirm(`Encerrar ${aberto.trimestre} agora? Os links pendentes deixam de funcionar.`)) { const r = await rpc('gpp_admin_encerrar_ocai', {}, 'Ciclo encerrado e apurado.'); if (!r.erro) { aba = 'cultura'; triSel = aberto.trimestre; desenhar(); } } };
+  } else {
+    $('#abrir').onclick = async () => { const t = $('#triNovo').value.trim().toUpperCase(); if (confirm(`Abrir o ciclo ${t} e enviar os convites agora?`)) await rpc('gpp_admin_abrir_ocai', { p_trimestre: t }, n => `Ciclo aberto. ${n} convites na fila de envio.`); };
+  }
+}
+
+/* ---------------- ABA: ORGANIZADORES ---------------- */
+function abaPessoas() {
+  const c = $('#conteudo');
+  const semEmail = D.organizadores.filter(o => o.ativo && !o.email).length;
+  c.innerHTML = `
+    <div class="acoes" style="justify-content:space-between;margin-bottom:14px">
+      <div><h1>Organizadores</h1><p class="sub" style="margin:0">Cadastro único usado pela Pesquisa de Cultura e pela Gestão do Desempenho</p></div>
+      <button class="btn" id="novo">+ Novo Organizador</button></div>
+    ${semEmail ? `<div class="aviso erro">${semEmail} Organizador(es) ativo(s) sem e-mail não recebem convite.</div>` : ''}
+    <div class="card"><div class="tabela-wrap"><table>
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Área</th><th>Gestor</th><th>Líder</th><th>Situação</th><th></th></tr></thead>
+      <tbody>${D.organizadores.map(o => `<tr style="${o.ativo ? '' : 'opacity:.55'}">
+        <td><b>${esc(o.nome)}</b></td><td>${o.email ? esc(o.email) : '<span class="tag critico">sem e-mail</span>'}</td>
+        <td>${esc(o.area || '—')}</td><td>${esc(o.gestor || '—')}</td><td>${o.e_lider ? 'Sim' : 'Não'}</td>
+        <td>${o.ativo ? '<span class="tag ok">Ativo</span>' : '<span class="tag neutro">Inativo</span>'}</td>
+        <td><button class="btn sec mini" data-ed="${o.id}">Editar</button></td></tr>`).join('')}</tbody></table></div></div>`;
+  $('#novo').onclick = () => editarPessoa(null);
+  c.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editarPessoa(D.organizadores.find(o => o.id === b.dataset.ed)));
+}
+
+function editarPessoa(o) {
+  o = o || { id:'', nome:'', email:'', area:'', gestor_id:'', e_lider:false, ativo:true };
+  const dlg = document.createElement('dialog');
+  dlg.innerHTML = `<div class="cab">${o.id ? 'Editar Organizador' : 'Novo Organizador'}</div>
+    <div class="corpo">
+      <label class="campo">Nome<input id="f_nome" value="${esc(o.nome)}"></label>
+      <label class="campo">E-mail<input id="f_email" type="email" value="${esc(o.email || '')}"></label>
+      <label class="campo">Área<input id="f_area" value="${esc(o.area || '')}"></label>
+      <label class="campo">Gestor<select id="f_gestor"><option value="">—</option>
+        ${D.organizadores.filter(g => g.id !== o.id).map(g => `<option value="${g.id}" ${g.id === o.gestor_id ? 'selected' : ''}>${esc(g.nome)}</option>`).join('')}</select></label>
+      <label class="check"><input type="checkbox" id="f_lider" ${o.e_lider ? 'checked' : ''}> É líder (avaliado nas competências de liderança)</label>
+      <label class="check"><input type="checkbox" id="f_ativo" ${o.ativo ? 'checked' : ''}> Ativo (recebe convites)</label>
+    </div>
+    <div class="pe"><button class="btn sec" id="f_cancel">Cancelar</button><button class="btn" id="f_ok">Salvar</button></div>`;
+  document.body.appendChild(dlg); dlg.showModal();
+  $('#f_cancel', dlg).onclick = () => dlg.remove();
+  $('#f_ok', dlg).onclick = async () => {
+    const p = { id:o.id, nome:$('#f_nome', dlg).value, email:$('#f_email', dlg).value, area:$('#f_area', dlg).value,
+      gestor_id:$('#f_gestor', dlg).value, e_lider:$('#f_lider', dlg).checked, ativo:$('#f_ativo', dlg).checked };
+    const r = await rpc('gpp_admin_salvar_organizador', { p }, 'Organizador salvo.');
+    if (!r.erro) dlg.remove();
+  };
+}
+
+/* ---------------- ABA: CENÁRIO DESEJADO ---------------- */
+function abaCenario() {
+  const c = $('#conteudo');
+  const apurados = new Set(D.resultados.map(r => r.trimestre));
+  c.innerHTML = `
+    <h1>Cenário desejado</h1>
+    <p class="sub">Pesos de cada quadrante definidos pela direção conforme a estratégia. Devem somar 100. Trimestres já apurados ficam congelados para preservar o histórico; se um trimestre não tiver pesos na abertura, o sistema repete os do anterior.</p>
+    <div class="card"><div class="tabela-wrap"><table>
+      <thead><tr><th>Trimestre</th>${QUADS.map(q => `<th class="num">${q.nome}</th>`).join('')}<th class="num">Soma</th><th>Observação</th><th></th></tr></thead>
+      <tbody>${D.cenarios.map(d => linhaCenario(d, apurados.has(d.trimestre))).join('')}
+        ${linhaCenario({ trimestre:'', cla:'', adocracia:'', mercado:'', hierarquia:'', observacao:'' }, false, true)}</tbody></table></div></div>`;
+  c.querySelectorAll('tr[data-tri]').forEach(tr => {
+    const soma = () => { const s = QUADS.reduce((a, q) => a + Number($(`[data-k="${q.k}"]`, tr).value || 0), 0); const el = $('.soma-c', tr); el.textContent = s; el.style.color = s === 100 ? 'var(--ok)' : 'var(--critico)'; };
+    tr.addEventListener('input', soma); soma();
+    const b = $('button', tr); if (!b) return;
+    b.onclick = async () => {
+      const p = { trimestre: ($('[data-k="trimestre"]', tr)?.value || tr.dataset.tri).trim().toUpperCase(), observacao: $('[data-k="observacao"]', tr).value };
+      QUADS.forEach(q => p[q.k] = $(`[data-k="${q.k}"]`, tr).value);
+      if (QUADS.reduce((a, q) => a + Number(p[q.k] || 0), 0) !== 100) return toast('Os quatro pesos precisam somar 100.');
+      await rpc('gpp_admin_salvar_cenario', { p }, `Cenário ${p.trimestre} salvo.`);
+    };
+  });
+}
+function linhaCenario(d, congelado, novo) {
+  const inp = (k, w = 64) => `<input data-k="${k}" type="number" min="0" max="100" step="0.5" value="${esc(d[k])}" ${congelado ? 'disabled' : ''} style="width:${w}px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px;text-align:right">`;
+  return `<tr data-tri="${esc(d.trimestre)}">
+    <td>${novo ? `<input data-k="trimestre" placeholder="1T/27" style="width:80px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px">` : `<b>${esc(d.trimestre)}</b>`}</td>
+    ${QUADS.map(q => `<td class="num">${inp(q.k)}</td>`).join('')}
+    <td class="num"><b class="soma-c"></b></td>
+    <td><input data-k="observacao" value="${esc(d.observacao || '')}" ${congelado ? 'disabled' : ''} style="width:100%;min-width:160px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px"></td>
+    <td>${congelado ? '<span class="tag neutro">Apurado</span>' : `<button class="btn ${novo ? '' : 'sec'} mini">${novo ? 'Adicionar' : 'Salvar'}</button>`}</td></tr>`;
+}
+
+/* ---------------- ABA: DESEMPENHO ---------------- */
+function abaDesempenho() {
+  $('#conteudo').innerHTML = `<h1>Gestão do Desempenho</h1>
+    <div class="card"><p style="margin:0">Módulo em construção. Vai usar o mesmo cadastro de Organizadores (gestor e liderança já ficam registrados lá) e trazer os quatro recortes: performance geral DAEXE, por competência, gap autoavaliação x gestor e por Organizador.</p></div>`;
+}
+
+/* ---------------- ABA: CONFIGURAÇÕES ---------------- */
+function abaConfig() {
+  const c = $('#conteudo');
+  const nomes = { url_app:'Endereço da página do módulo', abertura_automatica:'Abertura automática (sim/não)', dias_resposta:'Dias para responder', lembrete_dias:'Lembrete após (dias)', minimo_respostas:'Mínimo de respostas', emails_resultado:'E-mails que recebem o resultado', remetente_nome:'Nome do remetente' };
+  c.innerHTML = `
+    <h1>Configurações</h1><p class="sub">Parâmetros da rotina automática</p>
+    <div class="grade g2">
+      <div class="card"><h2>Rotina</h2>
+        ${D.config.map(x => `<label class="campo">${esc(nomes[x.chave] || x.chave)}
+          <div class="acoes" style="margin-top:4px;flex-wrap:nowrap"><input data-cfg="${esc(x.chave)}" value="${esc(x.valor || '')}" style="margin:0;flex:1">
+          <button class="btn sec mini" data-salvar="${esc(x.chave)}">Salvar</button></div>
+          <span style="font-weight:400;color:var(--tinta-3);font-size:12px">${esc(x.descricao || '')}</span></label>`).join('')}
+      </div>
+      <div>
+        <div class="card"><h2>Quem acessa</h2>
+          <p style="margin:0">Administradores da DAEXE no SisPlano. Para dar ou tirar acesso, altere o papel da pessoa em <b>Usuários & Acessos</b> no SisPlano.</p></div>
+        <div class="card"><h2>Envio de e-mails</h2>
+          <p style="margin:0">${D.emails_pendentes ? `${D.emails_pendentes} e-mail(s) na fila.` : 'Nenhum e-mail na fila.'} ${D.emails_com_erro ? `<span class="tag critico">${D.emails_com_erro} com erro</span>` : '<span class="tag ok">✓ Sem erros</span>'}</p>
+          <p class="sub" style="margin:8px 0 0">A fila é enviada a cada 5 minutos pela conta organiza@daexe.com.br.</p></div>
+      </div>
+    </div>`;
+  c.querySelectorAll('[data-salvar]').forEach(b => b.onclick = () => rpc('gpp_admin_salvar_config', { p_chave: b.dataset.salvar, p_valor: $(`[data-cfg="${b.dataset.salvar}"]`).value }, 'Configuração salva.'));
+}
+</script>
+</body>
+</html>
