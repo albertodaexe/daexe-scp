@@ -443,10 +443,31 @@ function dicas(el) {
   });
 }
 
+/* ---------------- DIÁLOGO GENÉRICO ---------------- */
+// botoes: [{ t:'Salvar', cls:'', fn: async (dlg) => true/false }]  — retornar false mantém o diálogo aberto
+function dialogo(titulo, corpo, botoes, largura) {
+  const dlg = document.createElement('dialog');
+  if (largura) dlg.style.width = `min(${largura}px, 94vw)`;
+  dlg.innerHTML = `<div class="cab">${titulo}</div><div class="corpo">${corpo}</div><div class="pe"></div>`;
+  const pe = $('.pe', dlg);
+  [{ t:'Cancelar', cls:'sec', fn:() => true }].concat(botoes || []).forEach(b => {
+    const el = document.createElement('button'); el.className = 'btn ' + (b.cls || ''); el.textContent = b.t;
+    el.onclick = async () => { el.disabled = true; let ok; try { ok = await b.fn(dlg); } finally { el.disabled = false; } if (ok !== false) dlg.remove(); };
+    pe.appendChild(el);
+  });
+  dlg.addEventListener('cancel', e => { e.preventDefault(); dlg.remove(); });
+  document.body.appendChild(dlg); dlg.showModal();
+  return dlg;
+}
+const ok = r => !r.erro;
+
 /* ---------------- ABA: CICLOS ---------------- */
+let cicloAberto = null;   // ciclo cujo quadro de convidados está expandido no histórico
+
 function abaCiclos() {
   const c = $('#conteudo');
-  const aberto = D.ciclos.find(x => x.modulo === 'ocai' && x.status === 'aberto');
+  const ocai = D.ciclos.filter(x => x.modulo === 'ocai');
+  const aberto = ocai.find(x => x.status === 'aberto');
   const semUrl = !cfg('url_app');
   const pct = aberto ? Math.round(100 * aberto.responderam / Math.max(1, aberto.convidados)) : 0;
   const auto = cfg('abertura_automatica').toLowerCase() === 'sim';
@@ -455,19 +476,24 @@ function abaCiclos() {
     <h1>Ciclos da Pesquisa de Cultura</h1>
     <p class="sub">${auto ? `A abertura é automática: no último dia útil de cada trimestre, às 8h. Próxima: <b>${esc(D.proxima_abertura)}</b> (${esc(D.proximo_trimestre)}).` : 'Abertura automática desligada (veja Configurações). Abra os ciclos manualmente.'}</p>
     ${semUrl ? `<div class="aviso erro">O endereço da página do módulo não está configurado (Configurações). Sem ele os convites não podem ser enviados.</div>` : ''}
-    ${D.emails_com_erro > 0 ? `<div class="aviso erro">${D.emails_com_erro} e-mail(s) não saíram. Verifique a configuração de envio (SMTP).</div>` : ''}
+    ${D.emails_com_erro > 0 ? `<div class="aviso erro">${D.emails_com_erro} e-mail(s) não saíram. Veja a fila em Configurações.</div>` : ''}
     ${aberto ? `
       <div class="card">
         <div class="acoes" style="justify-content:space-between">
-          <div><h2 style="margin:0">Ciclo ${esc(aberto.trimestre)} <span class="tag ok">Aberto</span></h2>
+          <div><h2 style="margin:0">Ciclo ${esc(aberto.trimestre)} <span class="tag ok">Aberto</span>${aberto.vencido ? ' <span class="tag atencao">Prazo vencido — encerra na rotina das 8h</span>' : ''}</h2>
             <div class="sub" style="margin:2px 0 0">Aberto em ${esc(aberto.abertura)} · prazo ${esc(aberto.prazo)} · lembrete ${aberto.lembrete_enviado ? 'enviado' : 'automático no ' + esc(cfg('lembrete_dias')) + 'º dia'}</div></div>
-          <div class="acoes"><button class="btn sec" id="lembrar">Enviar lembrete agora</button><button class="btn perigo" id="encerrar">Encerrar e apurar agora</button></div>
+          <div class="acoes">
+            <button class="btn sec" data-ed-ciclo="${aberto.id}">Editar ciclo</button>
+            <button class="btn sec" id="incluir">+ Incluir Organizadores</button>
+            <button class="btn sec" id="lembrar">Enviar lembrete agora</button>
+            <button class="btn perigo" id="encerrar">Encerrar e apurar agora</button></div>
         </div>
         <div style="margin:16px 0 6px;font-weight:600">${aberto.responderam} de ${aberto.convidados} responderam (${pct}%)</div>
         <div class="barra"><div style="width:${pct}%"></div></div>
-        <div class="tabela-wrap" style="margin-top:14px"><table><thead><tr><th>Organizador</th><th>Situação</th></tr></thead>
-          <tbody>${D.pendentes.map(p => `<tr><td>${esc(p.nome)}</td><td>${p.respondeu ? '<span class="tag ok">✓ Respondeu</span>' : '<span class="tag neutro">Pendente</span>'}</td></tr>`).join('')}</tbody></table></div>
-        <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">A lista mostra só quem respondeu, para o lembrete. O que cada pessoa respondeu nunca fica ligado ao nome.</p>
+        ${tabelaConvidados(aberto, true)}
+        <div class="acoes" style="justify-content:space-between;margin-top:10px">
+          <p style="font-size:12px;color:var(--tinta-3);margin:0">A lista mostra só quem respondeu, para o lembrete. O que cada pessoa respondeu nunca fica ligado ao nome.</p>
+          <button class="btn perigo mini" data-del-ciclo="${aberto.id}">Excluir ciclo</button></div>
       </div>` : `
       <div class="card">
         <h2>Abrir um ciclo agora</h2>
@@ -475,18 +501,117 @@ function abaCiclos() {
         <div class="acoes"><label class="campo" style="margin:0;width:140px">Trimestre<input id="triNovo" value="${esc(D.proximo_trimestre)}"></label>
           <button class="btn" id="abrir" style="align-self:flex-end" ${semUrl ? 'disabled' : ''}>Abrir e enviar convites</button></div>
       </div>`}
+
     <div class="card"><h2>Histórico de ciclos</h2>
-      <div class="tabela-wrap"><table><thead><tr><th>Trimestre</th><th>Abertura</th><th>Prazo</th><th>Status</th><th class="num">Participação</th></tr></thead>
-      <tbody>${D.ciclos.filter(x => x.modulo === 'ocai').map(x => `<tr><td><b>${esc(x.trimestre)}</b></td><td>${esc(x.abertura)}</td><td>${esc(x.prazo)}</td>
+      <div class="tabela-wrap"><table><thead><tr><th>Trimestre</th><th>Abertura</th><th>Prazo</th><th>Status</th><th class="num">Participação</th><th></th></tr></thead>
+      <tbody>${ocai.map(x => `<tr><td><b>${esc(x.trimestre)}</b></td><td>${esc(x.abertura)}</td><td>${esc(x.prazo)}</td>
         <td>${x.status === 'aberto' ? '<span class="tag ok">Aberto</span>' : '<span class="tag neutro">Encerrado</span>'}</td>
-        <td class="num">${x.responderam}/${x.convidados}</td></tr>`).join('') || '<tr><td colspan="5" style="color:var(--tinta-3)">Nenhum ciclo aplicado pelo sistema ainda.</td></tr>'}</tbody></table></div></div>`;
+        <td class="num">${x.responderam}/${x.convidados}</td>
+        <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap">
+          <button class="btn sec mini" data-ver="${x.id}">${cicloAberto === x.id ? 'Ocultar' : 'Convidados'}</button>
+          <button class="btn sec mini" data-ed-ciclo="${x.id}">Editar</button>
+          <button class="btn perigo mini" data-del-ciclo="${x.id}">Excluir</button></div></td></tr>
+        ${cicloAberto === x.id ? `<tr><td colspan="6" style="background:#FBFCFD">${tabelaConvidados(x, false)}</td></tr>` : ''}`).join('')
+        || '<tr><td colspan="6" style="color:var(--tinta-3)">Nenhum ciclo aplicado pelo sistema ainda.</td></tr>'}</tbody></table></div></div>
+
+    <div class="card">
+      <div class="acoes" style="justify-content:space-between;margin-bottom:8px">
+        <div><h2 style="margin:0">Resultados históricos (planilhas)</h2>
+          <p class="sub" style="margin:2px 0 0">Trimestres medidos antes do sistema. Entram no painel junto com os ciclos apurados.</p></div>
+        <button class="btn sec" id="novoHist">+ Adicionar trimestre</button></div>
+      <div class="tabela-wrap"><table><thead><tr><th>Trimestre</th><th class="num">Resp.</th>${QUADS.map(q => `<th class="num">${q.nome}</th>`).join('')}<th>Origem</th><th></th></tr></thead>
+        <tbody>${D.historico.map(h => `<tr><td><b>${esc(h.trimestre)}</b></td><td class="num">${h.respondentes ?? '—'}</td>
+          ${QUADS.map(q => `<td class="num">${n1(h[q.k])}</td>`).join('')}<td>${esc(h.origem || '')}</td>
+          <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sec mini" data-ed-hist="${esc(h.trimestre)}">Editar</button>
+            <button class="btn perigo mini" data-del-hist="${esc(h.trimestre)}">Excluir</button></div></td></tr>`).join('')
+          || '<tr><td colspan="8" style="color:var(--tinta-3)">Nenhum trimestre histórico.</td></tr>'}</tbody></table></div>
+    </div>`;
 
   if (aberto) {
     $('#lembrar').onclick = async () => { if (confirm('Enviar lembrete para quem ainda não respondeu?')) await rpc('gpp_admin_lembrar_ocai', {}, n => `Lembrete na fila para ${n} pessoa(s).`); };
     $('#encerrar').onclick = async () => { if (confirm(`Encerrar ${aberto.trimestre} agora? Os links pendentes deixam de funcionar.`)) { const r = await rpc('gpp_admin_encerrar_ocai', {}, 'Ciclo encerrado e apurado.'); if (!r.erro) { aba = 'cultura'; triSel = aberto.trimestre; desenhar(); } } };
+    $('#incluir').onclick = () => incluirOrganizadores(aberto);
   } else {
     $('#abrir').onclick = async () => { const t = $('#triNovo').value.trim().toUpperCase(); if (confirm(`Abrir o ciclo ${t} e enviar os convites agora?`)) await rpc('gpp_admin_abrir_ocai', { p_trimestre: t }, n => `Ciclo aberto. ${n} convites na fila de envio.`); };
   }
+  c.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { cicloAberto = cicloAberto === b.dataset.ver ? null : b.dataset.ver; abaCiclos(); });
+  c.querySelectorAll('[data-ed-ciclo]').forEach(b => b.onclick = () => editarCiclo(D.ciclos.find(x => x.id === b.dataset.edCiclo)));
+  c.querySelectorAll('[data-del-ciclo]').forEach(b => b.onclick = () => excluirCiclo(D.ciclos.find(x => x.id === b.dataset.delCiclo)));
+  c.querySelectorAll('[data-reenviar]').forEach(b => b.onclick = async () => { if (confirm(`Reenviar o convite para ${b.dataset.nome}? O link continua o mesmo.`)) await rpc('gpp_admin_reenviar_convite', { p_convite: b.dataset.reenviar }, 'Convite na fila de envio.'); });
+  c.querySelectorAll('[data-remover]').forEach(b => b.onclick = async () => { if (confirm(`Tirar ${b.dataset.nome} deste ciclo? O link enviado deixa de funcionar.`)) await rpc('gpp_admin_remover_convite', { p_convite: b.dataset.remover }, 'Convite removido.'); });
+  $('#novoHist').onclick = () => editarHistorico(null);
+  c.querySelectorAll('[data-ed-hist]').forEach(b => b.onclick = () => editarHistorico(D.historico.find(h => h.trimestre === b.dataset.edHist)));
+  c.querySelectorAll('[data-del-hist]').forEach(b => b.onclick = async () => { if (confirm(`Excluir o trimestre histórico ${b.dataset.delHist}? O resultado dele some do painel.`)) await rpc('gpp_admin_excluir_historico', { p_trimestre: b.dataset.delHist }, 'Trimestre histórico excluído.'); });
+}
+
+function tabelaConvidados(ciclo, comAcoes) {
+  const podeAgir = comAcoes && ciclo.status === 'aberto' && !ciclo.vencido;
+  if (!ciclo.convites.length) return `<p class="sub" style="margin:12px 0 0">Nenhum convidado neste ciclo.</p>`;
+  return `<div class="tabela-wrap" style="margin-top:14px"><table><thead><tr><th>Organizador</th><th>E-mail</th><th>Situação</th>${podeAgir ? '<th></th>' : ''}</tr></thead>
+    <tbody>${ciclo.convites.map(p => `<tr><td>${esc(p.nome)}</td><td>${esc(p.email || '—')}</td>
+      <td>${p.respondeu ? '<span class="tag ok">✓ Respondeu</span>' : '<span class="tag neutro">Pendente</span>'}</td>
+      ${podeAgir ? `<td>${p.respondeu ? '' : `<div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap">
+        <button class="btn sec mini" data-reenviar="${p.id}" data-nome="${esc(p.nome)}">Reenviar convite</button>
+        <button class="btn perigo mini" data-remover="${p.id}" data-nome="${esc(p.nome)}">Remover</button></div>`}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function editarCiclo(x) {
+  const reabrivel = x.status === 'encerrado';
+  const dlg = dialogo(`Editar ciclo ${esc(x.trimestre)}`, `
+    <label class="campo">Trimestre<input id="ec_tri" value="${esc(x.trimestre)}"></label>
+    <label class="campo">Prazo para responder<input id="ec_prazo" type="date" value="${esc(x.prazo_iso)}"></label>
+    ${reabrivel ? `<label class="check"><input type="checkbox" id="ec_reabrir"> Reabrir o ciclo (os links pendentes voltam a funcionar até o novo prazo)</label>
+      <p class="sub" style="margin:0">Ao reabrir, o resultado deste trimestre sai do painel até o ciclo ser encerrado de novo. O prazo precisa ser uma data futura.</p>`
+      : `<p class="sub" style="margin:0">Use o prazo para prorrogar ou antecipar o fim do ciclo. Para encerrar, use "Encerrar e apurar agora".</p>`}`,
+    [{ t:'Salvar', fn: async d => ok(await rpc('gpp_admin_editar_ciclo', { p: {
+        id: x.id, trimestre: $('#ec_tri', d).value.trim().toUpperCase(), prazo: $('#ec_prazo', d).value,
+        status: reabrivel && $('#ec_reabrir', d).checked ? 'aberto' : x.status } }, r => r && r.reaberto ? 'Ciclo reaberto.' : 'Ciclo atualizado.')) }]);
+  return dlg;
+}
+
+function excluirCiclo(x) {
+  dialogo(`Excluir ciclo ${esc(x.trimestre)}`, `
+    <div class="aviso erro">Esta exclusão é definitiva e não pode ser desfeita.</div>
+    <p style="margin-top:0">Serão apagados: <b>${x.convidados}</b> convite(s), <b>${x.respostas}</b> resposta(s) e os e-mails deste ciclo.
+      ${x.status === 'encerrado' ? 'O resultado de ' + esc(x.trimestre) + ' sai do painel e do histórico.' : 'Os links enviados deixam de funcionar.'}
+      Se o cenário desejado de ${esc(x.trimestre)} tiver sido copiado automaticamente na abertura, ele também é apagado.</p>
+    <label class="campo">Para confirmar, digite o trimestre (${esc(x.trimestre)})<input id="dc_conf" autocomplete="off"></label>`,
+    [{ t:'Excluir definitivamente', cls:'perigo', fn: async d => {
+        if ($('#dc_conf', d).value.trim().toUpperCase() !== x.trimestre) { toast('Digite o trimestre exatamente como aparece para confirmar.'); return false; }
+        if (cicloAberto === x.id) cicloAberto = null;
+        return ok(await rpc('gpp_admin_excluir_ciclo', { p_id: x.id }, r => `Ciclo ${r.trimestre} excluído (${r.convites} convite(s), ${r.respostas} resposta(s), ${r.emails} e-mail(s)).`)); } }]);
+}
+
+function incluirOrganizadores(ciclo) {
+  const ja = new Set(ciclo.convites.map(p => p.organizador_id));
+  const lista = D.organizadores.map(o => {
+    const motivo = ja.has(o.id) ? 'já convidado' : !o.email ? 'sem e-mail' : !o.ativo ? 'inativo' : '';
+    return `<label class="check" style="${motivo ? 'opacity:.55' : ''}"><input type="checkbox" class="inc_org" value="${o.id}" ${motivo && motivo !== 'inativo' ? 'disabled' : ''}>
+      ${esc(o.nome)} <span style="color:var(--tinta-3);font-size:12px">${esc(o.email || '')}${motivo ? ' · ' + motivo : ''}</span></label>`;
+  }).join('');
+  dialogo(`Incluir Organizadores no ciclo ${esc(ciclo.trimestre)}`, `
+    <p class="sub" style="margin-top:0">Quem for marcado recebe agora o convite por e-mail, com prazo até ${esc(ciclo.prazo)}. Organizadores sem e-mail precisam ser editados antes.</p>
+    <div style="max-height:46vh;overflow:auto">${lista}</div>`,
+    [{ t:'Incluir e enviar convites', fn: async d => {
+        const ids = [...d.querySelectorAll('.inc_org:checked')].map(i => i.value);
+        if (!ids.length) { toast('Marque pelo menos uma pessoa.'); return false; }
+        return ok(await rpc('gpp_admin_adicionar_convites', { p_ciclo: ciclo.id, p_organizadores: ids }, n => `${n} convite(s) na fila de envio.`)); } }], 560);
+}
+
+function editarHistorico(h) {
+  const novo = !h; h = h || { trimestre:'', respondentes:'', cla:'', adocracia:'', mercado:'', hierarquia:'', origem:'Histórico (planilhas)' };
+  const inp = (k, rot) => `<label class="campo" style="margin:0">${rot}<input data-h="${k}" type="number" min="0" max="100" step="0.1" value="${esc(h[k])}"></label>`;
+  dialogo(novo ? 'Adicionar trimestre histórico' : `Editar histórico ${esc(h.trimestre)}`, `
+    <div class="grade" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <label class="campo" style="margin:0">Trimestre<input data-h="trimestre" placeholder="2T/26" value="${esc(h.trimestre)}"></label>
+      <label class="campo" style="margin:0">Respondentes<input data-h="respondentes" type="number" min="0" step="1" value="${esc(h.respondentes ?? '')}"></label>
+      ${QUADS.map(q => inp(q.k, q.nome + ' (atual)')).join('')}</div>
+    <label class="campo">Origem<input data-h="origem" value="${esc(h.origem || '')}"></label>
+    <p class="sub" style="margin:0">Média de cada quadrante no trimestre (os quatro somam 100). O cenário desejado do trimestre é definido na aba "Cenário desejado".</p>`,
+    [{ t:'Salvar', fn: async d => {
+        const p = { original: novo ? '' : h.trimestre }; d.querySelectorAll('[data-h]').forEach(i => p[i.dataset.h] = i.value.trim());
+        p.trimestre = (p.trimestre || '').toUpperCase();
+        return ok(await rpc('gpp_admin_salvar_historico', { p }, 'Histórico salvo.')); } }], 560);
 }
 
 /* ---------------- ABA: ORGANIZADORES ---------------- */
@@ -499,71 +624,75 @@ function abaPessoas() {
       <button class="btn" id="novo">+ Novo Organizador</button></div>
     ${semEmail ? `<div class="aviso erro">${semEmail} Organizador(es) ativo(s) sem e-mail não recebem convite.</div>` : ''}
     <div class="card"><div class="tabela-wrap"><table>
-      <thead><tr><th>Nome</th><th>E-mail</th><th>Área</th><th>Gestor</th><th>Líder</th><th>Situação</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Área</th><th>Gestor</th><th>Líder</th><th>Situação</th><th class="num">Ciclos</th><th></th></tr></thead>
       <tbody>${D.organizadores.map(o => `<tr style="${o.ativo ? '' : 'opacity:.55'}">
         <td><b>${esc(o.nome)}</b></td><td>${o.email ? esc(o.email) : '<span class="tag critico">sem e-mail</span>'}</td>
         <td>${esc(o.area || '—')}</td><td>${esc(o.gestor || '—')}</td><td>${o.e_lider ? 'Sim' : 'Não'}</td>
         <td>${o.ativo ? '<span class="tag ok">Ativo</span>' : '<span class="tag neutro">Inativo</span>'}</td>
-        <td><button class="btn sec mini" data-ed="${o.id}">Editar</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        <td class="num">${o.convites}</td>
+        <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sec mini" data-ed="${o.id}">Editar</button>
+          <button class="btn perigo mini" data-del="${o.id}" ${o.convites ? 'disabled title="Já foi convidado em ciclos: inative em vez de excluir"' : ''}>Excluir</button></div></td></tr>`).join('')
+        || '<tr><td colspan="8" style="color:var(--tinta-3)">Nenhum Organizador cadastrado.</td></tr>'}</tbody></table></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Quem já foi convidado em algum ciclo não pode ser excluído (para preservar a participação registrada): desmarque "Ativo" para tirá-lo dos próximos convites.</p></div>`;
   $('#novo').onclick = () => editarPessoa(null);
   c.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editarPessoa(D.organizadores.find(o => o.id === b.dataset.ed)));
+  c.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const o = D.organizadores.find(x => x.id === b.dataset.del);
+    if (confirm(`Excluir ${o.nome} do cadastro de Organizadores?`)) await rpc('gpp_admin_excluir_organizador', { p_id: o.id }, 'Organizador excluído.');
+  });
 }
 
 function editarPessoa(o) {
   o = o || { id:'', nome:'', email:'', area:'', gestor_id:'', e_lider:false, ativo:true };
-  const dlg = document.createElement('dialog');
-  dlg.innerHTML = `<div class="cab">${o.id ? 'Editar Organizador' : 'Novo Organizador'}</div>
-    <div class="corpo">
+  dialogo(o.id ? 'Editar Organizador' : 'Novo Organizador', `
       <label class="campo">Nome<input id="f_nome" value="${esc(o.nome)}"></label>
       <label class="campo">E-mail<input id="f_email" type="email" value="${esc(o.email || '')}"></label>
       <label class="campo">Área<input id="f_area" value="${esc(o.area || '')}"></label>
       <label class="campo">Gestor<select id="f_gestor"><option value="">—</option>
         ${D.organizadores.filter(g => g.id !== o.id).map(g => `<option value="${g.id}" ${g.id === o.gestor_id ? 'selected' : ''}>${esc(g.nome)}</option>`).join('')}</select></label>
       <label class="check"><input type="checkbox" id="f_lider" ${o.e_lider ? 'checked' : ''}> É líder (avaliado nas competências de liderança)</label>
-      <label class="check"><input type="checkbox" id="f_ativo" ${o.ativo ? 'checked' : ''}> Ativo (recebe convites)</label>
-    </div>
-    <div class="pe"><button class="btn sec" id="f_cancel">Cancelar</button><button class="btn" id="f_ok">Salvar</button></div>`;
-  document.body.appendChild(dlg); dlg.showModal();
-  $('#f_cancel', dlg).onclick = () => dlg.remove();
-  $('#f_ok', dlg).onclick = async () => {
-    const p = { id:o.id, nome:$('#f_nome', dlg).value, email:$('#f_email', dlg).value, area:$('#f_area', dlg).value,
-      gestor_id:$('#f_gestor', dlg).value, e_lider:$('#f_lider', dlg).checked, ativo:$('#f_ativo', dlg).checked };
-    const r = await rpc('gpp_admin_salvar_organizador', { p }, 'Organizador salvo.');
-    if (!r.erro) dlg.remove();
-  };
+      <label class="check"><input type="checkbox" id="f_ativo" ${o.ativo ? 'checked' : ''}> Ativo (recebe convites)</label>`,
+    [{ t:'Salvar', fn: async d => ok(await rpc('gpp_admin_salvar_organizador', { p: {
+        id:o.id, nome:$('#f_nome', d).value, email:$('#f_email', d).value, area:$('#f_area', d).value,
+        gestor_id:$('#f_gestor', d).value, e_lider:$('#f_lider', d).checked, ativo:$('#f_ativo', d).checked } }, 'Organizador salvo.')) }]);
 }
 
 /* ---------------- ABA: CENÁRIO DESEJADO ---------------- */
 function abaCenario() {
   const c = $('#conteudo');
   const apurados = new Set(D.resultados.map(r => r.trimestre));
+  const emUso = new Set(D.ciclos.map(x => x.trimestre).concat(D.historico.map(h => h.trimestre)));
   c.innerHTML = `
     <h1>Cenário desejado</h1>
     <p class="sub">Pesos de cada quadrante definidos pela direção conforme a estratégia. Devem somar 100. Trimestres já apurados ficam congelados para preservar o histórico; se um trimestre não tiver pesos na abertura, o sistema repete os do anterior.</p>
     <div class="card"><div class="tabela-wrap"><table>
       <thead><tr><th>Trimestre</th>${QUADS.map(q => `<th class="num">${q.nome}</th>`).join('')}<th class="num">Soma</th><th>Observação</th><th></th></tr></thead>
-      <tbody>${D.cenarios.map(d => linhaCenario(d, apurados.has(d.trimestre))).join('')}
-        ${linhaCenario({ trimestre:'', cla:'', adocracia:'', mercado:'', hierarquia:'', observacao:'' }, false, true)}</tbody></table></div></div>`;
+      <tbody>${D.cenarios.map(d => linhaCenario(d, apurados.has(d.trimestre), false, !emUso.has(d.trimestre))).join('')}
+        ${linhaCenario({ trimestre:'', cla:'', adocracia:'', mercado:'', hierarquia:'', observacao:'' }, false, true, false)}</tbody></table></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Só dá para excluir o cenário de um trimestre que ainda não tem ciclo nem resultado histórico.</p></div>`;
   c.querySelectorAll('tr[data-tri]').forEach(tr => {
     const soma = () => { const s = QUADS.reduce((a, q) => a + Number($(`[data-k="${q.k}"]`, tr).value || 0), 0); const el = $('.soma-c', tr); el.textContent = s; el.style.color = s === 100 ? 'var(--ok)' : 'var(--critico)'; };
     tr.addEventListener('input', soma); soma();
-    const b = $('button', tr); if (!b) return;
-    b.onclick = async () => {
+    const b = $('[data-salvar-c]', tr);
+    if (b) b.onclick = async () => {
       const p = { trimestre: ($('[data-k="trimestre"]', tr)?.value || tr.dataset.tri).trim().toUpperCase(), observacao: $('[data-k="observacao"]', tr).value };
       QUADS.forEach(q => p[q.k] = $(`[data-k="${q.k}"]`, tr).value);
       if (QUADS.reduce((a, q) => a + Number(p[q.k] || 0), 0) !== 100) return toast('Os quatro pesos precisam somar 100.');
       await rpc('gpp_admin_salvar_cenario', { p }, `Cenário ${p.trimestre} salvo.`);
     };
+    const del = $('[data-del-c]', tr);
+    if (del) del.onclick = async () => { if (confirm(`Excluir o cenário desejado de ${tr.dataset.tri}?`)) await rpc('gpp_admin_excluir_cenario', { p_trimestre: tr.dataset.tri }, 'Cenário excluído.'); };
   });
 }
-function linhaCenario(d, congelado, novo) {
+function linhaCenario(d, congelado, novo, excluivel) {
   const inp = (k, w = 64) => `<input data-k="${k}" type="number" min="0" max="100" step="0.5" value="${esc(d[k])}" ${congelado ? 'disabled' : ''} style="width:${w}px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px;text-align:right">`;
   return `<tr data-tri="${esc(d.trimestre)}">
     <td>${novo ? `<input data-k="trimestre" placeholder="1T/27" style="width:80px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px">` : `<b>${esc(d.trimestre)}</b>`}</td>
     ${QUADS.map(q => `<td class="num">${inp(q.k)}</td>`).join('')}
     <td class="num"><b class="soma-c"></b></td>
     <td><input data-k="observacao" value="${esc(d.observacao || '')}" ${congelado ? 'disabled' : ''} style="width:100%;min-width:160px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px"></td>
-    <td>${congelado ? '<span class="tag neutro">Apurado</span>' : `<button class="btn ${novo ? '' : 'sec'} mini">${novo ? 'Adicionar' : 'Salvar'}</button>`}</td></tr>`;
+    <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap">${congelado ? '<span class="tag neutro">Apurado</span>' : `<button class="btn ${novo ? '' : 'sec'} mini" data-salvar-c>${novo ? 'Adicionar' : 'Salvar'}</button>`}
+      ${excluivel && !congelado ? '<button class="btn perigo mini" data-del-c>Excluir</button>' : ''}</div></td></tr>`;
 }
 
 /* ---------------- ABA: DESEMPENHO ---------------- */
@@ -576,6 +705,9 @@ function abaDesempenho() {
 function abaConfig() {
   const c = $('#conteudo');
   const nomes = { url_app:'Endereço da página do módulo', abertura_automatica:'Abertura automática (sim/não)', dias_resposta:'Dias para responder', lembrete_dias:'Lembrete após (dias)', minimo_respostas:'Mínimo de respostas', emails_resultado:'E-mails que recebem o resultado', remetente_nome:'Nome do remetente' };
+  const situacao = e => e.enviado ? `<span class="tag ok">Enviado ${esc(e.enviado)}</span>`
+    : e.erro ? `<span class="tag critico" title="${esc(e.erro)}">Erro (${e.tentativas}×)</span>`
+    : '<span class="tag neutro">Na fila</span>';
   c.innerHTML = `
     <h1>Configurações</h1><p class="sub">Parâmetros da rotina automática</p>
     <div class="grade g2">
@@ -592,8 +724,22 @@ function abaConfig() {
           <p style="margin:0">${D.emails_pendentes ? `${D.emails_pendentes} e-mail(s) na fila.` : 'Nenhum e-mail na fila.'} ${D.emails_com_erro ? `<span class="tag critico">${D.emails_com_erro} com erro</span>` : '<span class="tag ok">✓ Sem erros</span>'}</p>
           <p class="sub" style="margin:8px 0 0">A fila é enviada a cada 5 minutos pela conta organiza@daexe.com.br.</p></div>
       </div>
-    </div>`;
+    </div>
+    <div class="card"><h2>Fila e histórico de e-mails <span class="sub" style="font-weight:400">(últimos ${D.emails.length})</span></h2>
+      <div class="tabela-wrap"><table><thead><tr><th>Criado</th><th>Para</th><th>Assunto</th><th>Ciclo</th><th>Situação</th><th></th></tr></thead>
+        <tbody>${D.emails.map(e => `<tr><td style="white-space:nowrap">${esc(e.criado)}</td><td>${esc(e.para)}</td><td>${esc(e.assunto)}</td><td>${esc(e.trimestre || '—')}</td>
+          <td>${situacao(e)}${e.erro ? `<div style="font-size:12px;color:var(--critico);max-width:260px">${esc(e.erro)}</div>` : ''}</td>
+          <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap">
+            <button class="btn sec mini" data-mail="reenviar" data-id="${e.id}">${e.enviado ? 'Enviar de novo' : 'Tentar de novo'}</button>
+            <button class="btn perigo mini" data-mail="excluir" data-id="${e.id}">Excluir</button></div></td></tr>`).join('')
+          || '<tr><td colspan="6" style="color:var(--tinta-3)">Nenhum e-mail registrado.</td></tr>'}</tbody></table></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">"Excluir" apaga o registro; se o e-mail ainda estiver na fila, ele deixa de ser enviado.</p></div>`;
   c.querySelectorAll('[data-salvar]').forEach(b => b.onclick = () => rpc('gpp_admin_salvar_config', { p_chave: b.dataset.salvar, p_valor: $(`[data-cfg="${b.dataset.salvar}"]`).value }, 'Configuração salva.'));
+  c.querySelectorAll('[data-mail]').forEach(b => b.onclick = async () => {
+    const reenviar = b.dataset.mail === 'reenviar';
+    if (confirm(reenviar ? 'Colocar este e-mail de novo na fila de envio?' : 'Excluir este registro de e-mail?'))
+      await rpc('gpp_admin_email_acao', { p_id: Number(b.dataset.id), p_acao: b.dataset.mail }, reenviar ? 'E-mail de volta na fila (sai em até 5 minutos).' : 'Registro excluído.');
+  });
 }
 </script>
 </body>

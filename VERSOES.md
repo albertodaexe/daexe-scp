@@ -108,3 +108,14 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   - Pesquisa de Cultura (OCAI): ciclo trimestral automático (abre no último dia útil do trimestre às 8h, lembrete no 5º dia, encerra no 10º), formulário anônimo com trava de 100 pontos (`/gpp/?t=<token>`), painel com mapa dos quadrantes, radar atual x desejado e evolução do Índice de Aderência; cenário desejado por trimestre; histórico 1T e 2T/26.
   - Cadastro de Organizadores próprio do módulo (independente de Usuários & Acessos). Gestão do Desempenho: em construção (o "Desempenho" antigo do SisPlano continua como está).
 - Supabase: schema `gpp` (não exposto na API; acesso só pelas funções `gpp_*`), migrações `gpp_01` a `gpp_07`; agendamentos pg_cron `gpp-rotina-diaria` e `gpp-envio-emails`; Edge Function `gpp-email` (envio pelo organiza@ via SMTP — segredos SMTP_USER/SMTP_PASS).
+
+## v44 — 27/10/2026
+- Cultura & Desempenho (`/gpp/`): revisão geral de CRUD.
+  - Ciclos: editar (trimestre, prazo, reabrir ciclo encerrado), excluir (com convites, respostas, e-mails e cenário copiado automaticamente; confirmação digitando o trimestre), ver convidados de qualquer ciclo.
+  - Convites: incluir Organizadores que ficaram de fora de um ciclo aberto (convite enviado na hora), reenviar convite e remover quem ainda não respondeu.
+  - Organizadores: excluir (só quem nunca foi convidado; os demais são inativados), validação de e-mail repetido e de gestor circular.
+  - Cenário desejado: excluir trimestres sem ciclo/histórico; trimestres do histórico também ficam congelados.
+  - Resultados históricos (planilhas): adicionar, editar e excluir.
+  - Configurações: validação dos parâmetros e fila/histórico de e-mails (tentar de novo, reenviar, excluir).
+  - E-mail do convite: corrigido "a a" e "perguntas" → "afirmativas".
+- Supabase: email_fila.ciclo_id (+ trigger), funções gpp_admin_* novas/atualizadas (supabase/gpp_08b_exclusoes.sql precisa ser executado no SQL Editor).
