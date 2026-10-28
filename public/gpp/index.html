@@ -119,6 +119,41 @@
   .rodape-fixo .in { max-width:760px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:12px; }
   @media (max-width:520px) { .opcao { flex-direction:column; align-items:stretch; gap:6px; } .opcao input { width:100%; } }
 
+  /* desempenho */
+  .subabas { display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--borda); margin-bottom:16px; }
+  .subabas button { background:transparent; border:0; border-bottom:2px solid transparent; padding:9px 12px; cursor:pointer; color:var(--tinta-2); font-weight:500; margin-bottom:-1px; }
+  .subabas button.ativa { color:var(--marca); border-bottom-color:var(--marca); font-weight:600; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--borda-forte); background:#fff; border-radius:999px; padding:5px 12px; cursor:pointer; font-size:13px; color:var(--tinta-2); }
+  .chip.ativa { background:var(--marca); border-color:var(--marca); color:#fff; }
+  @media (min-width:860px) { .g4 { grid-template-columns:repeat(4,1fr); } }
+  @media (min-width:600px) and (max-width:859px) { .g4 { grid-template-columns:1fr 1fr; } }
+  .g4 .kpi .val { font-size:30px; }
+  .tag.info { background:var(--marca-claro); color:var(--s-atual); }
+  .mat { display:flex; align-items:center; gap:8px; min-width:170px; }
+  .mat .barra { position:relative; flex:1; overflow:visible; }
+  .mat .barra i { position:absolute; left:66.7%; top:-3px; bottom:-3px; border-left:1px dashed var(--tinta-3); }
+  .mat b { font-variant-numeric:tabular-nums; min-width:52px; text-align:right; font-weight:600; }
+  .bar-p { height:7px; background:#EEF0F3; border-radius:999px; margin:3px 0; }
+  .bar-p > div { height:100%; border-radius:999px; }
+  .rot-p { font-size:12px; color:var(--tinta-3); } .val-p { font-size:24px; font-weight:700; }
+  .cols { columns:2 260px; column-gap:24px; }
+  .cols .check { break-inside:avoid; }
+  select.filtro { padding:8px 10px; border:1px solid var(--borda-forte); border-radius:8px; background:#fff; }
+  label.campo textarea { display:block; width:100%; margin-top:4px; padding:9px 10px; border:1px solid var(--borda-forte); border-radius:8px; font:inherit; resize:vertical; }
+  .escala { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; color:var(--tinta-2); }
+  .escala b { display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--marca-claro); color:var(--marca); align-items:center; justify-content:center; margin-right:4px; }
+  .item { display:flex; gap:12px; align-items:center; padding:10px 0; border-top:1px solid #F0F2F5; }
+  .item:first-of-type { border-top:0; }
+  .item .txt { flex:1; font-size:14px; }
+  .notas, .nps { display:flex; gap:6px; flex-wrap:wrap; }
+  .nota { width:42px; height:40px; border:1px solid var(--borda-forte); background:#fff; border-radius:8px; cursor:pointer; font-weight:600; color:var(--tinta-2); }
+  .nota:hover { background:var(--marca-claro); }
+  .nota[aria-pressed="true"] { background:var(--marca); border-color:var(--marca); color:#fff; }
+  .nps .nota { width:40px; }
+  .nps-leg { display:flex; justify-content:space-between; font-size:12px; color:var(--tinta-3); margin-top:6px; max-width:480px; }
+  @media (max-width:520px) { .item { flex-direction:column; align-items:stretch; } .nota { flex:1; } .nps .nota { width:auto; min-width:36px; } }
+
   dialog { border:0; border-radius:12px; padding:0; width:min(520px, 94vw); box-shadow:0 20px 50px rgba(0,0,0,.25); }
   dialog::backdrop { background:rgba(17,24,39,.45); }
   dialog .cab { padding:16px 18px; border-bottom:1px solid var(--borda); font-weight:700; }
@@ -171,6 +206,7 @@ function statusGap(g) {
 /* ================== ROTEADOR ================== */
 const params = new URLSearchParams(location.search);
 if (params.get('t')) telaFormulario(params.get('t'));
+else if (params.get('d')) telaDesempenho(params.get('d'));
 else iniciarPainel();
 
 /* =========================================================
@@ -243,6 +279,141 @@ async function telaFormulario(token) {
       b.textContent = 'Enviar respostas'; atualizar();
     }
   });
+}
+
+/* =========================================================
+   FORMULÁRIO DE DESEMPENHO (link pessoal ?d=)
+   ========================================================= */
+const ESCALA = [[1, 'Ainda não pratica'], [2, 'Faz sem consistência'], [3, 'Pratica consistentemente'], [4, 'Acima do esperado']];
+const escalaHtml = () => `<div class="escala">${ESCALA.map(([n, t]) => `<span><b>${n}</b> ${t}</span>`).join('')}</div>`;
+
+async function telaDesempenho(token) {
+  document.title = 'Avaliação de Desempenho DAEXE';
+  app.innerHTML = `<div class="topo"><div class="in"><span class="marca">Avaliação de Desempenho DAEXE</span></div></div>
+    <div class="form-pesq" id="fd"><div class="card">Carregando…</div></div>`;
+  const box = $('#fd');
+  const { data: L, error } = await sb.rpc('gpp_des_link', { p_token: token });
+  if (error) { box.innerHTML = `<div class="card"><h2>Não foi possível abrir a avaliação</h2><p>Tente novamente em instantes.</p></div>`; return; }
+  const msgs = {
+    invalido: ['Link inválido', 'Use o link pessoal que chegou no seu e-mail.'],
+    encerrado: ['Avaliação encerrada', 'O prazo deste trimestre terminou. Se ainda precisa responder, fale com a GPP.'],
+  };
+  if (L.estado !== 'ok') {
+    const [t, p] = msgs[L.estado] || msgs.invalido;
+    box.innerHTML = `<div class="card" style="text-align:center;padding:48px 18px"><h2>${esc(t)}</h2><p>${esc(p)}</p></div>`;
+    return;
+  }
+  $('.marca').innerHTML = `Avaliação de Desempenho DAEXE <small>${esc(L.trimestre)}</small>`;
+
+  function lista() {
+    const rod = $('#rodape'); if (rod) rod.remove();
+    const pend = L.tarefas.filter(t => !t.respondida).length;
+    box.innerHTML = `
+      <div class="card">
+        <h2 style="margin-bottom:6px">Olá, ${esc(L.nome.split(' ')[0])}!</h2>
+        <p style="margin:0 0 10px">${pend ? `Você tem <b>${pend}</b> avaliação(ões) para responder até <b>${esc(L.prazo)}</b>.` : '<b>Tudo respondido.</b> Obrigado pela participação!'}</p>
+        ${escalaHtml()}
+        <p class="sub" style="margin:10px 0 0">A nota 3 é o esperado. Use 4 só quando a prática vai claramente além do esperado.</p>
+      </div>
+      ${L.tarefas.map(t => `
+        <div class="card"><div class="acoes" style="justify-content:space-between">
+          <div><div style="font-weight:700">${t.tipo === 'auto' ? 'Minha autoavaliação' : 'Avaliar ' + esc(t.avaliado)}</div>
+            <div class="sub" style="margin:2px 0 0">${t.tipo === 'auto'
+              ? 'Como você percebe a sua prática no trimestre' + (t.pede_nps ? ' · inclui a Percepção da Liderança (anônima)' : '')
+              : [t.area, t.e_lider ? 'líder' : ''].filter(Boolean).map(esc).join(' · ') || 'Liderado(a)'}</div></div>
+          ${t.respondida ? '<span class="tag ok">✓ Enviada</span>' : `<button class="btn" data-t="${t.id}">Responder</button>`}
+        </div></div>`).join('')}`;
+    box.querySelectorAll('[data-t]').forEach(b => b.onclick = () => formulario(L.tarefas.find(t => t.id === b.dataset.t)));
+    scrollTo(0, 0);
+  }
+
+  function formulario(t) {
+    const auto = t.tipo === 'auto';
+    const itens = L.itens.filter(i => !i.so_lideres || t.e_lider);
+    const grupos = [];
+    itens.forEach(i => {
+      let g = grupos.find(x => x.id === i.competencia_id);
+      if (!g) grupos.push(g = { id: i.competencia_id, nome: i.competencia, desc: i.descricao, itens: [] });
+      g.itens.push(i);
+    });
+    const notas = {}; let nps = null;
+    const primeiro = (t.avaliado || '').split(' ')[0];
+    box.innerHTML = `
+      <button class="btn sec mini" id="voltar">← Voltar</button>
+      <div class="card" style="margin-top:12px">
+        <h2 style="margin-bottom:4px">${auto ? 'Minha autoavaliação' : 'Avaliação de ' + esc(t.avaliado)}</h2>
+        <p style="margin:0 0 10px">${auto ? 'Marque o quanto cada afirmativa descreve a <b>sua</b> prática neste trimestre.'
+          : `Marque o quanto cada afirmativa descreve a prática de <b>${esc(t.avaliado)}</b> neste trimestre.`}</p>
+        ${escalaHtml()}
+      </div>
+      ${grupos.map(g => `
+        <div class="card">
+          <h2 style="margin-bottom:2px">${esc(g.nome)}</h2>
+          <div class="sub" style="margin-bottom:4px">${esc(g.desc || '')}</div>
+          ${g.itens.map(i => `
+            <div class="item"><div class="txt">${esc(i.texto)}</div>
+              <div class="notas" role="group" aria-label="${esc(i.texto)}">
+                ${[1, 2, 3, 4].map(n => `<button type="button" class="nota" data-i="${i.id}" data-n="${n}" aria-pressed="false" title="${n} · ${ESCALA[n - 1][1]}">${n}</button>`).join('')}
+              </div></div>`).join('')}
+        </div>`).join('')}
+      ${auto && t.pede_nps ? `
+        <div class="card">
+          <h2 style="margin-bottom:2px">Percepção da Liderança</h2>
+          <p class="sub" style="margin-bottom:10px"><span class="tag ok">Anônima</span> Esta nota é gravada sem nome e sem ligação com a sua autoavaliação. O resultado por gestor só aparece quando há respostas suficientes.</p>
+          <p style="margin:0 0 10px">De 0 a 10, quanto você recomendaria a liderança de <b>${esc(t.gestor)}</b> a um colega?</p>
+          <div class="nps">${[...Array(11).keys()].map(n => `<button type="button" class="nota" data-nps="${n}" aria-pressed="false">${n}</button>`).join('')}</div>
+          <div class="nps-leg"><span>0 · nada provável</span><span>10 · muito provável</span></div>
+        </div>` : ''}
+      ${!auto ? `
+        <div class="card">
+          <h2 style="margin-bottom:2px">Prioridades de desenvolvimento</h2>
+          <p class="sub" style="margin-bottom:10px">Marque até 2 competências para ${esc(primeiro)} desenvolver no próximo trimestre. Elas entram no PDI.</p>
+          ${grupos.map(g => `<label class="check"><input type="checkbox" class="prio" value="${g.id}"> ${esc(g.nome)}</label>`).join('')}
+          <label class="campo" style="margin:12px 0 0">Comentário / feedback (opcional)<textarea id="coment" rows="3" maxlength="2000"></textarea></label>
+        </div>` : ''}`;
+    app.insertAdjacentHTML('beforeend', `<div class="rodape-fixo" id="rodape"><div class="in">
+        <span id="progresso" style="color:var(--tinta-3);font-size:14px"></span>
+        <button class="btn" id="enviar" disabled>Enviar avaliação</button></div>
+        <div id="erroEnvio" style="max-width:760px;margin:6px auto 0;color:var(--critico);font-size:14px"></div></div>`);
+    scrollTo(0, 0);
+
+    const precisaNps = auto && t.pede_nps;
+    function atualizar() {
+      const feitas = itens.filter(i => notas[i.id]).length;
+      const faltaNps = precisaNps && nps === null;
+      $('#progresso').textContent = `${feitas} de ${itens.length} afirmativas${precisaNps ? (faltaNps ? ' · falta a Percepção da Liderança' : ' · liderança ✓') : ''}`;
+      $('#enviar').disabled = feitas < itens.length || faltaNps;
+    }
+    box.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+      notas[b.dataset.i] = Number(b.dataset.n);
+      box.querySelectorAll(`[data-i="${b.dataset.i}"]`).forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+      atualizar();
+    });
+    box.querySelectorAll('[data-nps]').forEach(b => b.onclick = () => {
+      nps = Number(b.dataset.nps);
+      box.querySelectorAll('[data-nps]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+      atualizar();
+    });
+    box.querySelectorAll('.prio').forEach(cb => cb.onchange = () => {
+      const marcadas = box.querySelectorAll('.prio:checked').length;
+      box.querySelectorAll('.prio').forEach(x => { if (!x.checked) x.disabled = marcadas >= 2; });
+    });
+    $('#voltar').onclick = () => {
+      if (Object.keys(notas).length && !confirm('Sair sem enviar? As notas marcadas nesta tela serão perdidas.')) return;
+      lista();
+    };
+    $('#enviar').onclick = async () => {
+      const b = $('#enviar'); b.disabled = true; b.textContent = 'Enviando…'; $('#erroEnvio').textContent = '';
+      const args = { p_token: token, p_avaliacao: t.id, p_notas: notas, p_nps: precisaNps ? nps : null,
+        p_prioridades: auto ? null : [...box.querySelectorAll('.prio:checked')].map(x => Number(x.value)),
+        p_comentario: auto ? null : ($('#coment').value || null) };
+      const { data: r, error: e } = await sb.rpc('gpp_des_responder', args);
+      if (!e && r && r.ok) { t.respondida = true; t.pede_nps = false; toast('Avaliação enviada. Obrigado!'); lista(); }
+      else { $('#erroEnvio').textContent = e ? 'Falha de conexão. Tente de novo.' : (r && r.msg) || 'Não foi possível registrar.'; b.textContent = 'Enviar avaliação'; atualizar(); }
+    };
+    atualizar();
+  }
+  lista();
 }
 
 /* =========================================================
@@ -696,20 +867,679 @@ function linhaCenario(d, congelado, novo, excluivel) {
 }
 
 /* ---------------- ABA: DESEMPENHO ---------------- */
+let DD = null;               // dados do painel de desempenho
+let subDes = 'geral';        // geral | pessoas | pessoa | ciclos | matriz | pdi
+let triDes = null;           // trimestre selecionado nos resultados
+let pessoaSel = null;        // organizador aberto no detalhe
+let triMatriz = null;        // trimestre aberto na matriz
+let filtroPdi = { tri: '', pessoa: '', status: 'abertos' };
+
+const ordTri = t => (2000 + Number(String(t).slice(3))) * 10 + Number(String(t)[0]);
+const porTri = (a, b) => ordTri(a) - ordTri(b);
+const n2 = v => (v === null || v === undefined || v === '') ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pc = v => (v === null || v === undefined) ? '—' : n1(v) + '%';
+const sinal2 = v => v === null || v === undefined ? '—' : (Number(v) > 0 ? '+' : '') + n2(v);
+const org = id => D.organizadores.find(o => o.id === id) || { nome: '—' };
+const comp = id => DD.competencias.find(c => c.id === id) || { nome: '—', ordem: 999 };
+const STATUS_PDI = { 'a definir': 'A definir', planejada: 'Planejada', 'em andamento': 'Em andamento', concluida: 'Concluída', cancelada: 'Cancelada' };
+const TIPOS_COMP = { comportamental: 'Comportamental', estrategica: 'Estratégica', tecnica: 'Técnica' };
+
+function trisDes() { return [...new Set([...DD.itens.map(i => i.trimestre), ...DD.avaliacoes.map(a => a.trimestre)])].sort(porTri); }
+function trisResultado() { return DD.org.map(o => o.trimestre).sort(porTri); }
+function triAnterior(t) { const l = trisResultado(); const i = l.indexOf(t); return i > 0 ? l[i - 1] : null; }
+
+function gapTag(g) {
+  if (g === null || g === undefined) return '<span class="tag neutro">—</span>';
+  const v = Number(g);
+  if (v > 0.5) return `<span class="tag atencao" title="Autoavaliação acima da avaliação do gestor">▲ ${sinal2(v)}</span>`;
+  if (v < -0.5) return `<span class="tag info" title="Autoavaliação abaixo da avaliação do gestor">▼ ${sinal2(v)}</span>`;
+  return `<span class="tag ok" title="Autoavaliação alinhada à do gestor">${sinal2(v)}</span>`;
+}
+function matBar(m) {
+  if (m === null || m === undefined) return '—';
+  const w = Math.max(0, Math.min(100, Number(m) / 150 * 100));
+  const cor = Number(m) >= 100 ? 'var(--ok)' : Number(m) >= 75 ? 'var(--s-atual)' : 'var(--atencao)';
+  return `<div class="mat"><div class="barra"><div style="width:${w}%;background:${cor}"></div><i></i></div><b>${pc(m)}</b></div>`;
+}
+
+async function carregarDes() {
+  const { data, error } = await sb.rpc('gpp_admin_des_painel');
+  if (error) { $('#conteudo').innerHTML = `<div class="aviso erro">Erro ao carregar o Desempenho: ${esc(msgErro(error))}</div>`; return false; }
+  DD = data;
+  const tr = trisResultado();
+  if (!triDes || !tr.includes(triDes)) triDes = tr.length ? tr[tr.length - 1] : null;
+  return true;
+}
+
+async function rpcDes(nome, args, okMsg) {
+  const { data, error } = await sb.rpc(nome, args);
+  if (error) {
+    if (error.code === 'PGRST202') toast('Esta exclusão ainda não foi habilitada: rode o arquivo supabase/gpp_09d_exclusoes.sql no SQL Editor do Supabase.');
+    else toast(msgErro(error));
+    return { erro: true };
+  }
+  if (okMsg) toast(typeof okMsg === 'function' ? okMsg(data) : okMsg);
+  await carregarDes(); desenharDes();
+  return { data };
+}
+
 function abaDesempenho() {
-  $('#conteudo').innerHTML = `<h1>Gestão do Desempenho</h1>
-    <div class="card"><p style="margin:0">Módulo em construção. Vai usar o mesmo cadastro de Organizadores (gestor e liderança já ficam registrados lá) e trazer os quatro recortes: performance geral DAEXE, por competência, gap autoavaliação x gestor e por Organizador.</p></div>`;
+  if (!DD) { $('#conteudo').innerHTML = '<div class="card">Carregando…</div>'; carregarDes().then(okk => okk && aba === 'desempenho' && desenharDes()); return; }
+  desenharDes();
+}
+
+function desenharDes() {
+  const c = $('#conteudo'); if (!c || aba !== 'desempenho') return;
+  const subs = [['geral', 'Visão geral'], ['pessoas', 'Por Organizador'], ['ciclos', 'Ciclos'], ['matriz', 'Matriz de competências'], ['pdi', 'PDI']];
+  const aberto = DD.ciclos.find(x => x.status === 'aberto');
+  c.innerHTML = `
+    <div class="acoes" style="justify-content:space-between;margin-bottom:12px">
+      <div><h1>Gestão do Desempenho</h1><p class="sub" style="margin:0">Autoavaliação, avaliação do gestor e Percepção da Liderança, por trimestre</p></div>
+      ${aberto ? `<span class="tag ok">Ciclo ${esc(aberto.trimestre)} aberto até ${esc(aberto.prazo)}</span>` : ''}
+    </div>
+    <nav class="subabas">${subs.map(([k, t]) => `<button data-sub="${k}" class="${(subDes === k || (k === 'pessoas' && subDes === 'pessoa')) ? 'ativa' : ''}">${t}</button>`).join('')}</nav>
+    <div id="des"></div>`;
+  c.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => { subDes = b.dataset.sub; desenharDes(); });
+  ({ geral: desGeral, pessoas: desPessoas, pessoa: desPessoa, ciclos: desCiclos, matriz: desMatriz, pdi: desPdi })[subDes]();
+}
+
+function seletorTri(lista, atual, attr) {
+  return `<div class="chips">${lista.map(t => `<button class="chip ${t === atual ? 'ativa' : ''}" data-${attr}="${esc(t)}">${esc(t)}</button>`).join('')}</div>`;
+}
+function ligarSeletor(el, attr, fn) { el.querySelectorAll(`[data-${attr}]`).forEach(b => b.onclick = () => fn(b.getAttribute('data-' + attr))); }
+
+/* ----- dados derivados de um trimestre ----- */
+function resumoTri(t) {
+  const pes = DD.pessoas.filter(p => p.trimestre === t);
+  const comGestor = pes.filter(p => p.indice_gestor !== null);
+  const media = comGestor.length ? comGestor.reduce((a, p) => a + Number(p.indice_gestor), 0) / comGestor.length : null;
+  const o = DD.org.find(x => x.trimestre === t);
+  const nps = DD.nps.find(x => x.trimestre === t && x.geral);
+  const oc = DD.org_comp.filter(x => x.trimestre === t).sort((a, b) => comp(a.competencia_id).ordem - comp(b.competencia_id).ordem);
+  const gaps = pes.filter(p => p.gap !== null);
+  return { pes, comGestor, media, mat: o ? o.maturidade : null, nps, oc, gaps,
+    acima: gaps.filter(p => p.gap > 0.5).length, abaixo: gaps.filter(p => p.gap < -0.5).length, alinhados: gaps.filter(p => Math.abs(p.gap) <= 0.5).length,
+    autos: pes.filter(p => p.nota_auto !== null).length };
+}
+
+/* ----- Visão geral ----- */
+function desGeral() {
+  const el = $('#des');
+  const tris = trisResultado();
+  if (!tris.length) { el.innerHTML = `<div class="card">Ainda não há resultados. Abra um ciclo na aba <b>Ciclos</b>.</div>`; return; }
+  const t = triDes, R = resumoTri(t), ant = triAnterior(t), RA = ant ? resumoTri(ant) : null;
+  const dMat = RA && R.mat !== null && RA.mat !== null ? R.mat - RA.mat : null;
+  const dMed = RA && R.media !== null && RA.media !== null ? R.media - RA.media : null;
+  const npsG = DD.nps.filter(x => x.trimestre === t && !x.geral).sort((a, b) => (a.gestor || '').localeCompare(b.gestor || ''));
+  const delta = d => d === null ? '' : `<span style="color:${d >= 0 ? 'var(--ok)' : 'var(--critico)'}">${d >= 0 ? '▲' : '▼'} ${n1(Math.abs(d))} p.p.</span> vs ${esc(ant)}`;
+  el.innerHTML = `
+    <div class="acoes" style="justify-content:space-between;margin-bottom:12px">${seletorTri(tris, t, 'tri')}
+      <button class="btn sec" id="relGeral">Relatório do trimestre (PDF)</button></div>
+    <div class="grade g4">
+      <div class="card kpi"><div class="rot">Maturidade Organizacional</div><div class="val">${pc(R.mat)}</div><div class="det">${delta(dMat) || 'média das competências, visão do gestor'}</div></div>
+      <div class="card kpi"><div class="rot">Índice de Desempenho médio</div><div class="val">${pc(R.media)}</div><div class="det">${delta(dMed) || 'nota do gestor ÷ 3'}</div></div>
+      <div class="card kpi"><div class="rot">NPS de Liderança</div><div class="val">${R.nps ? n1(R.nps.nps) : '—'}</div><div class="det">${R.nps ? `${R.nps.n} resposta(s) · ${R.nps.promotores} promotores, ${R.nps.detratores} detratores` : 'não medido neste trimestre'}</div></div>
+      <div class="card kpi"><div class="rot">Avaliados pelo gestor</div><div class="val">${R.comGestor.length}</div><div class="det">${R.autos} autoavaliação(ões)</div></div>
+    </div>
+    <div class="card"><h2>Evolução da Maturidade Organizacional</h2><div class="grafico" id="gMat"></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:6px 0 0">Linha tracejada: 100% = todos praticam consistentemente (nota 3). Régua: 1 = 0%, 2 = 50%, 3 = 100%, 4 = 150%.</p></div>
+    <div class="card"><h2>Maturidade por competência · ${esc(t)}</h2>
+      <div class="tabela-wrap"><table><thead><tr><th>Competência</th><th>Aplicação</th><th class="num">N</th><th class="num">Média gestor</th><th>Maturidade</th><th class="num">Nota ≥ 3</th><th class="num">Nota 4</th>${ant ? `<th class="num">vs ${esc(ant)}</th>` : ''}</tr></thead>
+      <tbody>${R.oc.map(x => { const a = ant ? DD.org_comp.find(y => y.trimestre === ant && y.competencia_id === x.competencia_id) : null; const d = a ? x.maturidade - a.maturidade : null;
+        return `<tr><td><b>${esc(comp(x.competencia_id).nome)}</b></td><td>${comp(x.competencia_id).so_lideres ? 'Líderes' : 'Todos'}</td><td class="num">${x.n}</td><td class="num">${n2(x.media)}</td>
+          <td>${matBar(x.maturidade)}</td><td class="num">${pc(x.pct_3)}</td><td class="num">${pc(x.pct_4)}</td>${ant ? `<td class="num" style="color:${d === null ? 'inherit' : d >= 0 ? 'var(--ok)' : 'var(--critico)'}">${d === null ? '—' : (d >= 0 ? '+' : '') + n1(d)}</td>` : ''}</tr>`; }).join('')}</tbody></table></div></div>
+    <div class="grade g2">
+      <div class="card"><h2>Autoavaliação × gestor</h2>
+        <div class="grade g3" style="margin-bottom:10px;gap:10px">
+          <div><div class="rot-p">Acima do gestor</div><div class="val-p" style="color:var(--atencao)">${R.acima}</div></div>
+          <div><div class="rot-p">Alinhados (±0,5)</div><div class="val-p" style="color:var(--ok)">${R.alinhados}</div></div>
+          <div><div class="rot-p">Abaixo do gestor</div><div class="val-p" style="color:var(--s-atual)">${R.abaixo}</div></div></div>
+        <div class="tabela-wrap"><table><thead><tr><th>Maiores gaps</th><th class="num">Auto</th><th class="num">Gestor</th><th>Gap</th></tr></thead>
+          <tbody>${[...R.gaps].sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap)).slice(0, 5).map(p => `<tr><td><a href="#" data-pessoa="${p.avaliado_id}">${esc(org(p.avaliado_id).nome)}</a></td><td class="num">${n2(p.nota_auto)}</td><td class="num">${n2(p.nota_gestor)}</td><td>${gapTag(p.gap)}</td></tr>`).join('') || '<tr><td colspan="4" style="color:var(--tinta-3)">Sem pares auto × gestor.</td></tr>'}</tbody></table></div></div>
+      <div class="card"><h2>NPS de Liderança por gestor</h2>
+        ${npsG.length ? `<div class="tabela-wrap"><table><thead><tr><th>Gestor</th><th class="num">Respostas</th><th class="num">NPS</th><th class="num">Prom.</th><th class="num">Neutros</th><th class="num">Detr.</th></tr></thead>
+          <tbody>${npsG.map(x => `<tr><td>${esc(x.gestor || '—')}</td><td class="num">${x.n}</td>${x.visivel ? `<td class="num"><b>${n1(x.nps)}</b></td><td class="num">${x.promotores}</td><td class="num">${x.neutros}</td><td class="num">${x.detratores}</td>`
+            : `<td colspan="4" style="color:var(--tinta-3)">oculto: menos de ${DD.min_nps} respostas (anonimato)</td>`}</tr>`).join('')}</tbody></table></div>`
+          : '<p class="sub" style="margin:0">Não medido neste trimestre.</p>'}
+        <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Promotores 9–10, neutros 7–8, detratores 0–6. NPS = % promotores − % detratores. Indicador independente: não entra no Índice de Desempenho.</p></div>
+    </div>`;
+  ligarSeletor(el, 'tri', t2 => { triDes = t2; desGeral(); });
+  el.querySelectorAll('[data-pessoa]').forEach(a => a.onclick = e => { e.preventDefault(); pessoaSel = a.dataset.pessoa; subDes = 'pessoa'; desenharDes(); });
+  $('#relGeral').onclick = () => relatorioGeral(t);
+  graficoLinha($('#gMat'), DD.org.map(o => ({ x: o.trimestre, v: Number(o.maturidade) })).sort((a, b) => porTri(a.x, b.x)), 'Maturidade');
+}
+
+function graficoLinha(el, pts, nome) {
+  if (!pts.length) { el.innerHTML = '<p class="sub">Sem dados.</p>'; return; }
+  const W = 900, H = 240, m = { l: 44, r: 24, t: 24, b: 34 };
+  const vs = pts.map(p => p.v);
+  const min = Math.max(0, Math.floor(Math.min(...vs, 60) / 10) * 10), max = Math.ceil(Math.max(...vs, 110) / 10) * 10;
+  const x = i => pts.length === 1 ? (m.l + W - m.r) / 2 : m.l + 40 + i * (W - m.l - m.r - 80) / (pts.length - 1);
+  const y = v => m.t + (max - v) * (H - m.t - m.b) / (max - min);
+  let grid = '';
+  for (let v = min; v <= max; v += 10) grid += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="#EEF0F3"/><text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#6B7280">${v}</text>`;
+  const ref = `<line x1="${m.l}" x2="${W - m.r}" y1="${y(100)}" y2="${y(100)}" stroke="#9CA3AF" stroke-dasharray="5 4"/>`;
+  const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${y(p.v)}`).join(' ');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(nome)} por trimestre">${grid}${ref}
+    <path d="${path}" fill="none" stroke="var(--s-atual)" stroke-width="2"/>
+    ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.v)}" r="5" fill="var(--s-atual)" stroke="#fff" stroke-width="2"/>
+      <text x="${x(i)}" y="${y(p.v) - 12}" text-anchor="middle" font-size="12" font-weight="600" fill="#1A2230">${n1(p.v)}%</text>
+      <text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="12" fill="#4B5563">${esc(p.x)}</text>
+      <rect x="${x(i) - 30}" y="${m.t}" width="60" height="${H - m.t - m.b}" fill="transparent" data-tip="<b>${esc(p.x)}</b> · ${esc(nome)} ${n1(p.v)}%"/>`).join('')}
+  </svg>`;
+  dicas(el);
+}
+
+/* ----- Por Organizador ----- */
+function desPessoas() {
+  const el = $('#des');
+  const tris = trisResultado();
+  if (!tris.length) { el.innerHTML = `<div class="card">Ainda não há resultados.</div>`; return; }
+  const t = triDes, ant = triAnterior(t);
+  const pes = DD.pessoas.filter(p => p.trimestre === t).sort((a, b) => (b.indice_gestor ?? -1) - (a.indice_gestor ?? -1));
+  const area = id => (DD.avaliacoes.find(a => a.trimestre === t && a.avaliado_id === id && a.area) || {}).area || org(id).area || '—';
+  el.innerHTML = `
+    <div class="acoes" style="justify-content:space-between;margin-bottom:12px">${seletorTri(tris, t, 'tri')}
+      <button class="btn sec" id="lancar">+ Lançar avaliação manual</button></div>
+    <div class="card"><div class="tabela-wrap"><table>
+      <thead><tr><th>Organizador</th><th>Área</th><th>Líder</th><th class="num">Nota auto</th><th class="num">Nota gestor</th><th class="num">Índice auto</th><th class="num">Índice gestor</th><th>Gap</th>${ant ? `<th class="num">Índice vs ${esc(ant)}</th>` : ''}<th></th></tr></thead>
+      <tbody>${pes.map(p => { const a = ant ? DD.pessoas.find(x => x.trimestre === ant && x.avaliado_id === p.avaliado_id) : null;
+          const d = a && a.indice_gestor !== null && p.indice_gestor !== null ? p.indice_gestor - a.indice_gestor : null;
+          return `<tr><td><b>${esc(org(p.avaliado_id).nome)}</b></td><td>${esc(area(p.avaliado_id))}</td><td>${p.e_lider ? 'Sim' : 'Não'}</td>
+            <td class="num">${n2(p.nota_auto)}</td><td class="num">${n2(p.nota_gestor)}</td><td class="num">${pc(p.indice_auto)}</td><td class="num"><b>${pc(p.indice_gestor)}</b></td>
+            <td>${gapTag(p.gap)}</td>${ant ? `<td class="num" style="color:${d === null ? 'inherit' : d >= 0 ? 'var(--ok)' : 'var(--critico)'}">${d === null ? '—' : (d >= 0 ? '+' : '') + n1(d)}</td>` : ''}
+            <td><button class="btn sec mini" data-ver="${p.avaliado_id}">Ver</button></td></tr>`; }).join('')
+        || `<tr><td colspan="10" style="color:var(--tinta-3)">Nenhuma avaliação respondida em ${esc(t)}.</td></tr>`}</tbody></table></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Índice de Desempenho = nota geral ÷ 3 (3 = 100%, o esperado). O índice oficial é o do gestor; a autoavaliação dá a autopercepção. Gap = auto − gestor: ▲ acima de +0,5, ▼ abaixo de −0,5.</p></div>`;
+  ligarSeletor(el, 'tri', t2 => { triDes = t2; desPessoas(); });
+  el.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { pessoaSel = b.dataset.ver; subDes = 'pessoa'; desenharDes(); });
+  $('#lancar').onclick = () => editarAvaliacao(null, null, t);
+}
+
+function dadosPessoa(id, t) {
+  const p = DD.pessoas.find(x => x.trimestre === t && x.avaliado_id === id) || null;
+  const av = tipo => DD.avaliacoes.find(a => a.trimestre === t && a.avaliado_id === id && a.tipo === tipo) || null;
+  const auto = av('auto'), gest = av('gestor');
+  const cm = tipo => DD.comp.filter(c => c.trimestre === t && c.avaliado_id === id && c.tipo === tipo);
+  const ids = [...new Set([...cm('auto'), ...cm('gestor')].map(c => c.competencia_id))].sort((a, b) => comp(a).ordem - comp(b).ordem);
+  const linhas = ids.map(cid => { const a = cm('auto').find(c => c.competencia_id === cid), g = cm('gestor').find(c => c.competencia_id === cid);
+    return { cid, nome: comp(cid).nome, auto: a ? Number(a.media) : null, gestor: g ? Number(g.media) : null,
+             gap: a && g ? Number(a.media) - Number(g.media) : null, mat: g ? (Number(g.media) - 1) / 2 * 100 : null }; });
+  const hist = DD.pessoas.filter(x => x.avaliado_id === id).sort((a, b) => porTri(a.trimestre, b.trimestre));
+  const pdi = DD.pdi.filter(x => x.organizador_id === id);
+  return { p, auto, gest, linhas, hist, pdi, gestorNome: gest && gest.avaliador_id ? org(gest.avaliador_id).nome : (org(org(id).gestor_id).nome || '—'),
+           area: (gest && gest.area) || (auto && auto.area) || org(id).area || '—' };
+}
+
+function desPessoa() {
+  const el = $('#des');
+  const o = org(pessoaSel);
+  const tris = DD.pessoas.filter(x => x.avaliado_id === pessoaSel).map(x => x.trimestre).sort(porTri);
+  const triAv = [...new Set(DD.avaliacoes.filter(a => a.avaliado_id === pessoaSel).map(a => a.trimestre))].sort(porTri);
+  let t = tris.includes(triDes) ? triDes : (tris[tris.length - 1] || triAv[triAv.length - 1] || triDes);
+  const P = dadosPessoa(pessoaSel, t);
+  const itensTri = DD.itens.filter(i => i.trimestre === t);
+  const barra = (v, cor) => v === null ? '' : `<div class="bar-p"><div style="width:${(v - 1) / 3 * 100}%;background:${cor}"></div></div>`;
+  el.innerHTML = `
+    <button class="btn sec mini" id="voltarP">← Por Organizador</button>
+    <div class="acoes" style="justify-content:space-between;margin:12px 0">
+      <div><h2 style="margin:0;font-size:20px">${esc(o.nome)}</h2><div class="sub" style="margin:2px 0 0">${esc(P.area)} · gestor: ${esc(P.gestorNome)} · ${P.p && P.p.e_lider ? 'líder' : 'não líder'}</div></div>
+      <div class="acoes">${seletorTri(triAv, t, 'trip')}<button class="btn sec" id="relInd" ${P.p ? '' : 'disabled'}>Relatório individual (PDF)</button></div></div>
+    <div class="grade g4">
+      <div class="card kpi"><div class="rot">Índice de Desempenho (gestor)</div><div class="val">${pc(P.p && P.p.indice_gestor)}</div><div class="det">nota ${n2(P.p && P.p.nota_gestor)}</div></div>
+      <div class="card kpi"><div class="rot">Autopercepção</div><div class="val">${pc(P.p && P.p.indice_auto)}</div><div class="det">nota ${n2(P.p && P.p.nota_auto)}</div></div>
+      <div class="card kpi"><div class="rot">Gap auto − gestor</div><div class="val" style="font-size:28px">${P.p ? gapTag(P.p.gap) : '—'}</div><div class="det">±0,5 = alinhado</div></div>
+      <div class="card kpi"><div class="rot">Trimestres avaliados</div><div class="val">${P.hist.filter(h => h.indice_gestor !== null).length}</div><div class="det">${P.hist.map(h => `${esc(h.trimestre)}: ${pc(h.indice_gestor)}`).join(' · ') || '—'}</div></div>
+    </div>
+    <div class="card"><h2>Competências · ${esc(t)}</h2>
+      <div class="legenda" style="margin:0 0 10px"><span><i style="border-color:#93C5FD;border-top-width:6px"></i>Autoavaliação</span><span><i style="border-color:var(--marca);border-top-width:6px"></i>Gestor</span><span style="color:var(--tinta-3)">escala 1 a 4</span></div>
+      <div class="tabela-wrap"><table><thead><tr><th>Competência</th><th style="width:34%"></th><th class="num">Auto</th><th class="num">Gestor</th><th>Gap</th><th>Maturidade</th></tr></thead>
+        <tbody>${P.linhas.map(l => `<tr><td><b>${esc(l.nome)}</b></td><td>${barra(l.auto, '#93C5FD')}${barra(l.gestor, 'var(--marca)')}</td>
+          <td class="num">${n2(l.auto)}</td><td class="num">${n2(l.gestor)}</td><td>${gapTag(l.gap)}</td><td>${matBar(l.mat)}</td></tr>`).join('')
+          || '<tr><td colspan="6" style="color:var(--tinta-3)">Sem notas neste trimestre.</td></tr>'}</tbody></table></div></div>
+    <div class="grade g2">
+      <div class="card"><h2>Avaliações de ${esc(t)}</h2>
+        ${['auto', 'gestor'].map(tp => { const a = tp === 'auto' ? P.auto : P.gest;
+          return `<div class="acoes" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid #F0F2F5">
+            <div><b>${tp === 'auto' ? 'Autoavaliação' : 'Gestor' + (a && a.avaliador_id ? ' · ' + esc(org(a.avaliador_id).nome) : '')}</b>
+              <div class="sub" style="margin:0">${!a ? 'não registrada' : a.respondida ? `respondida em ${esc(a.respondida)} · ${a.origem === 'importado' ? 'importada da planilha' : a.origem === 'manual' ? 'lançada manualmente' : 'pelo link'}` : 'pendente'}</div></div>
+            <div class="acoes">${a ? `<button class="btn sec mini" data-notas="${a.id}">Notas</button>` : ''}
+              <button class="btn sec mini" data-edav="${tp}">${a ? 'Editar' : 'Lançar'}</button>
+              ${a && a.ciclo_id && a.respondida && DD.ciclos.some(c => c.id === a.ciclo_id && c.status === 'aberto') ? `<button class="btn sec mini" data-reab="${a.id}">Liberar novo envio</button>` : ''}
+              ${a ? `<button class="btn perigo mini" data-delav="${a.id}">Excluir</button>` : ''}</div></div>`; }).join('')}
+        ${P.gest && (P.gest.prioridades.length || P.gest.comentario) ? `<div style="margin-top:12px"><div style="font-weight:600;margin-bottom:4px">Indicado pelo gestor</div>
+          ${P.gest.prioridades.length ? `<p style="margin:0 0 6px">Prioridades: ${P.gest.prioridades.map(id => `<span class="tag neutro">${esc(comp(id).nome)}</span>`).join(' ')}</p>` : ''}
+          ${P.gest.comentario ? `<p style="margin:0;white-space:pre-wrap;background:#FBFCFD;border:1px solid var(--borda);border-radius:8px;padding:10px">${esc(P.gest.comentario)}</p>` : ''}</div>` : ''}
+        <div id="notasBox"></div></div>
+      <div class="card"><div class="acoes" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">PDI</h2><button class="btn sec mini" id="novoPdiP">+ Item de PDI</button></div>
+        ${P.pdi.length ? `<div class="tabela-wrap"><table><thead><tr><th>Tri.</th><th>Competência</th><th>Ação</th><th>Prazo</th><th>Situação</th><th></th></tr></thead>
+          <tbody>${P.pdi.map(x => linhaPdiCurta(x)).join('')}</tbody></table></div>` : '<p class="sub" style="margin:0">Nenhum item de PDI.</p>'}</div>
+    </div>`;
+  $('#voltarP').onclick = () => { subDes = 'pessoas'; desenharDes(); };
+  ligarSeletor(el, 'trip', t2 => { triDes = t2; desPessoa(); });
+  if (P.p) $('#relInd').onclick = () => relatorioIndividual(pessoaSel, t);
+  el.querySelectorAll('[data-edav]').forEach(b => b.onclick = () => editarAvaliacao(b.dataset.edav === 'auto' ? P.auto : P.gest, { avaliado_id: pessoaSel, tipo: b.dataset.edav }, t));
+  el.querySelectorAll('[data-notas]').forEach(b => b.onclick = () => {
+    const a = DD.avaliacoes.find(x => x.id === b.dataset.notas);
+    $('#notasBox').innerHTML = `<div class="tabela-wrap" style="margin-top:12px"><table><thead><tr><th>${a.tipo === 'auto' ? 'Autoavaliação' : 'Gestor'} · afirmativa</th><th class="num">Nota</th></tr></thead>
+      <tbody>${itensTri.filter(i => !i.so_lideres || a.e_lider).map(i => `<tr><td><span style="color:var(--tinta-3);font-size:12px">${esc(comp(i.competencia_id).nome)}</span><br>${esc(i.texto)}</td><td class="num"><b>${a.notas[i.id] ?? '—'}</b></td></tr>`).join('')}</tbody></table></div>`;
+  });
+  el.querySelectorAll('[data-reab]').forEach(b => b.onclick = async () => { if (confirm('Liberar novo envio? O mesmo link volta a aceitar esta avaliação até o prazo (as notas atuais ficam até serem substituídas).')) await rpcDes('gpp_admin_des_reabrir_avaliacao', { p_id: b.dataset.reab }, 'Novo envio liberado.'); });
+  el.querySelectorAll('[data-delav]').forEach(b => b.onclick = async () => { if (confirm('Excluir esta avaliação e todas as suas notas? Não pode ser desfeito.')) await rpcDes('gpp_admin_des_excluir_avaliacao', { p_id: b.dataset.delav }, 'Avaliação excluída.'); });
+  $('#novoPdiP').onclick = () => editarPdi(null, { organizador_id: pessoaSel, trimestre: t });
+  ligarPdi(el);
+}
+
+function editarAvaliacao(a, base, t) {
+  const novo = !a;
+  const pessoas = D.organizadores;
+  const tri = a ? a.trimestre : t;
+  const itens = DD.itens.filter(i => i.trimestre === tri);
+  if (!itens.length) { toast(`O trimestre ${tri} ainda não tem matriz.`); return; }
+  const tipo0 = a ? a.tipo : (base && base.tipo) || 'gestor';
+  const alvo = a ? a.avaliado_id : base && base.avaliado_id;
+  const lider0 = a ? a.e_lider : alvo ? org(alvo).e_lider : false;
+  const compsTri = [...new Set(itens.map(i => i.competencia_id))];
+  const dlg = dialogo(novo ? `Lançar avaliação · ${esc(tri)}` : `Editar ${a.tipo === 'auto' ? 'autoavaliação' : 'avaliação do gestor'} · ${esc(org(a.avaliado_id).nome)} · ${esc(tri)}`, `
+    ${novo ? `<div class="grade" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px">
+      <label class="campo" style="margin:0">Organizador<select id="ea_pessoa"><option value="">—</option>${pessoas.map(o => `<option value="${o.id}" ${o.id === alvo ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>
+      <label class="campo" style="margin:0">Tipo<select id="ea_tipo"><option value="gestor" ${tipo0 === 'gestor' ? 'selected' : ''}>Avaliação do gestor</option><option value="auto" ${tipo0 === 'auto' ? 'selected' : ''}>Autoavaliação</option></select></label></div>` : ''}
+    <label class="campo" id="ea_gestor_l">Gestor que avaliou<select id="ea_gestor"><option value="">(gestor do cadastro)</option>${pessoas.map(o => `<option value="${o.id}" ${a && a.avaliador_id === o.id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>
+    <label class="check"><input type="checkbox" id="ea_lider" ${lider0 ? 'checked' : ''}> Avaliado como líder neste trimestre (responde as competências de liderança)</label>
+    <div style="max-height:44vh;overflow:auto;border:1px solid var(--borda);border-radius:8px;padding:4px 10px;margin-bottom:10px">
+      ${itens.map(i => `<div class="acoes ea_item" data-lider="${i.so_lideres ? 1 : 0}" style="justify-content:space-between;flex-wrap:nowrap;padding:6px 0;border-bottom:1px solid #F0F2F5">
+        <span style="font-size:13px"><span style="color:var(--tinta-3)">${esc(comp(i.competencia_id).nome)}</span><br>${esc(i.texto)}</span>
+        <select data-it="${i.id}" style="width:64px;padding:6px;border:1px solid var(--borda-forte);border-radius:6px"><option value="">—</option>${[1, 2, 3, 4].map(n => `<option ${a && a.notas[i.id] === n ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('')}
+    </div>
+    <div id="ea_extra">
+      <div style="font-size:13px;font-weight:500;color:var(--tinta-2);margin-bottom:4px">Prioridades de desenvolvimento (até 2)</div>
+      ${compsTri.map(cid => `<label class="check"><input type="checkbox" class="ea_prio" value="${cid}" ${a && a.prioridades.includes(cid) ? 'checked' : ''}> ${esc(comp(cid).nome)}</label>`).join('')}
+      <label class="campo">Comentário do gestor<textarea id="ea_coment" rows="3">${esc(a ? a.comentario || '' : '')}</textarea></label></div>
+    <p class="sub" style="margin:0">A avaliação conta nos resultados quando todas as afirmativas aplicáveis tiverem nota. O NPS de Liderança não é lançado aqui, por ser anônimo.</p>`,
+    [{ t: 'Salvar', fn: async d => {
+      const tipo = novo ? $('#ea_tipo', d).value : a.tipo;
+      const pid = novo ? $('#ea_pessoa', d).value : a.avaliado_id;
+      if (!pid) { toast('Escolha o Organizador.'); return false; }
+      const prios = [...d.querySelectorAll('.ea_prio:checked')].map(x => Number(x.value));
+      if (prios.length > 2) { toast('Marque no máximo 2 prioridades.'); return false; }
+      const notas = {}; d.querySelectorAll('[data-it]').forEach(s => { if (s.value) notas[s.dataset.it] = Number(s.value); });
+      const p = { id: a ? a.id : '', trimestre: tri, avaliado_id: pid, tipo, e_lider: $('#ea_lider', d).checked, notas };
+      if (tipo === 'gestor') { p.avaliador_id = $('#ea_gestor', d).value; p.prioridades = prios; p.comentario = $('#ea_coment', d).value; }
+      const r = await rpcDes('gpp_admin_des_salvar_avaliacao', { p }, 'Avaliação salva.');
+      if (ok(r) && novo) { pessoaSel = pid; subDes = 'pessoa'; triDes = tri; desenharDes(); }
+      return ok(r);
+    } }], 640);
+  const sync = () => {
+    const tipo = novo ? $('#ea_tipo', dlg).value : a.tipo, lider = $('#ea_lider', dlg).checked;
+    $('#ea_extra', dlg).style.display = tipo === 'gestor' ? '' : 'none';
+    $('#ea_gestor_l', dlg).style.display = tipo === 'gestor' ? '' : 'none';
+    dlg.querySelectorAll('.ea_item').forEach(r => r.style.display = r.dataset.lider === '1' && !lider ? 'none' : '');
+  };
+  dlg.addEventListener('change', sync); sync();
+}
+
+/* ----- Ciclos ----- */
+let cicloDesVer = null;
+function desCiclos() {
+  const el = $('#des');
+  const aberto = DD.ciclos.find(x => x.status === 'aberto');
+  const autoA = (cfg('des_abertura_automatica') || 'sim').toLowerCase() === 'sim';
+  const semUrl = !cfg('url_app');
+  const resp = c => DD.avaliacoes.filter(a => a.ciclo_id === c.id);
+  const elegiveis = D.organizadores.filter(o => o.ativo && o.gestor_id);
+  const problema = o => { const g = org(o.gestor_id); return !o.email ? 'sem e-mail' : !g.email ? `gestor ${g.nome} sem e-mail` : ''; };
+  el.innerHTML = `
+    <p class="sub">${autoA ? `A abertura é automática no último dia útil de cada trimestre (próxima: <b>${esc(DD.proxima_abertura)}</b>, ${esc(DD.proximo_trimestre)}), com convite por e-mail, lembrete no ${esc(cfg('des_lembrete_dias') || '5')}º dia e encerramento automático no prazo.` : 'Abertura automática desligada (veja Configurações).'}
+      Se o cadastro tiver pendências na data, a GPP recebe um e-mail de aviso.</p>
+    ${semUrl ? `<div class="aviso erro">O endereço da página do módulo não está configurado (Configurações).</div>` : ''}
+    ${aberto ? cardCicloAberto(aberto, resp(aberto)) : `
+      <div class="card"><h2>Abrir um ciclo agora</h2>
+        <p class="sub">Cada participante recebe um link pessoal com a autoavaliação; cada gestor recebe, no mesmo link, a avaliação dos seus liderados. A matriz do trimestre é a da aba Matriz (se estiver vazia, o sistema copia a do último trimestre).</p>
+        <div class="acoes" style="align-items:flex-end;margin-bottom:12px">
+          <label class="campo" style="margin:0;width:120px">Trimestre<input id="dTri" value="${esc(DD.proximo_trimestre)}"></label>
+          <label class="campo" style="margin:0;width:170px">Prazo<input id="dPrazo" type="date"></label>
+          <button class="btn" id="dAbrir" ${semUrl ? 'disabled' : ''}>Abrir e enviar convites</button></div>
+        <div style="font-size:13px;font-weight:600;color:var(--tinta-2);margin-bottom:6px">Participantes (Organizadores ativos com gestor)</div>
+        <div class="cols">${elegiveis.map(o => { const pr = problema(o); return `<label class="check" style="${pr ? 'opacity:.6' : ''}"><input type="checkbox" class="dPart" value="${o.id}" ${pr ? '' : 'checked'}>
+          ${esc(o.nome)} <span style="color:${pr ? 'var(--critico)' : 'var(--tinta-3)'};font-size:12px">${pr ? pr : 'gestor: ' + esc(org(o.gestor_id).nome)}</span></label>`; }).join('')
+          || '<p class="sub" style="margin:0">Nenhum Organizador ativo com gestor definido. Ajuste em Organizadores.</p>'}</div>
+        <p style="font-size:12px;color:var(--tinta-3);margin:8px 0 0">Quem tem pendência de cadastro precisa ser corrigido em <b>Organizadores</b> antes de abrir. O prazo em branco usa ${esc(cfg('des_dias_resposta') || '10')} dias.</p></div>`}
+    <div class="card"><h2>Histórico de ciclos</h2>
+      <div class="tabela-wrap"><table><thead><tr><th>Trimestre</th><th>Abertura</th><th>Prazo</th><th>Situação</th><th class="num">Respondidas</th><th></th></tr></thead>
+      <tbody>${DD.ciclos.map(x => { const r = resp(x); return `<tr><td><b>${esc(x.trimestre)}</b></td><td>${esc(x.abertura)}</td><td>${esc(x.prazo)}</td>
+        <td>${x.status === 'aberto' ? '<span class="tag ok">Aberto</span>' : '<span class="tag neutro">Encerrado</span>'}</td>
+        <td class="num">${r.filter(a => a.respondida).length}/${r.length}</td>
+        <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap">
+          <button class="btn sec mini" data-verc="${x.id}">${cicloDesVer === x.id ? 'Ocultar' : 'Participantes'}</button>
+          <button class="btn sec mini" data-edc="${x.id}">Editar</button>
+          <button class="btn perigo mini" data-delc="${x.id}">Excluir</button></div></td></tr>
+        ${cicloDesVer === x.id ? `<tr><td colspan="6" style="background:#FBFCFD">${tabelaLinks(x, false)}</td></tr>` : ''}`; }).join('')
+        || '<tr><td colspan="6" style="color:var(--tinta-3)">Nenhum ciclo aplicado pelo sistema ainda. 1T a 3T/26 vieram das planilhas.</td></tr>'}</tbody></table></div></div>`;
+
+  if (aberto) {
+    $('#dLembrar').onclick = async () => { if (confirm('Enviar lembrete para todos com avaliação pendente?')) await rpcDes('gpp_admin_des_lembrar', { p_ciclo: aberto.id }, n => `Lembrete na fila para ${n} pessoa(s).`); };
+    $('#dEncerrar').onclick = async () => { if (confirm(`Encerrar ${aberto.trimestre} agora? Os links deixam de funcionar, o resultado é apurado e os itens de PDI são criados.`)) { const r = await rpcDes('gpp_admin_des_encerrar', { p_ciclo: aberto.id }, x => `Ciclo encerrado: ${x.respondidas} de ${x.avaliacoes} avaliações; ${x.pdi} item(ns) de PDI criados.`); if (ok(r)) { triDes = aberto.trimestre; subDes = 'geral'; desenharDes(); } } };
+    $('#dIncluir').onclick = () => incluirParticipantes(aberto);
+  } else if ($('#dAbrir')) {
+    $('#dAbrir').onclick = async () => {
+      const ids = [...el.querySelectorAll('.dPart:checked')].map(x => x.value);
+      if (!ids.length) return toast('Marque pelo menos um participante.');
+      const t = $('#dTri').value.trim().toUpperCase();
+      if (confirm(`Abrir a Avaliação de Desempenho ${t} para ${ids.length} pessoa(s) e enviar os convites agora?`))
+        await rpcDes('gpp_admin_des_abrir', { p: { trimestre: t, prazo: $('#dPrazo').value, participantes: ids } }, n => `Ciclo aberto para ${n} pessoa(s). Convites na fila de envio.`);
+    };
+  }
+  el.querySelectorAll('[data-verc]').forEach(b => b.onclick = () => { cicloDesVer = cicloDesVer === b.dataset.verc ? null : b.dataset.verc; desCiclos(); });
+  el.querySelectorAll('[data-edc]').forEach(b => b.onclick = () => editarCicloDes(DD.ciclos.find(x => x.id === b.dataset.edc)));
+  el.querySelectorAll('[data-delc]').forEach(b => b.onclick = () => excluirCicloDes(DD.ciclos.find(x => x.id === b.dataset.delc)));
+  el.querySelectorAll('[data-reenv]').forEach(b => b.onclick = async () => { if (confirm(`Reenviar o link para ${b.dataset.nome}? O e-mail lista só o que está pendente.`)) await rpcDes('gpp_admin_des_reenviar', { p_link: b.dataset.reenv }, 'E-mail na fila de envio.'); });
+  el.querySelectorAll('[data-tirar]').forEach(b => b.onclick = async () => { if (confirm(`Tirar ${b.dataset.nome} deste ciclo? A autoavaliação e a avaliação do gestor dele(a) são apagadas.`)) await rpcDes('gpp_admin_des_remover_participante', { p_ciclo: b.dataset.ciclo, p_avaliado: b.dataset.tirar }, 'Participante removido.'); });
+}
+
+function cardCicloAberto(x, av) {
+  const feitas = av.filter(a => a.respondida).length, pct = Math.round(100 * feitas / Math.max(1, av.length));
+  return `<div class="card">
+    <div class="acoes" style="justify-content:space-between">
+      <div><h2 style="margin:0">Ciclo ${esc(x.trimestre)} <span class="tag ok">Aberto</span>${x.vencido ? ' <span class="tag atencao">Prazo vencido — encerra na rotina das 8h</span>' : ''}</h2>
+        <div class="sub" style="margin:2px 0 0">Aberto em ${esc(x.abertura)} · prazo ${esc(x.prazo)} · lembrete ${x.lembrete_enviado ? 'enviado' : 'automático no ' + esc(cfg('des_lembrete_dias') || '5') + 'º dia'}</div></div>
+      <div class="acoes"><button class="btn sec" data-edc="${x.id}">Editar prazo</button><button class="btn sec" id="dIncluir">+ Incluir pessoas</button>
+        <button class="btn sec" id="dLembrar">Enviar lembrete agora</button><button class="btn perigo" id="dEncerrar">Encerrar e apurar agora</button></div></div>
+    <div style="margin:16px 0 6px;font-weight:600">${feitas} de ${av.length} avaliações respondidas (${pct}%) · autoavaliações ${av.filter(a => a.tipo === 'auto' && a.respondida).length}/${av.filter(a => a.tipo === 'auto').length} · gestores ${av.filter(a => a.tipo === 'gestor' && a.respondida).length}/${av.filter(a => a.tipo === 'gestor').length}</div>
+    <div class="barra"><div style="width:${pct}%"></div></div>
+    ${tabelaLinks(x, true)}</div>`;
+}
+
+function tabelaLinks(x, acoes) {
+  const podeAgir = acoes && x.status === 'aberto' && !x.vencido;
+  const av = DD.avaliacoes.filter(a => a.ciclo_id === x.id);
+  if (!x.links.length) return '<p class="sub" style="margin:12px 0 0">Nenhum participante.</p>';
+  return `<div class="tabela-wrap" style="margin-top:14px"><table><thead><tr><th>Pessoa</th><th>Autoavaliação</th><th>Avalia (como gestor)</th><th>Situação</th>${podeAgir ? '<th></th>' : ''}</tr></thead>
+    <tbody>${x.links.map(l => { const au = av.find(a => a.tipo === 'auto' && a.avaliado_id === l.organizador_id);
+      const lid = av.filter(a => a.tipo === 'gestor' && a.avaliador_id === l.organizador_id);
+      return `<tr><td><b>${esc(l.nome)}</b><div style="font-size:12px;color:var(--tinta-3)">${esc(l.email || 'sem e-mail')}</div></td>
+        <td>${au ? (au.respondida ? '<span class="tag ok">✓</span>' : '<span class="tag neutro">Pendente</span>') : '—'}</td>
+        <td>${lid.map(a => `<span class="tag ${a.respondida ? 'ok' : 'neutro'}" style="margin:1px">${a.respondida ? '✓ ' : ''}${esc(org(a.avaliado_id).nome)}</span>`).join(' ') || '—'}</td>
+        <td>${l.pendentes ? `<span class="tag atencao">${l.pendentes} pendente(s)</span>` : '<span class="tag ok">Concluído</span>'}</td>
+        ${podeAgir ? `<td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap">
+          ${l.pendentes ? `<button class="btn sec mini" data-reenv="${l.id}" data-nome="${esc(l.nome)}">Reenviar link</button>` : ''}
+          ${au ? `<button class="btn perigo mini" data-tirar="${l.organizador_id}" data-ciclo="${x.id}" data-nome="${esc(l.nome)}">Remover</button>` : ''}</div></td>` : ''}</tr>`; }).join('')}</tbody></table></div>`;
+}
+
+function incluirParticipantes(ciclo) {
+  const ja = new Set(DD.avaliacoes.filter(a => a.ciclo_id === ciclo.id && a.tipo === 'auto').map(a => a.avaliado_id));
+  const lista = D.organizadores.filter(o => !ja.has(o.id)).map(o => {
+    const g = org(o.gestor_id);
+    const motivo = !o.gestor_id ? 'sem gestor' : !o.email ? 'sem e-mail' : !g.email ? 'gestor sem e-mail' : '';
+    return `<label class="check" style="${motivo ? 'opacity:.55' : ''}"><input type="checkbox" class="incP" value="${o.id}" ${motivo ? 'disabled' : ''}>
+      ${esc(o.nome)} <span style="color:var(--tinta-3);font-size:12px">${motivo || 'gestor: ' + esc(g.nome)}${o.ativo ? '' : ' · inativo'}</span></label>`;
+  }).join('');
+  dialogo(`Incluir pessoas no ciclo ${esc(ciclo.trimestre)}`, `
+    <p class="sub" style="margin-top:0">A pessoa recebe o link da autoavaliação e o gestor dela recebe o pedido de avaliação, com prazo até ${esc(ciclo.prazo)}.</p>
+    <div style="max-height:46vh;overflow:auto">${lista || '<p class="sub">Todos já estão no ciclo.</p>'}</div>`,
+    [{ t: 'Incluir e enviar', fn: async d => {
+      const ids = [...d.querySelectorAll('.incP:checked')].map(i => i.value);
+      if (!ids.length) { toast('Marque pelo menos uma pessoa.'); return false; }
+      return ok(await rpcDes('gpp_admin_des_adicionar', { p_ciclo: ciclo.id, p_ids: ids }, n => `${n} pessoa(s) incluída(s). E-mails na fila.`)); } }], 560);
+}
+
+function editarCicloDes(x) {
+  const reabrivel = x.status === 'encerrado';
+  dialogo(`Editar ciclo ${esc(x.trimestre)}`, `
+    <label class="campo">Prazo para responder<input id="ecd_prazo" type="date" value="${esc(x.prazo_iso)}"></label>
+    ${reabrivel ? `<label class="check"><input type="checkbox" id="ecd_reabrir"> Reabrir o ciclo (os links voltam a funcionar até o novo prazo)</label>
+      <p class="sub" style="margin:0">Ao encerrar de novo, o sistema reapura e cria apenas os itens de PDI que ainda não existem.</p>`
+      : '<p class="sub" style="margin:0">Use para prorrogar ou antecipar o prazo. Para encerrar, use "Encerrar e apurar agora".</p>'}`,
+    [{ t: 'Salvar', fn: async d => ok(await rpcDes('gpp_admin_des_editar_ciclo', { p: { id: x.id, prazo: $('#ecd_prazo', d).value, reabrir: reabrivel && $('#ecd_reabrir', d).checked } },
+      r => r && r.reaberto ? 'Ciclo reaberto.' : 'Ciclo atualizado.')) }]);
+}
+
+function excluirCicloDes(x) {
+  const n = DD.avaliacoes.filter(a => a.ciclo_id === x.id).length;
+  dialogo(`Excluir ciclo ${esc(x.trimestre)}`, `
+    <div class="aviso erro">Exclusão definitiva: não pode ser desfeita.</div>
+    <p style="margin-top:0">Serão apagados: <b>${n}</b> avaliação(ões) com as notas, os links, as respostas de NPS e os e-mails deste ciclo, além dos itens de PDI "a definir" criados por ele. A matriz de ${esc(x.trimestre)} continua cadastrada.</p>
+    <label class="campo">Para confirmar, digite o trimestre (${esc(x.trimestre)})<input id="dcd_conf" autocomplete="off"></label>`,
+    [{ t: 'Excluir definitivamente', cls: 'perigo', fn: async d => {
+      const v = $('#dcd_conf', d).value.trim().toUpperCase();
+      if (v !== x.trimestre) { toast('Digite o trimestre exatamente como aparece.'); return false; }
+      if (cicloDesVer === x.id) cicloDesVer = null;
+      return ok(await rpcDes('gpp_admin_des_excluir_ciclo', { p_id: x.id, p_confirmacao: v }, 'Ciclo excluído.')); } }]);
+}
+
+/* ----- Matriz ----- */
+function desMatriz() {
+  const el = $('#des');
+  const tris = trisDes();
+  if (!triMatriz) triMatriz = DD.ciclos.find(c => c.status === 'aberto')?.trimestre || tris[tris.length - 1] || DD.proximo_trimestre;
+  const t = triMatriz;
+  const itens = DD.itens.filter(i => i.trimestre === t).sort((a, b) => a.ordem - b.ordem);
+  const travado = DD.avaliacoes.some(a => a.trimestre === t && a.respondida);
+  const ativos = DD.competencias.filter(c => c.ativo);
+  el.innerHTML = `
+    <div class="acoes" style="justify-content:space-between;margin-bottom:12px">
+      ${seletorTri(tris.includes(t) ? tris : [...tris, t], t, 'trim')}
+      <div class="acoes"><label class="campo" style="margin:0;width:110px"><input id="mNovoTri" placeholder="1T/27" style="margin:0"></label><button class="btn sec" id="mNovo">Nova matriz</button></div></div>
+    <div class="card">
+      <div class="acoes" style="justify-content:space-between;margin-bottom:8px">
+        <div><h2 style="margin:0">Matriz aplicada em ${esc(t)}</h2>
+          <p class="sub" style="margin:2px 0 0">${travado ? 'Já há respostas: dá para corrigir texto e ordem, mas não trocar competências nem incluir/remover itens.' : 'Ainda sem respostas: pode editar à vontade.'} Competências estratégicas são respondidas só por líderes.</p></div>
+        ${travado ? '<span class="tag neutro">Com respostas</span>' : `<button class="btn" id="mAdd" ${ativos.length ? '' : 'disabled'}>+ Item</button>`}</div>
+      ${itens.length ? `<div class="tabela-wrap"><table><thead><tr><th class="num">#</th><th>Competência</th><th>Comportamento observável</th><th>Quem responde</th><th></th></tr></thead>
+        <tbody>${itens.map(i => `<tr><td class="num">${i.ordem}</td><td>${esc(comp(i.competencia_id).nome)}</td><td>${esc(i.texto)}</td><td>${i.so_lideres ? 'Só líderes' : 'Todos'}</td>
+          <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sec mini" data-edi="${i.id}">Editar</button>
+          ${travado ? '' : `<button class="btn perigo mini" data-deli="${i.id}">Remover</button>`}</div></td></tr>`).join('')}</tbody></table></div>`
+        : `<p class="sub" style="margin:0 0 10px">Sem itens em ${esc(t)}.</p>
+           ${tris.filter(x => x !== t && DD.itens.some(i => i.trimestre === x)).length ? `<div class="acoes"><span>Copiar de</span><select id="mDe" style="padding:8px;border:1px solid var(--borda-forte);border-radius:8px">${tris.filter(x => x !== t && DD.itens.some(i => i.trimestre === x)).reverse().map(x => `<option>${esc(x)}</option>`).join('')}</select><button class="btn sec" id="mCopiar">Copiar matriz</button></div>` : ''}`}
+    </div>
+    <div class="card">
+      <div class="acoes" style="justify-content:space-between;margin-bottom:8px">
+        <div><h2 style="margin:0">Biblioteca de competências</h2><p class="sub" style="margin:2px 0 0">Mapa de competências DAEXE. A matriz de cada trimestre escolhe daqui os comportamentos priorizados.</p></div>
+        <button class="btn sec" id="cNova">+ Competência</button></div>
+      <div class="tabela-wrap"><table><thead><tr><th>Competência</th><th>Tipo</th><th>Valor / estratégia</th><th>Comportamentos</th><th>Situação</th><th></th></tr></thead>
+        <tbody>${DD.competencias.map(k => `<tr style="${k.ativo ? '' : 'opacity:.55'}"><td><b>${esc(k.nome)}</b>${k.so_lideres ? ' <span class="tag neutro">líderes</span>' : ''}</td><td>${TIPOS_COMP[k.tipo] || k.tipo}</td><td>${esc(k.valor || '—')}</td>
+          <td style="font-size:13px">${k.comportamentos.map(esc).join('<br>') || '—'}</td><td>${k.ativo ? '<span class="tag ok">Ativa</span>' : '<span class="tag neutro">Inativa</span>'}</td>
+          <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sec mini" data-edk="${k.id}">Editar</button>
+            <button class="btn perigo mini" data-delk="${k.id}" ${k.em_uso ? 'disabled title="Já usada em matrizes ou PDI: desative em vez de excluir"' : ''}>Excluir</button></div></td></tr>`).join('')}</tbody></table></div></div>`;
+  ligarSeletor(el, 'trim', t2 => { triMatriz = t2; desMatriz(); });
+  $('#mNovo').onclick = () => { const v = $('#mNovoTri').value.trim().toUpperCase(); if (!/^[1-4]T\/\d{2}$/.test(v)) return toast('Use o formato 1T/27.'); triMatriz = v; desMatriz(); };
+  if ($('#mAdd')) $('#mAdd').onclick = () => editarItem(null, t);
+  if ($('#mCopiar')) $('#mCopiar').onclick = async () => rpcDes('gpp_admin_des_copiar_matriz', { p_de: $('#mDe').value, p_para: t }, n => `${n} itens copiados para ${t}.`);
+  el.querySelectorAll('[data-edi]').forEach(b => b.onclick = () => editarItem(DD.itens.find(i => i.id === Number(b.dataset.edi)), t, travado));
+  el.querySelectorAll('[data-deli]').forEach(b => b.onclick = async () => { if (confirm('Remover este item da matriz?')) await rpcDes('gpp_admin_des_excluir_item', { p_id: Number(b.dataset.deli) }, 'Item removido.'); });
+  $('#cNova').onclick = () => editarCompetencia(null);
+  el.querySelectorAll('[data-edk]').forEach(b => b.onclick = () => editarCompetencia(DD.competencias.find(k => k.id === Number(b.dataset.edk))));
+  el.querySelectorAll('[data-delk]').forEach(b => b.onclick = async () => { if (confirm('Excluir esta competência da biblioteca?')) await rpcDes('gpp_admin_des_excluir_competencia', { p_id: Number(b.dataset.delk) }, 'Competência excluída.'); });
+}
+
+function editarItem(i, t, travado) {
+  const novo = !i;
+  const lista = DD.competencias.filter(k => k.ativo || (i && k.id === i.competencia_id));
+  const c0 = i ? i.competencia_id : lista[0].id;
+  const dlg = dialogo(novo ? `Novo item · ${esc(t)}` : `Editar item · ${esc(t)}`, `
+    <label class="campo">Competência<select id="ei_comp" ${travado ? 'disabled' : ''}>${lista.map(k => `<option value="${k.id}" ${k.id === c0 ? 'selected' : ''}>${esc(k.nome)}</option>`).join('')}</select></label>
+    <label class="campo">Comportamento observável (escrito em 1ª pessoa)<input id="ei_texto" list="ei_sug" value="${esc(i ? i.texto : '')}"><datalist id="ei_sug"></datalist></label>
+    <div class="grade" style="grid-template-columns:1fr 1fr;gap:12px">
+      <label class="campo" style="margin:0">Ordem<input id="ei_ordem" type="number" min="1" value="${i ? i.ordem : ''}" placeholder="última"></label>
+      <label class="check" style="align-self:end"><input type="checkbox" id="ei_lider" ${travado ? 'disabled' : ''} ${(i ? i.so_lideres : comp(c0).so_lideres) ? 'checked' : ''}> Só líderes respondem</label></div>
+    <p class="sub" style="margin:0">As sugestões vêm dos comportamentos da competência na biblioteca.</p>`,
+    [{ t: 'Salvar', fn: async d => ok(await rpcDes('gpp_admin_des_salvar_item', { p: { id: i ? i.id : '', trimestre: t, competencia_id: Number($('#ei_comp', d).value),
+        texto: $('#ei_texto', d).value, ordem: $('#ei_ordem', d).value, so_lideres: $('#ei_lider', d).checked } }, 'Item salvo.')) }], 560);
+  const sug = () => { const k = comp(Number($('#ei_comp', dlg).value)); $('#ei_sug', dlg).innerHTML = (k.comportamentos || []).map(x => `<option value="${esc(x)}">`).join(''); if (novo) $('#ei_lider', dlg).checked = !!k.so_lideres; };
+  $('#ei_comp', dlg).onchange = sug; sug();
+}
+
+function editarCompetencia(k) {
+  k = k || { id: '', nome: '', tipo: 'comportamental', valor: '', descricao: '', comportamentos: [], so_lideres: false, ativo: true };
+  dialogo(k.id ? 'Editar competência' : 'Nova competência', `
+    <label class="campo">Nome<input id="ek_nome" value="${esc(k.nome)}"></label>
+    <div class="grade" style="grid-template-columns:1fr 1fr;gap:12px">
+      <label class="campo" style="margin:0">Tipo<select id="ek_tipo">${Object.entries(TIPOS_COMP).map(([v, t]) => `<option value="${v}" ${k.tipo === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="campo" style="margin:0">Valor / estratégia associada<input id="ek_valor" value="${esc(k.valor || '')}"></label></div>
+    <label class="campo" style="margin-top:12px">Descrição<textarea id="ek_desc" rows="2">${esc(k.descricao || '')}</textarea></label>
+    <label class="campo">Comportamentos observáveis (um por linha)<textarea id="ek_comp" rows="4">${esc((k.comportamentos || []).join('\n'))}</textarea></label>
+    <label class="check"><input type="checkbox" id="ek_lider" ${k.so_lideres ? 'checked' : ''}> Padrão: só líderes respondem</label>
+    <label class="check"><input type="checkbox" id="ek_ativo" ${k.ativo ? 'checked' : ''}> Ativa (aparece para novas matrizes)</label>
+    <p class="sub" style="margin:0">Mudar a biblioteca não altera matrizes já aplicadas: o texto de cada trimestre fica congelado.</p>`,
+    [{ t: 'Salvar', fn: async d => ok(await rpcDes('gpp_admin_des_salvar_competencia', { p: { id: k.id, nome: $('#ek_nome', d).value, tipo: $('#ek_tipo', d).value,
+        valor: $('#ek_valor', d).value, descricao: $('#ek_desc', d).value, comportamentos: $('#ek_comp', d).value.split('\n'),
+        so_lideres: $('#ek_lider', d).checked, ativo: $('#ek_ativo', d).checked } }, 'Competência salva.')) }], 600);
+}
+
+/* ----- PDI ----- */
+function linhaPdiCurta(x) {
+  return `<tr><td>${esc(x.trimestre)}</td><td>${esc(x.competencia_id ? comp(x.competencia_id).nome : '—')}</td><td>${esc(x.acao || 'a definir')}</td>
+    <td>${x.prazo ? esc(x.prazo.split('-').reverse().join('/')) : '—'}${x.atrasado ? ' <span class="tag critico">atrasado</span>' : ''}</td>
+    <td>${tagPdi(x.status)}</td><td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sec mini" data-edpdi="${x.id}">Editar</button><button class="btn perigo mini" data-delpdi="${x.id}">Excluir</button></div></td></tr>`;
+}
+function tagPdi(s) { const cls = { concluida: 'ok', cancelada: 'neutro', 'em andamento': 'info', planejada: 'info', 'a definir': 'atencao' }[s] || 'neutro'; return `<span class="tag ${cls}">${STATUS_PDI[s] || s}</span>`; }
+function ligarPdi(el) {
+  el.querySelectorAll('[data-edpdi]').forEach(b => b.onclick = () => editarPdi(DD.pdi.find(x => x.id === b.dataset.edpdi)));
+  el.querySelectorAll('[data-delpdi]').forEach(b => b.onclick = async () => { if (confirm('Excluir este item de PDI?')) await rpcDes('gpp_admin_des_excluir_pdi', { p_id: b.dataset.delpdi }, 'Item de PDI excluído.'); });
+}
+
+function desPdi() {
+  const el = $('#des');
+  const f = filtroPdi;
+  const lista = DD.pdi.filter(x => (!f.tri || x.trimestre === f.tri) && (!f.pessoa || x.organizador_id === f.pessoa)
+    && (f.status === 'todos' || (f.status === 'abertos' ? ['a definir', 'planejada', 'em andamento'].includes(x.status) : x.status === f.status)));
+  const tris = [...new Set(DD.pdi.map(x => x.trimestre))].sort(porTri).reverse();
+  const pessoas = [...new Set(DD.pdi.map(x => x.organizador_id))].map(org).sort((a, b) => a.nome.localeCompare(b.nome));
+  const cont = s => DD.pdi.filter(x => x.status === s).length;
+  el.innerHTML = `
+    <div class="grade g4">
+      <div class="card kpi"><div class="rot">A definir</div><div class="val">${cont('a definir')}</div><div class="det">prioridades indicadas pelos gestores</div></div>
+      <div class="card kpi"><div class="rot">Planejadas / em andamento</div><div class="val">${cont('planejada') + cont('em andamento')}</div><div class="det">${DD.pdi.filter(x => x.atrasado).length} com prazo vencido</div></div>
+      <div class="card kpi"><div class="rot">Concluídas</div><div class="val">${cont('concluida')}</div><div class="det">de ${DD.pdi.length} itens</div></div>
+      <div class="card kpi"><div class="rot">Pessoas com PDI</div><div class="val">${new Set(DD.pdi.map(x => x.organizador_id)).size}</div><div class="det">Organizador + gestor definem as ações</div></div>
+    </div>
+    <div class="card">
+      <div class="acoes" style="justify-content:space-between;margin-bottom:10px">
+        <div class="acoes">
+          <select id="fTri" class="filtro"><option value="">Todos os trimestres</option>${tris.map(t => `<option ${f.tri === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+          <select id="fPes" class="filtro"><option value="">Todas as pessoas</option>${pessoas.map(o => `<option value="${o.id}" ${f.pessoa === o.id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select>
+          <select id="fSt" class="filtro"><option value="abertos" ${f.status === 'abertos' ? 'selected' : ''}>Em aberto</option><option value="todos" ${f.status === 'todos' ? 'selected' : ''}>Todas as situações</option>
+            ${Object.entries(STATUS_PDI).map(([v, t]) => `<option value="${v}" ${f.status === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+        <button class="btn" id="novoPdi">+ Item de PDI</button></div>
+      <div class="tabela-wrap"><table><thead><tr><th>Organizador</th><th>Tri.</th><th>Competência</th><th>Ação de desenvolvimento</th><th>Responsável</th><th>Prazo</th><th>Situação</th><th></th></tr></thead>
+        <tbody>${lista.map(x => `<tr><td><a href="#" data-pessoa="${x.organizador_id}">${esc(org(x.organizador_id).nome)}</a></td><td>${esc(x.trimestre)}</td>
+          <td>${esc(x.competencia_id ? comp(x.competencia_id).nome : '—')}</td><td>${esc(x.acao || '')}${!x.acao ? '<span style="color:var(--tinta-3)">a definir</span>' : ''}${x.observacao ? `<div style="font-size:12px;color:var(--tinta-3)">${esc(x.observacao)}</div>` : ''}</td>
+          <td>${esc(x.responsavel || '—')}</td><td>${x.prazo ? esc(x.prazo.split('-').reverse().join('/')) : '—'}${x.atrasado ? ' <span class="tag critico">atrasado</span>' : ''}</td><td>${tagPdi(x.status)}</td>
+          <td><div class="acoes" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sec mini" data-edpdi="${x.id}">Editar</button><button class="btn perigo mini" data-delpdi="${x.id}">Excluir</button></div></td></tr>`).join('')
+          || '<tr><td colspan="8" style="color:var(--tinta-3)">Nenhum item com esses filtros.</td></tr>'}</tbody></table></div>
+      <p style="font-size:12px;color:var(--tinta-3);margin:10px 0 0">Ao encerrar cada ciclo, as competências marcadas como prioridade pelo gestor viram itens "a definir". Organizador e gestor combinam a ação, o prazo e o acompanhamento.</p></div>`;
+  $('#fTri').onchange = e => { f.tri = e.target.value; desPdi(); };
+  $('#fPes').onchange = e => { f.pessoa = e.target.value; desPdi(); };
+  $('#fSt').onchange = e => { f.status = e.target.value; desPdi(); };
+  $('#novoPdi').onclick = () => editarPdi(null, { trimestre: triDes || DD.proximo_trimestre, organizador_id: f.pessoa });
+  el.querySelectorAll('[data-pessoa]').forEach(a => a.onclick = e => { e.preventDefault(); pessoaSel = a.dataset.pessoa; subDes = 'pessoa'; desenharDes(); });
+  ligarPdi(el);
+}
+
+function editarPdi(x, base) {
+  const novo = !x; x = x || { id: '', trimestre: base.trimestre, organizador_id: base.organizador_id || '', competencia_id: null, acao: '', responsavel: '', prazo: '', status: 'planejada', observacao: '' };
+  dialogo(novo ? 'Novo item de PDI' : `PDI · ${esc(org(x.organizador_id).nome)}`, `
+    <div class="grade" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <label class="campo" style="margin:0">Organizador<select id="ep_org" ${novo ? '' : 'disabled'}><option value="">—</option>${D.organizadores.map(o => `<option value="${o.id}" ${o.id === x.organizador_id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>
+      <label class="campo" style="margin:0">Trimestre de origem<input id="ep_tri" value="${esc(x.trimestre)}" ${novo ? '' : 'disabled'}></label></div>
+    <label class="campo">Competência<select id="ep_comp"><option value="">—</option>${DD.competencias.filter(k => k.ativo || k.id === x.competencia_id).map(k => `<option value="${k.id}" ${k.id === x.competencia_id ? 'selected' : ''}>${esc(k.nome)}</option>`).join('')}</select></label>
+    <label class="campo">Ação de desenvolvimento<textarea id="ep_acao" rows="2">${esc(x.acao || '')}</textarea></label>
+    <div class="grade" style="grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <label class="campo" style="margin:0">Responsável<input id="ep_resp" value="${esc(x.responsavel || '')}"></label>
+      <label class="campo" style="margin:0">Prazo<input id="ep_prazo" type="date" value="${esc(x.prazo || '')}"></label>
+      <label class="campo" style="margin:0">Situação<select id="ep_st">${Object.entries(STATUS_PDI).map(([v, t]) => `<option value="${v}" ${x.status === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label></div>
+    <label class="campo">Observação / acompanhamento<textarea id="ep_obs" rows="2">${esc(x.observacao || '')}</textarea></label>`,
+    [{ t: 'Salvar', fn: async d => ok(await rpcDes('gpp_admin_des_salvar_pdi', { p: { id: x.id, organizador_id: $('#ep_org', d).value, trimestre: $('#ep_tri', d).value.trim().toUpperCase(),
+        competencia_id: $('#ep_comp', d).value, acao: $('#ep_acao', d).value, responsavel: $('#ep_resp', d).value, prazo: $('#ep_prazo', d).value,
+        status: $('#ep_st', d).value, observacao: $('#ep_obs', d).value } }, 'PDI salvo.')) }], 600);
+}
+
+/* ----- Relatórios para impressão / PDF ----- */
+const CSS_REL = `body{font-family:Inter,Arial,sans-serif;color:#1A2230;margin:28px;font-size:12.5px;line-height:1.45}
+  h1{font-size:20px;margin:0 0 2px;color:#1F3A5F} h2{font-size:14px;margin:22px 0 8px;color:#1F3A5F;border-bottom:1px solid #E2E5EA;padding-bottom:4px}
+  .cab{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1F3A5F;padding-bottom:10px;margin-bottom:14px}
+  .sub{color:#6B7280} table{width:100%;border-collapse:collapse} th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:#4B5563;border-bottom:1px solid #CBD1D9;padding:5px 6px}
+  td{padding:5px 6px;border-bottom:1px solid #EEF0F3} .num{text-align:right;font-variant-numeric:tabular-nums}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px} .k{border:1px solid #E2E5EA;border-radius:8px;padding:10px} .k .r{color:#6B7280;font-size:11px} .k .v{font-size:22px;font-weight:700}
+  .bar{height:7px;background:#EEF0F3;border-radius:9px;position:relative;width:140px;display:inline-block;vertical-align:middle;margin-right:6px} .bar>div{height:100%;border-radius:9px}
+  .bar i{position:absolute;left:66.7%;top:-2px;bottom:-2px;border-left:1px dashed #6B7280}
+  .nota{font-size:10.5px;color:#6B7280;margin-top:18px} .tag{font-weight:600}
+  @media print{body{margin:12mm}} @page{size:A4;margin:12mm}`;
+function imprimir(titulo, corpo) {
+  const w = window.open('', '_blank');
+  if (!w) { toast('Permita pop-ups para gerar o relatório.'); return; }
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>${CSS_REL}</style></head><body>${corpo}
+    <script>window.onload=function(){setTimeout(function(){window.print()},350)}<\/script></body></html>`);
+  w.document.close();
+}
+const barRel = m => m === null || m === undefined ? '—' : `<span class="bar"><div style="width:${Math.max(0, Math.min(100, m / 150 * 100))}%;background:${m >= 100 ? '#15803D' : m >= 75 ? '#1D6FD1' : '#A16207'}"></div><i></i></span>${pc(m)}`;
+const gapTxt = g => g === null || g === undefined ? '—' : `${sinal2(g)} ${g > 0.5 ? '(acima)' : g < -0.5 ? '(abaixo)' : '(alinhado)'}`;
+const cabRel = (titulo, sub) => `<div class="cab"><div><div class="sub">DAEXE · Gestão para Pessoas</div><h1>${titulo}</h1><div class="sub">${sub}</div></div><div class="sub">Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></div>`;
+const METODO = `<div class="nota"><b>Metodologia.</b> Escala 1 a 4 (1 ainda não pratica · 2 faz sem consistência · 3 pratica consistentemente · 4 acima do esperado). Nota da competência = média dos seus comportamentos; nota geral = média das competências, com peso igual. Índice de Desempenho = nota geral ÷ 3 (3 = 100%), calculado com a avaliação do gestor; a autoavaliação indica a autopercepção. Maturidade por competência = (média − 1) ÷ 2 (1 = 0%, 3 = 100%, 4 = 150%). Competências estratégicas são avaliadas só para líderes. NPS de Liderança = % promotores (9–10) − % detratores (0–6), anônimo e independente do índice.</div>`;
+
+function relatorioGeral(t) {
+  const R = resumoTri(t), ant = triAnterior(t);
+  const npsG = DD.nps.filter(x => x.trimestre === t && !x.geral);
+  const pdiT = DD.pdi.filter(x => x.trimestre === t);
+  const pes = [...R.pes].sort((a, b) => org(a.avaliado_id).nome.localeCompare(org(b.avaliado_id).nome));
+  imprimir(`Desempenho ${t} · DAEXE`, `
+    ${cabRel(`Relatório de Desempenho · ${esc(t)}`, 'Avaliação de desempenho por competências')}
+    <div class="kpis">
+      <div class="k"><div class="r">Maturidade Organizacional</div><div class="v">${pc(R.mat)}</div></div>
+      <div class="k"><div class="r">Índice de Desempenho médio</div><div class="v">${pc(R.media)}</div></div>
+      <div class="k"><div class="r">NPS de Liderança</div><div class="v">${R.nps ? n1(R.nps.nps) : '—'}</div></div>
+      <div class="k"><div class="r">Avaliados pelo gestor</div><div class="v">${R.comGestor.length}</div></div></div>
+    <h2>Evolução da Maturidade Organizacional</h2>
+    <table><tr>${DD.org.slice().sort((a, b) => porTri(a.trimestre, b.trimestre)).map(o => `<th class="num">${esc(o.trimestre)}</th>`).join('')}</tr>
+      <tr>${DD.org.slice().sort((a, b) => porTri(a.trimestre, b.trimestre)).map(o => `<td class="num"><b>${pc(o.maturidade)}</b></td>`).join('')}</tr></table>
+    <h2>Maturidade por competência</h2>
+    <table><tr><th>Competência</th><th>Aplicação</th><th class="num">N</th><th class="num">Média</th><th>Maturidade</th><th class="num">Nota ≥3</th><th class="num">Nota 4</th>${ant ? `<th class="num">vs ${esc(ant)}</th>` : ''}</tr>
+      ${R.oc.map(x => { const a = ant ? DD.org_comp.find(y => y.trimestre === ant && y.competencia_id === x.competencia_id) : null;
+        return `<tr><td>${esc(comp(x.competencia_id).nome)}</td><td>${comp(x.competencia_id).so_lideres ? 'Líderes' : 'Todos'}</td><td class="num">${x.n}</td><td class="num">${n2(x.media)}</td><td>${barRel(x.maturidade)}</td><td class="num">${pc(x.pct_3)}</td><td class="num">${pc(x.pct_4)}</td>${ant ? `<td class="num">${a ? (x.maturidade - a.maturidade >= 0 ? '+' : '') + n1(x.maturidade - a.maturidade) : '—'}</td>` : ''}</tr>`; }).join('')}</table>
+    <h2>Resultado por Organizador</h2>
+    <table><tr><th>Organizador</th><th>Líder</th><th class="num">Nota auto</th><th class="num">Nota gestor</th><th class="num">Índice auto</th><th class="num">Índice gestor</th><th>Gap auto − gestor</th></tr>
+      ${pes.map(p => `<tr><td>${esc(org(p.avaliado_id).nome)}</td><td>${p.e_lider ? 'Sim' : 'Não'}</td><td class="num">${n2(p.nota_auto)}</td><td class="num">${n2(p.nota_gestor)}</td><td class="num">${pc(p.indice_auto)}</td><td class="num"><b>${pc(p.indice_gestor)}</b></td><td>${gapTxt(p.gap)}</td></tr>`).join('')}</table>
+    <p class="sub">Autoavaliação acima do gestor: ${R.acima} · alinhados (±0,5): ${R.alinhados} · abaixo: ${R.abaixo}</p>
+    <h2>NPS de Liderança</h2>
+    ${R.nps ? `<p>Geral: <b>${n1(R.nps.nps)}</b> (${R.nps.n} respostas: ${R.nps.promotores} promotores, ${R.nps.neutros} neutros, ${R.nps.detratores} detratores)</p>
+      <table><tr><th>Gestor</th><th class="num">Respostas</th><th class="num">NPS</th></tr>${npsG.map(x => `<tr><td>${esc(x.gestor || '—')}</td><td class="num">${x.n}</td><td class="num">${x.visivel ? n1(x.nps) : 'oculto (anonimato)'}</td></tr>`).join('')}</table>` : '<p class="sub">Não medido neste trimestre.</p>'}
+    <h2>Plano de desenvolvimento (PDI) originado em ${esc(t)}</h2>
+    ${pdiT.length ? `<table><tr><th>Organizador</th><th>Competência</th><th>Ação</th><th>Prazo</th><th>Situação</th></tr>${pdiT.map(x => `<tr><td>${esc(org(x.organizador_id).nome)}</td><td>${esc(x.competencia_id ? comp(x.competencia_id).nome : '—')}</td><td>${esc(x.acao || 'a definir')}</td><td>${x.prazo ? esc(x.prazo.split('-').reverse().join('/')) : '—'}</td><td>${STATUS_PDI[x.status]}</td></tr>`).join('')}</table>` : '<p class="sub">Nenhum item.</p>'}
+    ${METODO}`);
+}
+
+function relatorioIndividual(id, t) {
+  const P = dadosPessoa(id, t), o = org(id);
+  imprimir(`Desempenho ${t} · ${o.nome}`, `
+    ${cabRel(`${esc(o.nome)} · ${esc(t)}`, `${esc(P.area)} · gestor: ${esc(P.gestorNome)} · ${P.p && P.p.e_lider ? 'líder' : 'não líder'}`)}
+    <div class="kpis">
+      <div class="k"><div class="r">Índice de Desempenho (gestor)</div><div class="v">${pc(P.p && P.p.indice_gestor)}</div></div>
+      <div class="k"><div class="r">Autopercepção</div><div class="v">${pc(P.p && P.p.indice_auto)}</div></div>
+      <div class="k"><div class="r">Gap auto − gestor</div><div class="v" style="font-size:16px">${gapTxt(P.p && P.p.gap)}</div></div>
+      <div class="k"><div class="r">Nota geral (gestor)</div><div class="v">${n2(P.p && P.p.nota_gestor)}</div></div></div>
+    <h2>Competências</h2>
+    <table><tr><th>Competência</th><th class="num">Auto</th><th class="num">Gestor</th><th>Gap</th><th>Maturidade (gestor)</th></tr>
+      ${P.linhas.map(l => `<tr><td>${esc(l.nome)}</td><td class="num">${n2(l.auto)}</td><td class="num"><b>${n2(l.gestor)}</b></td><td>${gapTxt(l.gap)}</td><td>${barRel(l.mat)}</td></tr>`).join('')}</table>
+    <h2>Evolução</h2>
+    <table><tr><th>Trimestre</th><th class="num">Índice gestor</th><th class="num">Índice auto</th><th>Gap</th></tr>
+      ${P.hist.map(h => `<tr><td>${esc(h.trimestre)}</td><td class="num"><b>${pc(h.indice_gestor)}</b></td><td class="num">${pc(h.indice_auto)}</td><td>${gapTxt(h.gap)}</td></tr>`).join('')}</table>
+    ${P.gest && (P.gest.prioridades.length || P.gest.comentario) ? `<h2>Indicado pelo gestor</h2>
+      ${P.gest.prioridades.length ? `<p>Prioridades de desenvolvimento: <b>${P.gest.prioridades.map(c => esc(comp(c).nome)).join(', ')}</b></p>` : ''}
+      ${P.gest.comentario ? `<p style="white-space:pre-wrap">${esc(P.gest.comentario)}</p>` : ''}` : ''}
+    <h2>PDI</h2>
+    ${P.pdi.length ? `<table><tr><th>Tri.</th><th>Competência</th><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Situação</th></tr>${P.pdi.map(x => `<tr><td>${esc(x.trimestre)}</td><td>${esc(x.competencia_id ? comp(x.competencia_id).nome : '—')}</td><td>${esc(x.acao || 'a definir')}</td><td>${esc(x.responsavel || '—')}</td><td>${x.prazo ? esc(x.prazo.split('-').reverse().join('/')) : '—'}</td><td>${STATUS_PDI[x.status]}</td></tr>`).join('')}</table>` : '<p class="sub">Nenhum item.</p>'}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:46px"><div style="border-top:1px solid #6B7280;padding-top:4px" class="sub">Organizador</div><div style="border-top:1px solid #6B7280;padding-top:4px" class="sub">Gestor</div></div>
+    ${METODO}`);
 }
 
 /* ---------------- ABA: CONFIGURAÇÕES ---------------- */
 function abaConfig() {
   const c = $('#conteudo');
-  const nomes = { url_app:'Endereço da página do módulo', abertura_automatica:'Abertura automática (sim/não)', dias_resposta:'Dias para responder', lembrete_dias:'Lembrete após (dias)', minimo_respostas:'Mínimo de respostas', emails_resultado:'E-mails que recebem o resultado', remetente_nome:'Nome do remetente' };
+  const nomes = { url_app:'Endereço da página do módulo', abertura_automatica:'Abertura automática (sim/não)', dias_resposta:'Dias para responder', lembrete_dias:'Lembrete após (dias)', minimo_respostas:'Mínimo de respostas', emails_resultado:'E-mails que recebem o resultado', remetente_nome:'Nome do remetente', des_abertura_automatica:'Desempenho · abertura automática (sim/não)', des_dias_resposta:'Desempenho · dias para responder', des_lembrete_dias:'Desempenho · lembrete após (dias)' };
   const situacao = e => e.enviado ? `<span class="tag ok">Enviado ${esc(e.enviado)}</span>`
     : e.erro ? `<span class="tag critico" title="${esc(e.erro)}">Erro (${e.tentativas}×)</span>`
     : '<span class="tag neutro">Na fila</span>';
   c.innerHTML = `
-    <h1>Configurações</h1><p class="sub">Parâmetros da rotina automática</p>
+    <h1>Configurações</h1><p class="sub">Parâmetros da rotina automática (Cultura e Desempenho)</p>
     <div class="grade g2">
       <div class="card"><h2>Rotina</h2>
         ${D.config.map(x => `<label class="campo">${esc(nomes[x.chave] || x.chave)}

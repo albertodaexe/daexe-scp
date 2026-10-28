@@ -119,3 +119,16 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   - Configurações: validação dos parâmetros e fila/histórico de e-mails (tentar de novo, reenviar, excluir).
   - E-mail do convite: corrigido "a a" e "perguntas" → "afirmativas".
 - Supabase: email_fila.ciclo_id (+ trigger), funções gpp_admin_* novas/atualizadas (supabase/gpp_08b_exclusoes.sql precisa ser executado no SQL Editor).
+
+## v45 — 28/10/2026
+- Cultura & Desempenho (`/gpp/`): **Gestão do Desempenho** dentro do sistema (aba Desempenho).
+  - Visão geral: Maturidade Organizacional, Índice de Desempenho médio, NPS de Liderança, evolução por trimestre, maturidade por competência, gaps auto × gestor e NPS por gestor (oculto abaixo do mínimo de respostas).
+  - Por Organizador: índices auto e gestor, gap, comparação por competência, evolução, notas, prioridades e comentário do gestor, PDI; lançamento/edição manual de avaliações.
+  - Ciclos: abertura com escolha dos participantes e validação do cadastro, link pessoal por e-mail (`/gpp/?d=<token>`) com autoavaliação + avaliação dos liderados, incluir/remover pessoas, reenviar link, lembrete, editar prazo, reabrir, encerrar, excluir.
+  - Matriz de competências por trimestre (texto congelado; travada após a 1ª resposta) e biblioteca do Mapa de Competências DAEXE V0_2026.
+  - PDI: prioridades indicadas pelo gestor viram itens "a definir" no encerramento; CRUD com responsável, prazo e situação.
+  - Relatórios para PDF (trimestre e individual).
+  - Cálculo igual às planilhas: índice = nota ÷ 3; maturidade = (média − 1) ÷ 2; competências estratégicas só para líderes; NPS anônimo.
+- Automação: abertura no último dia útil do trimestre, lembrete, encerramento com apuração, PDI e e-mail de resultado; rotina diária isolada por módulo, com e-mail de aviso se algo falhar.
+- Histórico 1T, 2T e 3T/26 importado das planilhas (conferido: maturidade 73,6% / 83,8% / 90,3%; NPS 3T 80).
+- Supabase: `gpp_09a` a `gpp_09c` aplicados; **`supabase/gpp_09d_desempenho_exclusoes.sql` precisa ser executado no SQL Editor** (exclusões).
