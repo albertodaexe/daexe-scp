@@ -138,3 +138,12 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - O próprio usuário não consegue se dar esse acesso (trigger protect_profile_fields).
 - Módulo `/gpp/`: mensagens de acesso e textos atualizados (Cangolo no lugar de SisPlano).
 - Supabase: profiles.gpp_acesso e gpp.e_admin() considerando o novo campo (supabase/gpp_10_acesso_por_usuario.sql, já aplicado).
+
+## v47 — 29/10/2026
+- Revisão dos filtros de período, departamento e responsável:
+  - **Painel de Metas:** o filtro de trimestre agora vale em todos os modos (antes só filtrava as colunas no modo semanal e mostrava metas de outros trimestres). Mostra o período de cada meta; células fora do período ficam hachuradas e não contam no total; ⚠️ indica lançamentos fora do período da meta. Total = período da meta dentro do trimestre. Inclui metas sem objetivo. Botão "Limpar filtros". Carrega todos os lançamentos (antes havia limite de 1000 linhas).
+  - **Preenchimento de Metas:** filtros de ano e trimestre na lista de metas, período da meta na lista, só as semanas do período aparecem e podem ser preenchidas; acumulado do período da meta; aviso de lançamentos fora do período.
+  - **Iniciativas:** novos filtros (busca, ano, trimestre, departamento, responsável e situação: em aberto, prazo vencido, concluídas).
+  - **Departamento** (Painel de Metas, Objetivos & Metas, Mapa BSC, Plano Estratégico consolidado): inclui as metas ligadas a setores do departamento.
+  - **Mapa BSC / Plano consolidado:** com trimestre "Todos", o % considera só o período da meta.
+  - **Painel inicial:** lista só metas do ano, com o período; Excel exporta todos os lançamentos semanais.
