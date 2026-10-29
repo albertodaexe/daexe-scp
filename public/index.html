@@ -1257,8 +1257,8 @@ const App = (() => {
     { sec:'Orçamento' },
     { id:'orcamento', label:'Orçamento', ico:'💰' },
     { id:'orcvisao', label:'Visão Geral do Orçamento', ico:'📊' },
-    { sec:'Pessoas', role:'admin', org:1 },
-    { id:'gpp', label:'Cultura & Desempenho', ico:'🧭', role:'admin', org:1, href:'gpp/' },
+    { sec:'Pessoas', org:1, gpp:true },
+    { id:'gpp', label:'Cultura & Desempenho', ico:'🧭', org:1, gpp:true, href:'gpp/' },
     { sec:'Administração', role:'manager' },
     { id:'usuarios', label:'Usuários & Acessos', ico:'👥', role:'manager' },
     { id:'gestao', label:'Relatórios e Gestão', ico:'📤', role:'admin' },
@@ -1268,11 +1268,14 @@ const App = (() => {
     { id:'perfil', label:'Meu Perfil', ico:'👤' },
     { id:'feedback', label:'Feedback', ico:'💬' }
   ];
+  // Acesso ao módulo Cultura & Desempenho: administradores da DAEXE sempre; demais, se marcado em Usuários & Acessos
+  function temGpp(){ return !!me && Number(me.org_id)===1 && me.active!==false && (me.role==='admin' || !!me.gpp_acesso); }
   function renderNav(){
     const nav=document.getElementById('nav'); nav.innerHTML='';
     NAV.forEach(n=>{
       if(n.role && !can(n.role)) return;
       if(n.org && (!me || Number(me.org_id)!==n.org)) return;
+      if(n.gpp && !temGpp()) return;
       if(n.sec){ const s=document.createElement('div'); s.className='nav-section'; s.textContent=n.sec; nav.appendChild(s); return; }
       const d=document.createElement('div'); d.className='nav-item'; d.dataset.id=n.id;
       d.innerHTML=`<span class="ico">${n.ico}</span><span>${n.label}</span>${n.href?'<span style="margin-left:auto;opacity:.6;font-size:11px">↗</span>':''}`;
@@ -2724,9 +2727,13 @@ const App = (() => {
   VIEWS.usuarios = async (v) => {
     const [users, depts] = await Promise.all([tList('profiles','role'), tList('departments','ord')]);
     const dn=(id)=>{ const d=depts.find(x=>x.id===id); return d?d.name:'—'; };
+    const gppOrg = Number(me.org_id)===1;
+    const gppCel=(u)=> u.role==='admin' ? '<span class="pill pill-green" title="Administradores têm acesso sempre">Sim (admin)</span>'
+      : u.gpp_acesso ? '<span class="pill pill-green">Sim</span>' : '<span class="pill pill-gray">Não</span>';
     v.innerHTML=`<div class="section-head"><h3>Usuários & Controle de Acesso</h3></div>
-      <div class="card"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Departamento</th><th>Status</th>${can('admin')?'<th></th>':''}</tr></thead><tbody>
+      <div class="card"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Departamento</th>${gppOrg?'<th>Cultura & Desempenho</th>':''}<th>Status</th>${can('admin')?'<th></th>':''}</tr></thead><tbody>
       ${users.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.email)}</td><td><span class="pill pill-blue">${ROLE_LABEL[u.role]||u.role}</span></td><td>${esc(dn(u.department_id))}</td>
+        ${gppOrg?`<td>${gppCel(u)}</td>`:''}
         <td>${u.active?'<span class="pill pill-green">Ativo</span>':'<span class="pill pill-gray">Inativo</span>'}</td>
         ${can('admin')?`<td><div class="inline-actions"><button class="btn btn-light btn-sm" onclick='App.editUser(${JSON.stringify(u)})'>Editar</button></div></td>`:''}</tr>`).join('')}
       </tbody></table></div>
@@ -2735,6 +2742,7 @@ const App = (() => {
         <tr><td><b>Gestor</b></td><td>Cria/edita objetivos, metas, departamentos, valores; acompanha indicadores</td></tr>
         <tr><td><b>Colaborador</b></td><td>Insere e atualiza SWOT, iniciativas e desempenho</td></tr>
         <tr><td><b>Visualizador</b></td><td>Apenas consulta painéis e relatórios</td></tr>
+        ${gppOrg?'<tr><td><b>Cultura & Desempenho</b></td><td>Acesso ao módulo de Gestão para Pessoas (OCAI, avaliação de desempenho e PDI), com todos os resultados individuais. Administradores têm sempre; para outros papéis, marque "Sim" em Editar.</td></tr>':''}
       </tbody></table></div>
       ${can('admin')?`<div class="card"><div class="section-head"><h3>Convidar nova pessoa</h3></div>
         <p class="desc">A pessoa cria a conta na tela de login (botão abaixo) ou você cadastra o e-mail/senha aqui. Depois defina o papel dela na tabela acima.</p>
@@ -2749,10 +2757,16 @@ const App = (() => {
       modal('Editar usuário', form([f.text('us-name','Nome',u.name),
         `<div class="field-row">${f.sel('us-role','Papel',roles,u.role)}${f.sel('us-dep','Departamento',dopts,u.department_id)}</div>`,
         f.sel('us-active','Status',[{v:'true',t:'Ativo'},{v:'false',t:'Inativo'}],String(u.active)),
+        Number(me.org_id)===1 ? f.sel('us-gpp','Acesso ao módulo Cultura & Desempenho',[{v:'false',t:'Não'},{v:'true',t:'Sim'}],String(!!u.gpp_acesso))
+          + '<p class="desc" style="margin-top:-6px">Administradores têm acesso sempre, mesmo com "Não". O módulo mostra resultados individuais de desempenho.</p>' : '',
         `<button class="btn btn-primary btn-block" onclick="App.saveUser('${u.id}')">Salvar</button>`]));
     });
   };
-  App_saveUser = async (id) => { try{ await tUpdate('profiles',id,{name:val('us-name'),role:val('us-role'),department_id:+val('us-dep')||null,active:val('us-active')==='true'});}catch(e){return toast(e.message);} closeModal(); toast('Salvo'); go('usuarios'); };
+  App_saveUser = async (id) => { const row={name:val('us-name'),role:val('us-role'),department_id:+val('us-dep')||null,active:val('us-active')==='true'};
+    if(document.getElementById('us-gpp')) row.gpp_acesso = val('us-gpp')==='true';
+    try{ await tUpdate('profiles',id,row);}catch(e){return toast(e.message);}
+    if(id===me.id){ Object.assign(me,row); renderNav(); }
+    closeModal(); toast('Salvo'); go('usuarios'); };
   App_inviteUser = () => modal('Cadastrar pessoa', form([
     `<p class="desc">Cria o acesso com e-mail e senha. A pessoa entra e você define o papel dela na lista.</p>`,
     f.text('iv-name','Nome','','type=text'), f.text('iv-email','E-mail','','type=email'), f.text('iv-pass','Senha provisória','','type=text'),

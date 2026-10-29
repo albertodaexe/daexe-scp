@@ -426,7 +426,7 @@ let triSel = null;
 async function iniciarPainel() {
   document.title = 'Cultura & Desempenho · DAEXE';
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) return telaAcesso('Entre no SisPlano com o seu usuário de administrador e abra o módulo pelo menu.');
+  if (!session) return telaAcesso('Entre no Cangolo com o seu usuário e abra o módulo pelo menu.');
   await carregar();
 }
 
@@ -435,9 +435,9 @@ function telaAcesso(msg) {
     <div class="centro">
       <div class="card" style="padding:28px">
         <div style="font-weight:700;color:var(--marca);font-size:18px">Cultura & Desempenho</div>
-        <p class="sub" style="margin-top:4px">Módulo de Gestão para Pessoas do SisPlano DAEXE</p>
+        <p class="sub" style="margin-top:4px">Módulo de Gestão para Pessoas do Cangolo</p>
         <div class="aviso info">${esc(msg)}</div>
-        <a class="btn" href="${SISPLANO}" style="display:block;text-align:center;text-decoration:none">Ir para o SisPlano</a>
+        <a class="btn" href="${SISPLANO}" style="display:block;text-align:center;text-decoration:none">Ir para o Cangolo</a>
       </div>
     </div>`;
 }
@@ -446,7 +446,7 @@ async function carregar() {
   const { data, error } = await sb.rpc('gpp_admin_painel');
   if (error) {
     if (String(error.code) === '42501' || /restrito/i.test(error.message)) {
-      return telaAcesso('Este módulo é exclusivo para administradores da DAEXE no SisPlano.');
+      return telaAcesso('Você não tem acesso a este módulo. Peça a um administrador para liberar em Usuários & Acessos no Cangolo.');
     }
     app.innerHTML = `<main><div class="aviso erro">Erro ao carregar: ${esc(msgErro(error))}</div></main>`;
     return;
@@ -462,7 +462,7 @@ function desenhar() {
     <div class="topo"><div class="in">
       <span class="marca">Cultura & Desempenho<small>DAEXE · Gestão para Pessoas</small></span>
       <nav class="abas">${abas.map(([k, t]) => `<button data-aba="${k}" class="${aba === k ? 'ativa' : ''}">${t}</button>`).join('')}</nav>
-      <a class="sair" href="${SISPLANO}" title="${esc(D.eu)}" style="text-decoration:none">← Voltar ao SisPlano</a>
+      <a class="sair" href="${SISPLANO}" title="${esc(D.eu)}" style="text-decoration:none">← Voltar ao Cangolo</a>
     </div></div>
     <main id="conteudo"></main>`;
   app.querySelectorAll('[data-aba]').forEach(b => b.onclick = () => { aba = b.dataset.aba; desenhar(); });
@@ -1549,7 +1549,7 @@ function abaConfig() {
       </div>
       <div>
         <div class="card"><h2>Quem acessa</h2>
-          <p style="margin:0">Administradores da DAEXE no SisPlano. Para dar ou tirar acesso, altere o papel da pessoa em <b>Usuários & Acessos</b> no SisPlano.</p></div>
+          <p style="margin:0">Administradores da DAEXE têm acesso sempre. Para liberar outras pessoas, edite o usuário em <b>Usuários & Acessos</b> no Cangolo e marque "Acesso ao módulo Cultura & Desempenho: Sim".</p></div>
         <div class="card"><h2>Envio de e-mails</h2>
           <p style="margin:0">${D.emails_pendentes ? `${D.emails_pendentes} e-mail(s) na fila.` : 'Nenhum e-mail na fila.'} ${D.emails_com_erro ? `<span class="tag critico">${D.emails_com_erro} com erro</span>` : '<span class="tag ok">✓ Sem erros</span>'}</p>
           <p class="sub" style="margin:8px 0 0">A fila é enviada a cada 5 minutos pela conta organiza@daexe.com.br.</p></div>

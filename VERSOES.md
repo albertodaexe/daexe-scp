@@ -132,3 +132,9 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - Automação: abertura no último dia útil do trimestre, lembrete, encerramento com apuração, PDI e e-mail de resultado; rotina diária isolada por módulo, com e-mail de aviso se algo falhar.
 - Histórico 1T, 2T e 3T/26 importado das planilhas (conferido: maturidade 73,6% / 83,8% / 90,3%; NPS 3T 80).
 - Supabase: `gpp_09a` a `gpp_09c` aplicados; **`supabase/gpp_09d_desempenho_exclusoes.sql` precisa ser executado no SQL Editor** (exclusões).
+
+## v46 — 29/10/2026
+- Usuários & Acessos (Daexe): nova coluna e campo "Acesso ao módulo Cultura & Desempenho" (Sim/Não) para qualquer papel. Administradores continuam com acesso sempre. O item do menu aparece para quem tem acesso.
+- O próprio usuário não consegue se dar esse acesso (trigger protect_profile_fields).
+- Módulo `/gpp/`: mensagens de acesso e textos atualizados (Cangolo no lugar de SisPlano).
+- Supabase: profiles.gpp_acesso e gpp.e_admin() considerando o novo campo (supabase/gpp_10_acesso_por_usuario.sql, já aplicado).
