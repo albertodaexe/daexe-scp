@@ -147,3 +147,10 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   - **Departamento** (Painel de Metas, Objetivos & Metas, Mapa BSC, Plano Estratégico consolidado): inclui as metas ligadas a setores do departamento.
   - **Mapa BSC / Plano consolidado:** com trimestre "Todos", o % considera só o período da meta.
   - **Painel inicial:** lista só metas do ano, com o período; Excel exporta todos os lançamentos semanais.
+
+## v48 — 30/10/2026
+- Apresentação v2 (página de testes da RAS):
+  - Sem slide de abertura: começa direto pelos setores.
+  - Ordem fixa na Daexe: Sucesso do Cliente e Projetos → Gestão para Pessoas → Gestão para Clientes → Administrativo e Financeiro → Licitação e Contratos. TIQ e Diretoria não entram. Os 5 setores aparecem mesmo sem metas/ações na semana. Outras empresas seguem a ordem do cadastro.
+  - Tempos: 5 min por setor, Diretor 2 min, Encaminhamentos 2 min, Votação 1 min, Ranking 2 min. Relógio total = soma dos blocos (32 min).
+  - Votação passou para um bloco próprio no final, antes do Ranking (com o resumo da semana).

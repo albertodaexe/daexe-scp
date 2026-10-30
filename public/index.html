@@ -3697,15 +3697,20 @@ const App = (() => {
         return { a, ini, r, st, late, dep, issue, hist:wNums.map(w=>{ const x=awOf(a.id,w); return { w, s:x?x.status:null }; }) };
       });
       // ----- departamentos e roteiro
-      const D=depts.map(d=>({ d, goals:gInfo.filter(x=>x.deps.includes(d.id)), acts:aInfo.filter(x=>x.dep===d.id) })).filter(x=>x.goals.length||x.acts.length);
-      const semDep={ d:{id:0,name:'Geral (sem departamento)'}, goals:gInfo.filter(x=>!x.deps.length), acts:aInfo.filter(x=>!x.dep) };
-      if(semDep.goals.length||semDep.acts.length) D.push(semDep);
-      const per=D.length? Math.max(2, Math.round(18/D.length*2)/2) : 3;
-      const slides=[{k:'open', t:'Abertura e votação', min:1}].concat(D.map(x=>({k:'dep', t:x.d.name, min:per, D:x})), [{k:'dir', t:'Diretor', min:7}, {k:'enc', t:'Encaminhamentos', min:2}, {k:'rank', t:'Ranking', min:2}]);
+      // v48: ordem fixa dos setores na Daexe (TIQ fica de fora por enquanto); outras empresas seguem a ordem do cadastro
+      const nrm=(t)=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+      const ORDEM_DAEXE=['sucesso do cliente','gestao para pessoas','gestao para clientes','administrativo','licitac'];
+      const depList = Number(me.org_id)===1
+        ? ORDEM_DAEXE.map(k=>depts.find(d=>nrm(d.name).startsWith(k))).filter(Boolean)
+        : depts.filter(d=>!/^diretoria/.test(nrm(d.name)));
+      const D=depList.map(d=>({ d, goals:gInfo.filter(x=>x.deps.includes(d.id)), acts:aInfo.filter(x=>x.dep===d.id) }))
+        .filter(x=> Number(me.org_id)===1 || x.goals.length || x.acts.length);
+      const slides=D.map(x=>({k:'dep', t:x.d.name, min:5, D:x})).concat([{k:'dir', t:'Diretor', min:2}, {k:'enc', t:'Encaminhamentos', min:2}, {k:'vote', t:'Votação', min:1}, {k:'rank', t:'Ranking', min:2}]);
       const prev=window.__p2||{};
       window.__p2={ year, week, qW, wk, wNums, slides, D, gInfo, aInfo, profs, nameOf, raw:{ inis, acts, goals:G, asg, aw, gw, gDeps, gSecs, depts, secs, w0, w1 }, rkMode:prev.rkMode||'semana', sessions:keepIdx&&prev.year===year?prev.sessions:[], votes:keepIdx&&prev.year===year?prev.votes:[],
         i: keepIdx ? Math.min(prev.i||0, slides.length-1) : 0, ex: prev.ex!==false,
         t0: keepIdx&&prev.t0 ? prev.t0 : Date.now(), spent: keepIdx&&prev.spent ? prev.spent : {}, ss: Date.now() };
+      window.__p2.total=slides.reduce((a,x)=>a+x.min,0)*60;
       p2Render(); p2LoadVotes();
       if(!window.__p2key){ window.__p2key=true; document.addEventListener('keydown', e=>{ const o=document.getElementById('pres2'); if(!o||o.classList.contains('hidden')) return; if(['INPUT','SELECT','TEXTAREA'].includes((e.target||{}).tagName)) return; if(e.key==='ArrowRight'||e.key==='PageDown'){ e.preventDefault(); App_pres2Go((window.__p2.i||0)+1); } if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); App_pres2Go((window.__p2.i||0)-1); } }); }
       clearInterval(window.__p2tick); window.__p2tick=setInterval(p2Tick, 1000);
@@ -3714,7 +3719,7 @@ const App = (() => {
   const p2mmss=(s)=>{ const neg=s<0; s=Math.abs(Math.round(s)); return (neg?'+':'')+Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
   function p2Tick(){
     const P=window.__p2; if(!P) return; const o=document.getElementById('pres2'); if(!o||o.classList.contains('hidden')){ clearInterval(window.__p2tick); return; }
-    const el=(Date.now()-P.t0)/1000; const c=document.getElementById('p2-clock'); if(c){ c.textContent=p2mmss(el)+' / 30:00'; c.className='p2-clock'+(el>1800?' over':el>1500?' warn':''); }
+    const el=(Date.now()-P.t0)/1000; const c=document.getElementById('p2-clock'); if(c){ const T=P.total||1800; c.textContent=p2mmss(el)+' / '+p2mmss(T); c.className='p2-clock'+(el>T?' over':el>T-300?' warn':''); }
     const s=P.slides[P.i]; const used=(P.spent[P.i]||0)+(Date.now()-P.ss)/1000; const left=s.min*60-used;
     const t=document.getElementById('p2-slide'); if(t){ t.textContent=left>=0?p2mmss(left):'⚠ '+p2mmss(left); t.className='p2-timer'+(left<0?' over':left<30?' warn':''); }
     p2VoteUi();
@@ -3753,11 +3758,11 @@ const App = (() => {
   function p2Render(){
     const P=window.__p2; const s=P.slides[P.i]; const ov=document.getElementById('pres2');
     const wPrev=P.week>1?P.week-1:null, wNext=P.week<weeksOfYear(P.year).length?P.week+1:null;
-    const agenda=P.slides.map((x,k)=>`<button class="${k===P.i?'on':''}${k<P.i?' done':''}" onclick="App.pres2Go(${k})" title="${esc(x.t)} · ${x.min} min">${x.k==='open'?'▶':x.k==='dir'?'★':x.k==='enc'?'✓':x.k==='rank'?'🏆':k}<span>${esc(x.t)}</span><small>${x.min}′</small></button>`).join('');
+    const agenda=P.slides.map((x,k)=>`<button class="${k===P.i?'on':''}${k<P.i?' done':''}" onclick="App.pres2Go(${k})" title="${esc(x.t)} · ${x.min} min">${x.k==='vote'?'🗳️':x.k==='dir'?'★':x.k==='enc'?'✓':x.k==='rank'?'🏆':k+1}<span>${esc(x.t)}</span><small>${x.min}′</small></button>`).join('');
     let body='';
-    if(s.k==='open'){
+    if(s.k==='vote'){
       const all=p2Stats(P.gInfo, P.aInfo);
-      body=`<div class="p2-hero"><div><span class="p2-kick">Reunião de avanço semanal</span><h2>Semana ${P.week}${P.wk.start?` · ${dm(P.wk.start)} a ${dm(P.wk.end)}`:''}</h2><p>T${P.qW} ${P.year} · ${P.D.length} departamento(s) · ${P.gInfo.length} metas · ${P.aInfo.length} ações em aberto</p></div>${p2Ring(all.pOk,96)}</div>
+      body=`<div class="p2-hero"><div><span class="p2-kick">Votação da semana · ${s.min} min</span><h2>Semana ${P.week}${P.wk.start?` · ${dm(P.wk.start)} a ${dm(P.wk.end)}`:''}</h2><p>T${P.qW} ${P.year} · ${P.D.length} departamento(s) · ${P.gInfo.length} metas · ${P.aInfo.length} ações em aberto</p></div>${p2Ring(all.pOk,96)}</div>
         ${p2VoteBox(P)}
         <div class="p2-kpis">
           <div style="--c:#1F3A5F"><b>${all.inf}/${all.n}</b><span>metas com lançamento</span></div>
@@ -3765,10 +3770,7 @@ const App = (() => {
           <div style="--c:#d9534f"><b>${all.low}</b><span>metas abaixo da meta</span></div>
           <div style="--c:#2E8BC0"><b>${all.upd}/${all.na}</b><span>ações atualizadas</span></div>
           <div style="--c:#e6a817"><b>${all.late}</b><span>ações atrasadas</span></div></div>
-        <h3 class="p2-h3">Departamentos — clique para abrir</h3>
-        <div class="p2-tiles">${P.D.map((x,k)=>{ const st=p2Stats(x.goals, x.acts); return `<div class="p2-tile" onclick="App.pres2Go(${k+1})">${p2Ring(st.pOk,58)}<div><b>${esc(x.d.name)}</b>
-            <span><i style="background:#2e9e6b"></i>${st.ok} no verde · <i style="background:#d9534f"></i>${st.low} abaixo · <i style="background:#c7d0db"></i>${st.none} sem info</span>
-            <span>Ações: ${st.upd}/${st.na} atualizadas${st.late?` · <b style="color:#d9534f">${st.late} atrasada(s)</b>`:''}</span></div><small>${P.slides[k+1].min}′</small></div>`; }).join('')||'<div class="empty">Nenhum departamento com metas ou ações neste trimestre.</div>'}</div>`;
+`;
     } else if(s.k==='dep'){
       const x=s.D; const st=p2Stats(x.goals, x.acts);
       const ord={low:0,none:1,ok:2}; const gs=x.goals.slice().sort((a,b)=>ord[a.cat]-ord[b.cat] || (a.p==null?1:0)-(b.p==null?1:0) || (a.p||0)-(b.p||0));
@@ -3776,7 +3778,7 @@ const App = (() => {
       const as=x.acts.slice().sort((a,b)=>(b.late?1:0)-(a.late?1:0) || (b.issue?1:0)-(a.issue?1:0));
       const aShow=P.ex?as.filter(y=>y.issue):as, aOk=P.ex?as.filter(y=>!y.issue):[];
       const byIni={}; aShow.forEach(y=>{ (byIni[y.ini.id||0]=byIni[y.ini.id||0]||{ini:y.ini,L:[]}).L.push(y); });
-      body=`<div class="p2-dep-h">${p2Ring(st.pOk,64)}<div><span class="p2-kick">Departamento ${P.i} de ${P.D.length}</span><h2>${esc(x.d.name)}</h2>
+      body=`<div class="p2-dep-h">${p2Ring(st.pOk,64)}<div><span class="p2-kick">Setor ${P.i+1} de ${P.D.length} · ${s.min} min</span><h2>${esc(x.d.name)}</h2>
           <p><span class="p2-chip g">${st.ok} meta(s) no verde</span><span class="p2-chip r">${st.low} abaixo</span><span class="p2-chip n">${st.none} sem informação</span><span class="p2-chip b">${st.upd}/${st.na} ações atualizadas</span>${st.late?`<span class="p2-chip r">${st.late} ação(ões) atrasada(s)</span>`:''}</p></div></div>
         <div class="p2-cols">
           <section><h3 class="p2-h3">🚀 Ações das iniciativas${P.ex?' <small>— atrasadas, com impeditivo ou sem atualização</small>':''}</h3>
@@ -3807,7 +3809,7 @@ const App = (() => {
         <div class="p2-enc">${Object.keys(byP).sort((a,b)=>P.nameOf(a).localeCompare(P.nameOf(b))).map(pid=>`<div class="p2-encp"><h4>👤 ${esc(P.nameOf(pid))} <small>${byP[pid].length}</small></h4>${byP[pid].map(it=>`<div class="p2-enci${it.late?' late':''}"><b>${esc(it.txt)}</b><span>${esc(it.orig.length>90?it.orig.slice(0,89)+'…':it.orig)}${dn(it.dep)?' · '+esc(dn(it.dep)):''}</span></div>`).join('')}</div>`).join('')||'<div class="p2-empty">Nenhum compromisso registrado nesta semana.</div>'}</div>`;
     }
     ov.innerHTML=`<div class="p2-bar"><div class="p2-title"><span class="pres-tag">RAS v2 · TESTES</span><b>Reunião da semana ${P.week}</b><span class="pres-sub">${P.wk.start?dm(P.wk.start)+' a '+dm(P.wk.end)+' · ':''}T${P.qW} ${P.year}${me.org_name?' · '+esc(me.org_name):''}</span></div>
-        <div class="p2-time"><span id="p2-clock" class="p2-clock" title="Tempo total da reunião (clique para zerar)" onclick="App.pres2Reset()">0:00 / 30:00</span><span id="p2-slide" class="p2-timer" title="Tempo restante deste bloco">—</span><span id="p2-vote" class="p2-vote" style="display:none"></span></div>
+        <div class="p2-time"><span id="p2-clock" class="p2-clock" title="Tempo total da reunião (clique para zerar)" onclick="App.pres2Reset()">0:00 / ${p2mmss(P.total||1800)}</span><span id="p2-slide" class="p2-timer" title="Tempo restante deste bloco">—</span><span id="p2-vote" class="p2-vote" style="display:none"></span></div>
         <div class="pres-ctl"><button onclick="App.pres2Ex()" class="${P.ex?'on':''}" title="Mostrar só o que precisa de atenção">${P.ex?'◉ Só exceções':'○ Mostrar tudo'}</button><button onclick="App.pres2Open(${P.year},${wPrev})" ${wPrev?'':'disabled'}>◂ S${wPrev||''}</button><button onclick="App.pres2Open(${P.year},${wNext})" ${wNext?'':'disabled'}>S${wNext||''} ▸</button><button class="pres-x" onclick="App.pres2Close()" title="Fechar">✕</button></div></div>
       <div class="p2-agenda">${agenda}</div>
       <div class="p2-body">${body}</div>
@@ -3868,7 +3870,7 @@ const App = (() => {
       const open=P.sessions.filter(x=>x.week===P.week && new Date(x.closes_at)>new Date()).sort((a,b)=>String(b.opened_at||'').localeCompare(String(a.opened_at||'')))[0]||null;
       const wasOpen=!!P.vs; P.vs=open;
       const cur=P.slides[P.i]||{};
-      if(cur.k==='rank' || (cur.k==='open' && (wasOpen!==!!open || !document.getElementById('p2-vbox')))) p2Render();
+      if(cur.k==='rank' || (cur.k==='vote' && (wasOpen!==!!open || !document.getElementById('p2-vbox')))) p2Render();
       else p2VoteUi();
     }catch(e){}
   }
