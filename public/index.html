@@ -500,6 +500,13 @@ body.nav-collapsed .content{margin-left:0}
 .p2-time{display:flex;gap:10px;align-items:center}
 .p2-clock{font-variant-numeric:tabular-nums;background:rgba(255,255,255,.12);border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:14px}
 .p2-timer{font-variant-numeric:tabular-nums;background:#2e9e6b;border-radius:8px;padding:6px 14px;font-weight:800;font-size:18px;min-width:78px;text-align:center}
+.p2-flash{position:fixed;top:118px;left:50%;transform:translate(-50%,-20px);background:#e6a817;color:#1b1b1b;font-weight:800;font-size:22px;padding:12px 26px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:all .3s;z-index:3}
+.p2-flash.on{opacity:1;transform:translate(-50%,0)}
+#p2-esgot{position:absolute;inset:0;background:rgba(150,20,20,.82);display:flex;align-items:center;justify-content:center;z-index:5;animation:p2pulse 1s ease-in-out 3}
+@keyframes p2pulse{0%,100%{background:rgba(150,20,20,.82)}50%{background:rgba(217,83,79,.95)}}
+.p2-esgot-c{background:#fff;border-radius:18px;padding:36px 48px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:560px}
+.p2-esgot-i{font-size:64px;line-height:1}.p2-esgot-c h2{font-size:40px;color:#b3261e;margin:10px 0 4px}.p2-esgot-c p{font-size:18px;color:#4b5563;margin:0 0 22px}
+.p2-esgot-b{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .p2-clock.warn,.p2-timer.warn{background:#e6a817;color:#1b1b1b}.p2-clock.over,.p2-timer.over{background:#d9534f;color:#fff}
 .p2-bar .pres-ctl button.on{background:var(--gold);color:#1b1b1b;border-color:var(--gold)}
 .p2-agenda{display:flex;gap:6px;padding:10px 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
@@ -3705,11 +3712,12 @@ const App = (() => {
         : depts.filter(d=>!/^diretoria/.test(nrm(d.name)));
       const D=depList.map(d=>({ d, goals:gInfo.filter(x=>x.deps.includes(d.id)), acts:aInfo.filter(x=>x.dep===d.id) }))
         .filter(x=> Number(me.org_id)===1 || x.goals.length || x.acts.length);
-      const slides=D.map(x=>({k:'dep', t:x.d.name, min:5, D:x})).concat([{k:'dir', t:'Diretor', min:2}, {k:'enc', t:'Encaminhamentos', min:2}, {k:'vote', t:'Votação', min:1}, {k:'rank', t:'Ranking', min:2}]);
+      const slides=D.map(x=>({k:'dep', t:x.d.name, min:5, D:x})).concat([{k:'dir', t:'Diretor e encaminhamentos', min:3}, {k:'vote', t:'Votação', min:1}, {k:'rank', t:'Ranking', min:1}]);
       const prev=window.__p2||{};
       window.__p2={ year, week, qW, wk, wNums, slides, D, gInfo, aInfo, profs, nameOf, raw:{ inis, acts, goals:G, asg, aw, gw, gDeps, gSecs, depts, secs, w0, w1 }, rkMode:prev.rkMode||'semana', sessions:keepIdx&&prev.year===year?prev.sessions:[], votes:keepIdx&&prev.year===year?prev.votes:[],
         i: keepIdx ? Math.min(prev.i||0, slides.length-1) : 0, ex: prev.ex!==false,
-        t0: keepIdx&&prev.t0 ? prev.t0 : Date.now(), spent: keepIdx&&prev.spent ? prev.spent : {}, ss: Date.now() };
+        t0: keepIdx&&prev.t0 ? prev.t0 : Date.now(), spent: keepIdx&&prev.spent ? prev.spent : {}, ss: Date.now(), alerts: keepIdx&&prev.alerts ? prev.alerts : {}, som: prev.som!==false };
+      p2Audio();
       window.__p2.total=slides.reduce((a,x)=>a+x.min,0)*60;
       p2Render(); p2LoadVotes();
       if(!window.__p2key){ window.__p2key=true; document.addEventListener('keydown', e=>{ const o=document.getElementById('pres2'); if(!o||o.classList.contains('hidden')) return; if(['INPUT','SELECT','TEXTAREA'].includes((e.target||{}).tagName)) return; if(e.key==='ArrowRight'||e.key==='PageDown'){ e.preventDefault(); App_pres2Go((window.__p2.i||0)+1); } if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); App_pres2Go((window.__p2.i||0)-1); } }); }
@@ -3721,12 +3729,13 @@ const App = (() => {
     const P=window.__p2; if(!P) return; const o=document.getElementById('pres2'); if(!o||o.classList.contains('hidden')){ clearInterval(window.__p2tick); return; }
     const el=(Date.now()-P.t0)/1000; const c=document.getElementById('p2-clock'); if(c){ const T=P.total||1800; c.textContent=p2mmss(el)+' / '+p2mmss(T); c.className='p2-clock'+(el>T?' over':el>T-300?' warn':''); }
     const s=P.slides[P.i]; const used=(P.spent[P.i]||0)+(Date.now()-P.ss)/1000; const left=s.min*60-used;
-    const t=document.getElementById('p2-slide'); if(t){ t.textContent=left>=0?p2mmss(left):'⚠ '+p2mmss(left); t.className='p2-timer'+(left<0?' over':left<30?' warn':''); }
+    const t=document.getElementById('p2-slide'); if(t){ t.textContent=left>=0?p2mmss(left):'⚠ '+p2mmss(left); t.className='p2-timer'+(left<0?' over':left<=60?' warn':''); }
+    if(s.k==='dep') p2Alertas(P, s, left);
     p2VoteUi();
   }
-  App_pres2Go = (i) => { const P=window.__p2; if(!P) return; i=Math.max(0,Math.min(P.slides.length-1,i)); if(i===P.i) return; P.spent[P.i]=(P.spent[P.i]||0)+(Date.now()-P.ss)/1000; P.i=i; P.ss=Date.now(); p2Render(); if(P.slides[i].k==='rank') p2LoadVotes(); };
+  App_pres2Go = (i) => { const P=window.__p2; if(!P) return; i=Math.max(0,Math.min(P.slides.length-1,i)); if(i===P.i) return; const em=document.getElementById('p2-esgot'); if(em) em.remove(); p2Audio(); P.spent[P.i]=(P.spent[P.i]||0)+(Date.now()-P.ss)/1000; P.i=i; P.ss=Date.now(); p2Render(); if(P.slides[i].k==='rank') p2LoadVotes(); };
   App_pres2Ex = () => { const P=window.__p2; P.ex=!P.ex; p2Render(); };
-  App_pres2Reset = () => { const P=window.__p2; P.t0=Date.now(); P.spent={}; P.ss=Date.now(); p2Tick(); };
+  App_pres2Reset = () => { const P=window.__p2; P.t0=Date.now(); P.spent={}; P.alerts={}; P.ss=Date.now(); const m=document.getElementById('p2-esgot'); if(m) m.remove(); p2Tick(); };
   App_pres2Close = () => { clearInterval(window.__p2tick); const ov=document.getElementById('pres2'); if(ov) ov.classList.add('hidden'); document.body.style.overflow=''; };
 
   function p2Ring(p, size){ const c=p==null?'#c7d0db':pctColor(p); const v=p==null?0:Math.min(100,Math.max(0,p)); return `<svg viewBox="0 0 36 36" class="p2-ring" style="width:${size||44}px;height:${size||44}px"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8edf3" stroke-width="3.6"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="${c}" stroke-width="3.6" stroke-dasharray="${v} 100" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle">${p==null?'—':Math.round(p)+'%'}</text></svg>`; }
@@ -3755,6 +3764,42 @@ const App = (() => {
       ${r&&(r.proximo_passo||'').trim()?`<div class="p2-next"><em>Próxima semana</em>${esc(r.proximo_passo)}</div>`:''}</div>`;
   }
 
+  function p2EncHtml(P, s, dentro){
+    const items=[];
+    P.aInfo.filter(y=>y.r && (y.r.proximo_passo||'').trim() && y.st!=='Concluído').forEach(y=>items.push({ pid:y.a.who_profile, txt:y.r.proximo_passo, orig:'Ação · '+y.a.what, dep:y.dep, late:y.late }));
+    P.gInfo.filter(y=>y.cat==='low').forEach(y=>y.rows.filter(r=>(r.acao||'').trim()).forEach(r=>items.push({ pid:r.profile_id, txt:r.acao, orig:'Meta · '+y.g.smart_text, dep:y.deps[0], late:false })));
+    const byP={}; items.forEach(it=>{ (byP[it.pid]=byP[it.pid]||[]).push(it); });
+    const dn=(id)=>(P.D.find(z=>z.d.id===id)||{d:{name:''}}).d.name;
+    const head = dentro
+      ? `<h3 class="p2-h3" style="margin-top:22px">✓ Encaminhamentos e compromissos <small>— o que cada pessoa vai fazer até a próxima RAS</small></h3>`
+      : `<div class="p2-dep-h"><div class="p2-big">✓</div><div><span class="p2-kick">Encerramento · ${s.min} min</span><h2>Encaminhamentos e compromissos</h2><p>O que cada pessoa se comprometeu a fazer até a próxima RAS (próximos passos das ações e ações das metas abaixo da meta).</p></div></div>`;
+    return head+`<div class="p2-enc">${Object.keys(byP).sort((a,b)=>P.nameOf(a).localeCompare(P.nameOf(b))).map(pid=>`<div class="p2-encp"><h4>👤 ${esc(P.nameOf(pid))} <small>${byP[pid].length}</small></h4>${byP[pid].map(it=>`<div class="p2-enci${it.late?' late':''}"><b>${esc(it.txt)}</b><span>${esc(it.orig.length>90?it.orig.slice(0,89)+'…':it.orig)}${dn(it.dep)?' · '+esc(dn(it.dep)):''}</span></div>`).join('')}</div>`).join('')||'<div class="p2-empty">Nenhum compromisso registrado nesta semana.</div>'}</div>`;
+  }
+  /* ----- alertas sonoros e de tela dos blocos (v49) ----- */
+  function p2Audio(){ try{ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; if(!window.__p2ac) window.__p2ac=new C(); if(window.__p2ac.state==='suspended') window.__p2ac.resume(); return window.__p2ac; }catch(e){ return null; } }
+  function p2Beep(n, dur, freq){
+    const P=window.__p2; if(P && P.som===false) return; const ac=p2Audio(); if(!ac) return;
+    for(let k=0;k<n;k++){ const t=ac.currentTime+k*(dur+0.12); const o=ac.createOscillator(), g=ac.createGain();
+      o.type='sine'; o.frequency.value=freq; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.5,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+dur+0.05); }
+  }
+  function p2Alertas(P, s, left){
+    const A=P.alerts[P.i]=P.alerts[P.i]||{};
+    const avisa=(k, fn)=>{ if(A[k]) return; A[k]=true; fn(); };
+    if(left<=60 && left>30) avisa('m1', ()=>{ p2Beep(1,0.35,880); p2Flash('Último minuto'); });
+    if(left<=30 && left>0) avisa('s30', ()=>{ A.m1=true; p2Beep(2,0.25,988); p2Flash('Faltam 30 segundos'); });
+    if(left<=0) avisa('fim', ()=>{ A.m1=true; A.s30=true; p2Beep(3,0.6,660); p2Esgotado(s); });
+  }
+  function p2Flash(txt){ const el=document.getElementById('p2-flash'); if(!el) return; el.textContent='🔔 '+txt; el.classList.add('on'); clearTimeout(window.__p2fl); window.__p2fl=setTimeout(()=>el.classList.remove('on'), 4000); }
+  function p2Esgotado(s){
+    const ov=document.getElementById('pres2'); if(!ov) return; let m=document.getElementById('p2-esgot'); if(m) m.remove();
+    const P=window.__p2; const ult=P.i>=P.slides.length-1;
+    m=document.createElement('div'); m.id='p2-esgot';
+    m.innerHTML=`<div class="p2-esgot-c"><div class="p2-esgot-i">⏰</div><h2>Tempo esgotado</h2><p>${esc(s.t)} · ${s.min} min</p>
+      <div class="p2-esgot-b"><button class="btn btn-light" onclick="document.getElementById('p2-esgot').remove()">Continuar neste bloco</button>${ult?'':`<button class="btn btn-gold" onclick="document.getElementById('p2-esgot').remove();App.pres2Go(${P.i+1})">Ir para ${esc(P.slides[P.i+1].t)} ▸</button>`}</div></div>`;
+    ov.appendChild(m);
+  }
+  App_pres2Som = () => { const P=window.__p2; P.som=P.som===false; if(P.som) { p2Audio(); p2Beep(1,0.15,880); } p2Render(); };
   function p2Render(){
     const P=window.__p2; const s=P.slides[P.i]; const ov=document.getElementById('pres2');
     const wPrev=P.week>1?P.week-1:null, wNext=P.week<weeksOfYear(P.year).length?P.week+1:null;
@@ -3800,6 +3845,10 @@ const App = (() => {
     } else if(s.k==='rank'){
       body=p2RankHtml(P);
     } else {
+      body=p2EncHtml(P, s);
+    }
+    if(s.k==='dir') body+=p2EncHtml(P, s, true);
+    if(false){
       const items=[];
       P.aInfo.filter(y=>y.r && (y.r.proximo_passo||'').trim() && y.st!=='Concluído').forEach(y=>items.push({ pid:y.a.who_profile, txt:y.r.proximo_passo, orig:'Ação · '+y.a.what, dep:y.dep, late:y.late }));
       P.gInfo.filter(y=>y.cat==='low').forEach(y=>y.rows.filter(r=>(r.acao||'').trim()).forEach(r=>items.push({ pid:r.profile_id, txt:r.acao, orig:'Meta · '+y.g.smart_text, dep:y.deps[0], late:false })));
@@ -3810,8 +3859,9 @@ const App = (() => {
     }
     ov.innerHTML=`<div class="p2-bar"><div class="p2-title"><span class="pres-tag">RAS v2 · TESTES</span><b>Reunião da semana ${P.week}</b><span class="pres-sub">${P.wk.start?dm(P.wk.start)+' a '+dm(P.wk.end)+' · ':''}T${P.qW} ${P.year}${me.org_name?' · '+esc(me.org_name):''}</span></div>
         <div class="p2-time"><span id="p2-clock" class="p2-clock" title="Tempo total da reunião (clique para zerar)" onclick="App.pres2Reset()">0:00 / ${p2mmss(P.total||1800)}</span><span id="p2-slide" class="p2-timer" title="Tempo restante deste bloco">—</span><span id="p2-vote" class="p2-vote" style="display:none"></span></div>
-        <div class="pres-ctl"><button onclick="App.pres2Ex()" class="${P.ex?'on':''}" title="Mostrar só o que precisa de atenção">${P.ex?'◉ Só exceções':'○ Mostrar tudo'}</button><button onclick="App.pres2Open(${P.year},${wPrev})" ${wPrev?'':'disabled'}>◂ S${wPrev||''}</button><button onclick="App.pres2Open(${P.year},${wNext})" ${wNext?'':'disabled'}>S${wNext||''} ▸</button><button class="pres-x" onclick="App.pres2Close()" title="Fechar">✕</button></div></div>
+        <div class="pres-ctl"><button onclick="App.pres2Som()" class="${P.som!==false?'on':''}" title="Sinais sonoros no último minuto, aos 30 segundos e no fim de cada setor">${P.som!==false?'🔔 Som':'🔕 Sem som'}</button><button onclick="App.pres2Ex()" class="${P.ex?'on':''}" title="Mostrar só o que precisa de atenção">${P.ex?'◉ Só exceções':'○ Mostrar tudo'}</button><button onclick="App.pres2Open(${P.year},${wPrev})" ${wPrev?'':'disabled'}>◂ S${wPrev||''}</button><button onclick="App.pres2Open(${P.year},${wNext})" ${wNext?'':'disabled'}>S${wNext||''} ▸</button><button class="pres-x" onclick="App.pres2Close()" title="Fechar">✕</button></div></div>
       <div class="p2-agenda">${agenda}</div>
+      <div id="p2-flash" class="p2-flash"></div>
       <div class="p2-body">${body}</div>
       <div class="p2-foot"><button onclick="App.pres2Go(${P.i-1})" ${P.i?'':'disabled'}>◂ Anterior</button><span>${P.i+1} / ${P.slides.length} · ${esc(s.t)} · use as setas ← → do teclado</span><button onclick="App.pres2Go(${P.i+1})" ${P.i<P.slides.length-1?'':'disabled'}>Próximo ▸</button></div>`;
     p2Tick();
@@ -3996,7 +4046,7 @@ const App = (() => {
    'editProc','saveProc','delProc','editProcOwner','saveProcOwner','delProcOwner','editMember','saveMember','delMember','orgSetMode','orgToggleDept','orgImg','orgImgDel','editSwot','saveSwot','delSwot','swotSetView','swotSetPeriod','swotCopyPrev','editPestel','savePestel','delPestel','editStk','saveStk','delStk','canvasSetMode','editCanvas','saveCanvas','delCanvas','diagTab','diagSetPeriod','diagSaveMine','diagSeedDefault','diagAddQ','diagSaveQ','diagDelQ',
    'editCurve','saveCurve','delCurve','editPersp','savePersp','delPersp','editObj','saveObj','delObj','editGoal','saveGoal','delGoal',
    'editIni','saveIni','delIni','editAction','saveAction','delAction','manageMs','addMs','toggleMs','delMs','manageOwners','saveOwners','manageDepts','saveDepts','manageIniOwners','saveIniOwners','pfSetGoal','pfSetYear','pfSetMode','pfSetMine','pfRAS','saveRAS','openWeek','saveWeekPopup',
-   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','actSt','setRasMode','presFilter','pres2Open','pres2Go','pres2Ex','pres2Reset','pres2Close','voteSubmit','votePopClose','p2StartVote','p2RankMode','bscSet','dkGo','dkF','dkFull','dkPrint',
+   'diYear','diWeek','diScope','openActWeek','saveActWeek','rasOpen','rasPrev','rasNext','presOpen','presClose','presScope','rasReq','actSt','setRasMode','presFilter','pres2Open','pres2Go','pres2Ex','pres2Reset','pres2Som','pres2Close','voteSubmit','votePopClose','p2StartVote','p2RankMode','bscSet','dkGo','dkF','dkFull','dkPrint',
    'indSetYear','indSetMode','indSetDept','indSetResp','indSetQuarter','indWeekSummary','indGoto','editUser','saveUser','inviteUser','doInvite','newNotif','notifToggleTarget','sendNotif','saveProfile','changePassword','saveBranding','sendFeedback','fbSetStatus','delFb',
    'doRecovery','backToLogin','manageSector','saveSector','indSetSector','indClear','iniFilter','iniClear','pfSetQ','okrFilter','okrClear','orcSet','orcSave','orcCats','orcCatSave','orcFin','orcFinSave','orcExport','relLoad','relSave','relExport','relCount','tutOpen','tutFilter','help']
    .forEach(n=>{ pub[n]=(...a)=>eval('App_'+n)(...a); });

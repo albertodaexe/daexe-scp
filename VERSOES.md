@@ -154,3 +154,8 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
   - Ordem fixa na Daexe: Sucesso do Cliente e Projetos → Gestão para Pessoas → Gestão para Clientes → Administrativo e Financeiro → Licitação e Contratos. TIQ e Diretoria não entram. Os 5 setores aparecem mesmo sem metas/ações na semana. Outras empresas seguem a ordem do cadastro.
   - Tempos: 5 min por setor, Diretor 2 min, Encaminhamentos 2 min, Votação 1 min, Ranking 2 min. Relógio total = soma dos blocos (32 min).
   - Votação passou para um bloco próprio no final, antes do Ranking (com o resumo da semana).
+
+## v49 — 30/10/2026
+- Apresentação v2 (testes da RAS):
+  - Diretor e Encaminhamentos viraram um só bloco (3 min). Votação 1 min e Ranking 1 min. Total da reunião: 30 min (5 setores × 5 min + 3 + 1 + 1).
+  - Alertas em cada setor: 1 bip no último minuto, 2 bips aos 30 segundos e 3 bips longos no fim, com faixa de aviso na tela; no fim aparece o aviso "Tempo esgotado" com os botões "Continuar neste bloco" e "Ir para o próximo". Cada alerta toca uma vez por setor; "zerar" o relógio rearma os alertas. Botão 🔔 Som / 🔕 Sem som no topo.
