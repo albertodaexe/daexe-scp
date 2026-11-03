@@ -2411,12 +2411,12 @@ const App = (() => {
   };
   App_setRasLembrete = async (v) => {
     try{ const { error } = await sb.from('organizations').update({ ras_lembretes: v==='1' }).eq('id',me.org_id); if(error) throw error; }catch(e){ return toast(e.message); }
-    window.__rasLemb = v==='1'; toast(v==='1'?'Lembretes ligados: quinta e sexta, às 18h, para quem tiver pendência na semana.':'Lembretes automáticos desligados.');
+    window.__rasLemb = v==='1'; toast(v==='1'?'Lembrete ligado: sexta-feira, às 16h, para quem tiver pendência na semana.':'Lembretes automáticos desligados.');
   };
   App_rasLembPrevia = async () => {
     const { data, error } = await sb.rpc('ras_lembrete_previa'); if(error) return toast(error.message);
     const L=data||[];
-    modal('Pendências da RAS — semana atual', `<p class="desc">Quem receberia o lembrete agora (no sistema e por e-mail). Os lembretes saem sozinhos na quinta e na sexta, às 18h, só para quem ainda tiver pendência.</p>
+    modal('Pendências da RAS — semana atual', `<p class="desc">Quem receberia o lembrete agora (no sistema e por e-mail). O lembrete sai sozinho na sexta-feira, às 16h, só para quem ainda tiver pendência.</p>
       ${L.length?`<table><thead><tr><th>Organizador</th><th>Metas pendentes</th><th>Ações pendentes</th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.nome)}</td><td>${x.metas}</td><td>${x.acoes}</td></tr>`).join('')}</tbody></table><p class="desc" style="margin-top:8px">Semana ${L[0].semana}.</p>`:'<div class="empty">Ninguém com pendência. 🎉</div>'}`);
   };
   const pctColor=(p)=>p>=100?'#2e9e6b':p>=70?'#2E8BC0':p>=40?'#e6a817':'#d9534f';
@@ -2443,7 +2443,7 @@ const App = (() => {
         <div class="toggle-group"><button class="${scope==='minhas'?'active':''}" onclick="App.diScope('minhas')">Minhas</button><button class="${scope==='todas'?'active':''}" onclick="App.diScope('todas')">Todas</button></div></div></div>
       <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:6px">
         ${can('admin')&&!TEST?`<div class="field" style="margin:0;min-width:270px"><label>Modelo da RAS (administrador)</label><select onchange="App.setRasMode(this.value)"><option value="metas" ${rm==='metas'?'selected':''}>Metas — meta, resultado, causa e ação</option><option value="integrado" ${rm==='integrado'?'selected':''}>Integrado — ações das iniciativas + metas (meta, resultado, causa e ação)</option><option value="completo" ${rm==='completo'?'selected':''}>Completo — ações das iniciativas + evolução das metas</option></select></div>
-        <div class="field" style="margin:0;min-width:230px"><label>Lembretes automáticos</label><select onchange="App.setRasLembrete(this.value)"><option value="1" ${window.__rasLemb?'selected':''}>Ligados — qui e sex, 18h</option><option value="0" ${window.__rasLemb?'':'selected'}>Desligados</option></select></div>
+        <div class="field" style="margin:0;min-width:230px"><label>Lembretes automáticos</label><select onchange="App.setRasLembrete(this.value)"><option value="1" ${window.__rasLemb?'selected':''}>Ligado — sexta, 16h</option><option value="0" ${window.__rasLemb?'':'selected'}>Desligados</option></select></div>
         <button class="btn btn-light btn-sm" style="margin-bottom:4px" onclick="App.rasLembPrevia()" title="Quem receberia o lembrete agora">Ver pendências da semana</button>`:''}
         <div class="field" style="margin:0;min-width:120px"><label>Ano</label><select onchange="App.diYear(this.value)">${yearOpts.map(y=>`<option value="${y}" ${y==year?'selected':''}>${y}</option>`).join('')}</select></div>
         <div class="field" style="margin:0;min-width:230px"><label>Semana</label><select onchange="App.diWeek(this.value)">${weeks.map(w=>`<option value="${w.week}" ${w.week==week?'selected':''}>S${w.week} · ${dm(w.start)}–${dm(w.end)}</option>`).join('')}</select></div>

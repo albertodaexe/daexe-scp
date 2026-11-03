@@ -167,3 +167,6 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - Alertas sonoros mais fortes (ding-dong duplo no último minuto, bipes rápidos aos 30 s, sirene no fim).
 - Lembretes automáticos de preenchimento: quinta e sexta às 18h, para quem tem meta/ação sem preenchimento na semana (notificação + e-mail). Liga/desliga e prévia de pendências no topo da página (administrador). Aviso na tela ao entrar no Cangolo quando há lembrete recente.
 - Assistente da RAS: de quinta a domingo abre na semana atual (prazo sábado 10h); de segunda a quarta, na semana anterior.
+
+## v51 — 03/11/2026
+- Lembrete automático da RAS: só na sexta-feira, às 16h (saiu o de quinta). Agendamento pg_cron 'ras-lembrete-sexta' (19h UTC).
