@@ -159,3 +159,11 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 - Apresentação v2 (testes da RAS):
   - Diretor e Encaminhamentos viraram um só bloco (3 min). Votação 1 min e Ranking 1 min. Total da reunião: 30 min (5 setores × 5 min + 3 + 1 + 1).
   - Alertas em cada setor: 1 bip no último minuto, 2 bips aos 30 segundos e 3 bips longos no fim, com faixa de aviso na tela; no fim aparece o aviso "Tempo esgotado" com os botões "Continuar neste bloco" e "Ir para o próximo". Cada alerta toca uma vez por setor; "zerar" o relógio rearma os alertas. Botão 🔔 Som / 🔕 Sem som no topo.
+
+## v50 — 03/11/2026
+- A Apresentação v2 virou a apresentação oficial da RAS: botão "🖥️ Apresentação da RAS" em Desempenho de Iniciativas/Metas ("📊 Painel da semana" mantém o painel antigo). A página "RAS com iniciativas (testes)" saiu do menu (link antigo abre a página oficial).
+- Novo modelo de RAS "Integrado" (ativo na Daexe): ações das iniciativas + metas com meta da semana, resultado, causa e ação.
+- Roteiro: BPO Financeiro em bloco próprio logo após Sucesso do Cliente e Projetos (metas do setor BPO e ações ligadas a elas ou às pessoas do setor saem do bloco de SCP); 4 min por setor; total 29 min.
+- Alertas sonoros mais fortes (ding-dong duplo no último minuto, bipes rápidos aos 30 s, sirene no fim).
+- Lembretes automáticos de preenchimento: quinta e sexta às 18h, para quem tem meta/ação sem preenchimento na semana (notificação + e-mail). Liga/desliga e prévia de pendências no topo da página (administrador). Aviso na tela ao entrar no Cangolo quando há lembrete recente.
+- Assistente da RAS: de quinta a domingo abre na semana atual (prazo sábado 10h); de segunda a quarta, na semana anterior.

@@ -1,0 +1,5 @@
+-- v50 (já aplicado no Supabase): lembretes automáticos da RAS e modelo "integrado"
+-- organizations.ras_lembretes (liga/desliga), ras_semana(), ras_pendencias(), ras_enviar_lembretes(), ras_lembrete_previa()
+-- pg_cron: 'ras-lembrete-qui-sex' = '0 21 * * 4,5' (quinta e sexta, 18h de Brasília)
+-- Daexe: ras_mode = 'integrado' (ações das iniciativas + metas com meta, resultado, causa e ação), ras_lembretes = true
+-- Lembrete: notificação no Cangolo + e-mail (fila gpp.email_fila, enviada a cada 5 min) para quem tem meta/ação sem preenchimento na semana atual.
