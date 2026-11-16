@@ -3735,8 +3735,13 @@ const App = (() => {
         const usadoG=new Set(), usadoA=new Set(), blocos=[];
         ORDEM_DAEXE.forEach(k=>{ const [t,n]=k.split(':');
           if(t==='s'){ const sc=secs.find(x=>nrm(x.name).startsWith(n)); if(!sc) return;
-            const gids=new Set(gSecs.filter(x=>x.sector_id===sc.id).map(x=>x.goal_id)); const ppl=new Set(sPeople.filter(x=>x.sector_id===sc.id).map(x=>x.profile_id));
-            const gs=gInfo.filter(x=>gids.has(x.g.id)); const as=aInfo.filter(y=>ppl.has(y.a.who_profile) || igl.some(z=>z.initiative_id===y.a.initiative_id && gids.has(z.goal_id)));
+            // v52: só é do setor a meta vinculada EXCLUSIVAMENTE a ele (metas compartilhadas com outros setores ficam no departamento)
+            const secsOf=(gid)=>gSecs.filter(x=>x.goal_id===gid).map(x=>x.sector_id);
+            const gids=new Set(gInfo.map(x=>x.g.id).filter(id=>{ const ss=secsOf(id); return ss.length && ss.every(v=>v===sc.id); }));
+            const ppl=new Set(sPeople.filter(x=>x.sector_id===sc.id).map(x=>x.profile_id));
+            // iniciativa é do setor quando todas as metas vinculadas são exclusivas dele; sem meta vinculada, vale a pessoa da ação
+            const iniDoSetor=(iid)=>{ const gl=igl.filter(z=>z.initiative_id===iid).map(z=>z.goal_id); return gl.length ? gl.every(g=>gids.has(g) || (secsOf(g).length && secsOf(g).every(v=>v===sc.id))) : null; };
+            const gs=gInfo.filter(x=>gids.has(x.g.id)); const as=aInfo.filter(y=>{ const r=iniDoSetor(y.a.initiative_id); return r===null ? ppl.has(y.a.who_profile) : r; });
             gs.forEach(x=>usadoG.add(x)); as.forEach(x=>usadoA.add(x)); blocos.push({ d:{ id:'s'+sc.id, name:sc.name, setor:true }, goals:gs, acts:as }); }
           else { const d=depts.find(x=>nrm(x.name).startsWith(n)); if(d) blocos.push({ d, goals:null, acts:null }); } });
         blocos.forEach(b=>{ if(!b.goals){ b.goals=gInfo.filter(x=>x.deps.includes(b.d.id) && !usadoG.has(x)); b.acts=aInfo.filter(x=>x.dep===b.d.id && !usadoA.has(x)); } });

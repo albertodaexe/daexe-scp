@@ -170,3 +170,6 @@ Cópias com data/hora, ex.: online_2026-06-02_1201_v1.html — cada uma é um po
 
 ## v51 — 03/11/2026
 - Lembrete automático da RAS: só na sexta-feira, às 16h (saiu o de quinta). Agendamento pg_cron 'ras-lembrete-sexta' (19h UTC).
+
+## v52 — 16/11/2026
+- Apresentação da RAS: separação SCP × BPO revista. Vai para o bloco BPO Financeiro só a meta vinculada exclusivamente ao setor BPO; metas compartilhadas entre setores de SCP (ex.: "SCP - Faturar R$ 940.000,00", "SCP - Obter 1 cliente por gestor…") ficam em Sucesso do Cliente e Projetos. Iniciativa vai para o BPO só quando todas as suas metas são do BPO (ex.: "Projeto Operação Caixa Forte" volta para SCP); iniciativa sem meta vinculada segue o setor da pessoa da ação.
